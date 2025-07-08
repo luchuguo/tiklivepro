@@ -527,6 +527,19 @@ export function TaskDetailPage({ taskId, onBack }: TaskDetailPageProps) {
                   </span>
                 </div>
               </div>
+
+              {/* 预付信息 */}
+              <div>
+                <div className="text-sm text-gray-500 mb-1">预付情况</div>
+                {task.is_advance_paid ? (
+                  <div className="flex items-center space-x-1 text-gray-900">
+                    <DollarSign className="w-5 h-5 text-emerald-600" />
+                    <span className="text-xl font-bold text-emerald-700">已预付 ¥{(task.paid_amount ?? 0).toLocaleString()}</span>
+                  </div>
+                ) : (
+                  <div className="text-gray-500 text-sm">未预付</div>
+                )}
+              </div>
               
               <div>
                 <div className="text-sm text-gray-500 mb-1">直播时间</div>
