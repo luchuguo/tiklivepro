@@ -27,6 +27,7 @@ import { DatabaseConnectionFixer } from '../DatabaseConnectionFixer'
 import { SampleDataManager } from '../SampleDataManager'
 import { InfluencerDisplayDiagnostic } from '../InfluencerDisplayDiagnostic'
 import { InfluencerDetailPage } from './InfluencerDetailPage'
+// 调试 Hook 已移除；使用本地函数
 
 export function InfluencersPage() {
   const [influencers, setInfluencers] = useState<Influencer[]>([])
@@ -57,7 +58,10 @@ export function InfluencersPage() {
     { id: '图书教育', name: '图书教育' }
   ]
 
+  const debugMode = false // 调试开关，生产环境关闭
+
   const addDebugInfo = (message: string) => {
+    if (!debugMode) return
     const timestamp = new Date().toLocaleTimeString()
     const debugMessage = `${timestamp}: ${message}`
     console.log('[InfluencersPage]', debugMessage)
@@ -587,7 +591,7 @@ export function InfluencersPage() {
             </div>
             
             <div className="flex items-center space-x-2">
-              {debugInfo.length > 0 && (
+              {debugMode && debugInfo.length > 0 && (
                 <button
                   onClick={() => setShowDebug(!showDebug)}
                   className="text-sm text-blue-600 hover:text-blue-700 flex items-center space-x-1"
@@ -646,6 +650,7 @@ export function InfluencersPage() {
               <AlertCircle className="w-16 h-16 text-red-300 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-red-600 mb-2">加载失败</h3>
               <p className="text-red-500 mb-4">{error}</p>
+              {debugMode && (
               <div className="flex justify-center space-x-4">
                 <button
                   onClick={fetchInfluencers}
@@ -689,7 +694,7 @@ export function InfluencersPage() {
                   <Database className="w-4 h-4" />
                   <span>测试数据</span>
                 </button>
-              </div>
+              </div>)}
             </div>
           ) : filteredInfluencers.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -711,6 +716,7 @@ export function InfluencersPage() {
                     : '当前分类下暂无达人，请选择其他分类'
                 }
               </p>
+              {debugMode && (
               <div className="flex justify-center space-x-4">
                 <button
                   onClick={() => setShowSampleDataManager(true)}
@@ -747,34 +753,34 @@ export function InfluencersPage() {
                   <Settings className="w-4 h-4" />
                   <span>检查连接</span>
                 </button>
-              </div>
+              </div>)}
             </div>
           )}
         </div>
       </section>
 
       {/* Database Status Modal */}
-      {showDatabaseStatus && (
+      {debugMode && showDatabaseStatus && (
         <DatabaseStatus onClose={() => setShowDatabaseStatus(false)} />
       )}
 
       {/* Data Checker Modal */}
-      {showDataChecker && (
+      {debugMode && showDataChecker && (
         <DatabaseDataChecker />
       )}
 
       {/* Connection Fixer Modal */}
-      {showConnectionFixer && (
+      {debugMode && showConnectionFixer && (
         <DatabaseConnectionFixer onClose={() => setShowConnectionFixer(false)} />
       )}
 
       {/* Sample Data Manager Modal */}
-      {showSampleDataManager && (
+      {debugMode && showSampleDataManager && (
         <SampleDataManager onClose={() => setShowSampleDataManager(false)} />
       )}
 
       {/* Diagnostic Modal */}
-      {showDiagnostic && (
+      {debugMode && showDiagnostic && (
         <InfluencerDisplayDiagnostic onClose={() => setShowDiagnostic(false)} />
       )}
     </div>

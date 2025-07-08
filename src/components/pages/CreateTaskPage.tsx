@@ -18,6 +18,7 @@ export function CreateTaskPage({ company, onBack }: CreateTaskPageProps) {
     budget_max: 0,
     max_applicants: 5,
     live_date: '',
+    is_urgent: false,
     is_advance_paid: false,
     paid_amount: 0
   })
@@ -93,7 +94,7 @@ export function CreateTaskPage({ company, onBack }: CreateTaskPageProps) {
           live_date: form.live_date || null,
           duration_hours: 2,
           status: 'open',
-          is_urgent: false,
+          is_urgent: form.is_urgent,
           current_applicants: 0,
           views_count: 0,
           /* 预付 / 结算字段 */
@@ -248,6 +249,18 @@ export function CreateTaskPage({ company, onBack }: CreateTaskPageProps) {
               />
             </div>
           </div>
+
+          {/* 紧急任务标记 */}
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              name="is_urgent"
+              checked={form.is_urgent}
+              onChange={handleCheckbox}
+              className="h-4 w-4 text-red-600 border-gray-300 rounded"
+            />
+            <span className="text-sm text-red-700">紧急任务</span>
+          </label>
 
           {/* 预付 */}
           <div className="flex items-center space-x-4">

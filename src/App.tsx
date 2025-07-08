@@ -404,16 +404,18 @@ function App() {
           </div>
         </section>
 
-        {/* Supabase 配置检查器 */}
-        <section className="py-20 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">系统状态检查</h2>
-              <p className="text-lg text-gray-600">检查 Supabase 配置和连接状态</p>
+        {/* 系统状态检查（默认隐藏，可调试时开启） */}
+        {false && (
+          <section className="py-20 bg-gray-50">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">系统状态检查</h2>
+                <p className="text-lg text-gray-600">检查 Supabase 配置和连接状态</p>
+              </div>
+              <SupabaseConfigChecker />
             </div>
-            <SupabaseConfigChecker />
-          </div>
-        </section>
+          </section>
+        )}
       </div>
     )
   }

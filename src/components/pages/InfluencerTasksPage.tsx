@@ -65,10 +65,10 @@ export function InfluencerTasksPage() {
   }
 
   const taskStatusMap: Record<string, string> = {
-    open: '寻求合作中',
-    in_progress: '已达成合作',
-    completed: '任务结束',
-    cancelled: '未达成合作',
+    open: '招募中',
+    in_progress: '进行中',
+    completed: '已完成',
+    cancelled: '已取消',
   }
 
   const applicationStatusMap: Record<string, string> = {

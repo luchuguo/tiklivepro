@@ -15,6 +15,35 @@ export function CompanyTasksPage() {
   const [error, setError] = useState<string | null>(null)
   const [showCreate, setShowCreate] = useState(false)
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
+  // 正在处理的任务 ID，用于禁用按钮
+  const [processingTaskId, setProcessingTaskId] = useState<string | null>(null)
+
+  // 更新任务状态
+  const updateTaskStatus = async (task: Task, newStatus: Task['status']) => {
+    try {
+      // 若状态本就相同，直接返回
+      if (task.status === newStatus) return
+      setProcessingTaskId(task.id)
+
+      // 乐观更新本地列表
+      setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: newStatus } : t))
+
+      const { error } = await supabase
+        .from('tasks')
+        .update({ status: newStatus, updated_at: new Date().toISOString() })
+        .eq('id', task.id)
+
+      if (error) {
+        // 发生错误还原状态并提示
+        console.error('更新任务状态失败:', error)
+        alert('更新任务状态失败，请重试')
+        // 重新拉取以保持一致
+        fetchCompanyAndTasks()
+      }
+    } finally {
+      setProcessingTaskId(null)
+    }
+  }
 
   useEffect(() => {
     if (profile?.user_type === 'company' && user) {
@@ -116,12 +145,39 @@ export function CompanyTasksPage() {
                   <h3 className="text-lg font-medium text-gray-900">{task.title}</h3>
                   <p className="text-sm text-gray-500">直播时间：{task.live_date ? new Date(task.live_date).toLocaleDateString() : '未设置'}</p>
                 </div>
-                <div className="text-sm text-gray-500 text-right">
-                  <p>状态：{task.status}</p>
+                <div className="text-sm text-gray-500 text-right space-y-1">
+                  <p>状态：{
+                    {
+                      open: '招募中',
+                      in_progress: '进行中',
+                      completed: '已完成',
+                      cancelled: '已取消',
+                    }[task.status]
+                  }</p>
                   {task.selected_influencer && (
                     <p className="text-green-600">已选择：{task.selected_influencer.nickname}</p>
                   )}
                   <p>申请：{(task.current_applicants ?? 0)}/{task.max_applicants}</p>
+
+                  {/* 操作按钮 */}
+                  <div className="flex items-center justify-end space-x-2 mt-1">
+                    {/* 取消按钮：仅在 open 或 in_progress 状态可见 */}
+                    {(task.status === 'open' || task.status === 'in_progress') && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); updateTaskStatus(task, 'cancelled') }}
+                        disabled={processingTaskId === task.id}
+                        className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs disabled:opacity-50"
+                      >取消</button>
+                    )}
+                    {/* 完成按钮：仅在 in_progress 状态可见 */}
+                    {task.status === 'in_progress' && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); updateTaskStatus(task, 'completed') }}
+                        disabled={processingTaskId === task.id}
+                        className="px-3 py-1 rounded bg-green-500 hover:bg-green-600 text-white text-xs disabled:opacity-50"
+                      >完成</button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

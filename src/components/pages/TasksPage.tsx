@@ -155,8 +155,24 @@ export function TasksPage() {
                 </span>
               )}
               <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs">
-                {task.status}
+                {{
+                  open: '招募中',
+                  in_progress: '进行中',
+                  completed: '已完成',
+                  cancelled: '已取消',
+                }[task.status]}
               </span>
+
+              {/* 预付标记 */}
+              {task.is_advance_paid ? (
+                <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs">
+                  已预付 ¥{(task.paid_amount ?? 0).toLocaleString()}
+                </span>
+              ) : (
+                <span className="bg-gray-100 text-gray-500 px-2 py-1 rounded-full text-xs">
+                  未预付
+                </span>
+              )}
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-pink-600 transition-colors">
               {task.title}

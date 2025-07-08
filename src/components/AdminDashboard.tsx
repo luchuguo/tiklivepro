@@ -243,6 +243,7 @@ export function AdminDashboard() {
     const [users, setUsers] = useState<any[]>([])
     const [search, setSearch] = useState('')
     const [loadingUsers, setLoadingUsers] = useState(true)
+    const [selectedProfile, setSelectedProfile] = useState<any | null>(null)
 
     useEffect(() => {
       fetchUsers()
@@ -307,6 +308,32 @@ export function AdminDashboard() {
       }
     }
 
+    // 查看用户详情
+    const viewUser = async (u: any) => {
+      try {
+        let profileData: any = null
+        if (u.user_type === 'influencer') {
+          const { data } = await supabase
+            .from('influencers')
+            .select('*')
+            .eq('user_id', u.user_id)
+            .single()
+          profileData = data
+        } else if (u.user_type === 'company') {
+          const { data } = await supabase
+            .from('companies')
+            .select('*')
+            .eq('user_id', u.user_id)
+            .single()
+          profileData = data
+        }
+        setSelectedProfile({ basic: u, detail: profileData })
+      } catch (err) {
+        console.error('加载用户详情失败', err)
+        alert('加载详情失败')
+      }
+    }
+
     const filtered = users.filter(u => {
       const keyword = search.toLowerCase()
       return (
@@ -317,6 +344,7 @@ export function AdminDashboard() {
     })
 
     return (
+      <>
       <div className="bg-white rounded-xl shadow-sm">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
@@ -380,7 +408,11 @@ export function AdminDashboard() {
                         <span className="text-yellow-600 flex items-center space-x-1"><AlertTriangle className="w-4 h-4"/><span>待审核</span></span>
                       )}
                     </td>
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-2 space-x-2">
+                      <button
+                        onClick={() => viewUser(u)}
+                        className="text-sm text-blue-600 hover:underline"
+                      >查看</button>
                       {!u.approve_status && (
                         <button
                           onClick={() => approveUser(u)}
@@ -397,6 +429,45 @@ export function AdminDashboard() {
           )}
         </div>
       </div>
+      {selectedProfile && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                <h3 className="text-xl font-bold text-gray-900">用户详情</h3>
+                <button onClick={() => setSelectedProfile(null)} className="text-gray-500 hover:text-gray-900">
+                  <XCircle className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="p-6 space-y-4 text-sm text-gray-800">
+                <p><span className="font-medium">邮箱：</span>{selectedProfile.basic.email}</p>
+                <p><span className="font-medium">类型：</span>{selectedProfile.basic.user_type === 'influencer' ? '达人' : '商家'}</p>
+                <p><span className="font-medium">注册时间：</span>{new Date(selectedProfile.basic.created_at).toLocaleString()}</p>
+                <p><span className="font-medium">更新时间：</span>{new Date(selectedProfile.basic.updated_at).toLocaleString()}</p>
+
+                {selectedProfile.detail && (
+                  <>
+                    {selectedProfile.basic.user_type === 'influencer' ? (
+                      <>
+                        <p><span className="font-medium">昵称：</span>{selectedProfile.detail.nickname}</p>
+                        <p><span className="font-medium">粉丝：</span>{selectedProfile.detail.followers_count?.toLocaleString()}</p>
+                        <p><span className="font-medium">认证：</span>{selectedProfile.detail.is_verified ? '已认证' : '未认证'}</p>
+                        <p><span className="font-medium">审核：</span>{selectedProfile.detail.is_approved ? '已通过' : '未通过'}</p>
+                      </>
+                    ) : (
+                      <>
+                        <p><span className="font-medium">公司名称：</span>{selectedProfile.detail.company_name}</p>
+                        <p><span className="font-medium">联系人：</span>{selectedProfile.detail.contact_person}</p>
+                        <p><span className="font-medium">行业：</span>{selectedProfile.detail.industry || '—'}</p>
+                        <p><span className="font-medium">认证：</span>{selectedProfile.detail.is_verified ? '已认证' : '未认证'}</p>
+                      </>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </>
     )
   }
 
@@ -478,7 +549,12 @@ export function AdminDashboard() {
                 <h4 className="font-semibold text-gray-700 mb-1">基本信息</h4>
                 <p>标题：{task.title}</p>
                 <p>公司：{task.company?.company_name || '—'}</p>
-                <p>状态：{task.status}</p>
+                <p>状态：{({
+                  open: '招募中',
+                  in_progress: '进行中',
+                  completed: '已完成',
+                  cancelled: '已取消',
+                } as Record<string, string>)[task.status]}</p>
                 <p>中标达人：{task.selected_influencer ? task.selected_influencer.nickname : '—'}</p>
                 <p>预付：{task.is_advance_paid ? '是' : '否'}</p>
                 <p>已结算：{task.is_settled ? '是' : '否'}</p>
@@ -569,7 +645,12 @@ export function AdminDashboard() {
                   >
                     <td className="px-4 py-2 text-pink-600 underline">{t.title}</td>
                     <td className="px-4 py-2 text-gray-600">{t.company?.company_name || '—'}</td>
-                    <td className="px-4 py-2 text-gray-600">{t.status}</td>
+                    <td className="px-4 py-2 text-gray-600">{({
+                      open: '招募中',
+                      in_progress: '进行中',
+                      completed: '已完成',
+                      cancelled: '已取消',
+                    } as Record<string, string>)[t.status]}</td>
                     <td className="px-4 py-2 text-gray-600">{t.current_applicants}/{t.max_applicants}</td>
                     <td className="px-4 py-2 text-gray-600">{t.selected_influencer?.nickname || '—'}</td>
                     <td className="px-4 py-2 text-gray-600">{t.is_advance_paid ? '是' : '否'}</td>
