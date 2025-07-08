@@ -13,6 +13,7 @@ export function CreateTaskPage({ company, onBack }: CreateTaskPageProps) {
     title: '',
     description: '',
     category_id: '',
+    product_name: '',
     requirements: '',
     budget_min: 0,
     budget_max: 0,
@@ -84,6 +85,7 @@ export function CreateTaskPage({ company, onBack }: CreateTaskPageProps) {
           title: form.title,
           description: form.description,
           category_id: form.category_id || null,
+          product_name: form.product_name || null,
           requirements: form.requirements
             .split('\n')
             .map(s => s.trim())
@@ -180,6 +182,19 @@ export function CreateTaskPage({ company, onBack }: CreateTaskPageProps) {
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* 产品名称 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">产品名称</label>
+            <input
+              type="text"
+              name="product_name"
+              value={form.product_name}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="可选，填写后便于达人了解"
+            />
           </div>
 
           {/* 要求 */}
