@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { Loader, AlertCircle, Video } from 'lucide-react'
 import { supabase, TaskApplication, Task } from '../../lib/supabase'
-import { useAuth } from '../../hooks/useAuth'
+import { useAuthContext } from '../../hooks/useAuth'
 
 // 达人用户专属：我的任务列表（已申请 / 已合作）
 export function InfluencerTasksPage() {
-  const { user, profile, isInfluencer } = useAuth()
+  const { user, profile, isInfluencer } = useAuthContext()
 
   // 包含任务申请及关联任务对象
   const [applications, setApplications] = useState<(TaskApplication & { task: Task })[]>([])

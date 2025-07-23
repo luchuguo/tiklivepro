@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, createContext, useContext } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase, UserProfile } from '../lib/supabase'
 
@@ -241,9 +241,9 @@ export function useAuth() {
     }
   }
 
-  const signUp = async (email: string, password: string, userType: 'influencer' | 'company') => {
+  const signUp = async (email: string, password: string, userType: 'influencer' | 'company', phoneNumber?: string) => {
     try {
-      console.log('开始注册:', email, userType)
+      console.log('开始注册:', email, userType, phoneNumber)
       setLoading(true)
       
       const { data, error } = await supabase.auth.signUp({
@@ -265,6 +265,7 @@ export function useAuth() {
           .insert({
             user_id: data.user.id,
             user_type: userType,
+            phone: phoneNumber || null,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
@@ -380,4 +381,18 @@ export function useAuth() {
     isCompany: profile?.user_type === 'company',
     isAdmin: profile?.user_type === 'admin',
   }
+}
+
+// Context 封装
+const AuthContext = createContext<ReturnType<typeof useAuth> | null>(null)
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const auth = useAuth()
+  return React.createElement(AuthContext.Provider, { value: auth }, children)
+}
+
+export function useAuthContext() {
+  const ctx = useContext(AuthContext)
+  if (!ctx) throw new Error('useAuthContext 必须在 <AuthProvider> 内部使用')
+  return ctx
 }

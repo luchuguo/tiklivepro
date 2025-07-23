@@ -23,10 +23,16 @@ import {
   ArrowLeft
 } from 'lucide-react'
 import { supabase, Influencer } from '../../lib/supabase'
-import { useAuth } from '../../hooks/useAuth'
+import { useAuthContext } from '../../hooks/useAuth'
+import { StorageManager } from '../StorageManager'
 
 export function InfluencerProfilePage() {
-  const { user, profile, loading: authLoading } = useAuth()
+  const { user, profile, loading: authLoading } = useAuthContext()
+  
+  // 添加调试日志 - 仅在开发环境显示
+  if (import.meta.env.DEV) {
+    console.log('InfluencerProfilePage 渲染:', { user, profile, authLoading })
+  }
   const [influencer, setInfluencer] = useState<Influencer | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -48,15 +54,38 @@ export function InfluencerProfilePage() {
   const [newTag, setNewTag] = useState('')
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [avatarKey, setAvatarKey] = useState(0)
 
   const availableCategories = [
     '美妆护肤', '时尚穿搭', '美食生活', '数码科技', 
     '健身运动', '母婴用品', '家居家装', '图书教育'
   ]
 
+  const apiKey = import.meta.env.VITE_DEBLUR_API_KEY;
+
+  // 测试存储桶配置
+  const testStorageBucket = async () => {
+    try {
+      const { data: buckets, error } = await supabase.storage.listBuckets()
+      if (error) {
+        console.error('存储桶检查失败:', error)
+        return false
+      }
+      
+      const bucketExists = buckets?.some(bucket => bucket.name === 'influencer-avatars')
+      console.log('存储桶检查结果:', { buckets: buckets?.map(b => b.name), bucketExists })
+      return bucketExists
+    } catch (error) {
+      console.error('存储桶检查异常:', error)
+      return false
+    }
+  }
+
   useEffect(() => {
     if (user && !authLoading) {
       fetchInfluencerProfile()
+      // 检查存储桶配置
+      testStorageBucket()
     }
   }, [user, authLoading])
 
@@ -67,12 +96,16 @@ export function InfluencerProfilePage() {
       setLoading(true)
       setError(null)
       
+      console.log('开始获取达人资料，用户ID:', user.id)
+      
       // 获取当前用户的达人资料
       const { data: influencerData, error: influencerError } = await supabase
         .from('influencers')
         .select('*')
         .eq('user_id', user.id)
         .single()
+
+      console.log('获取达人资料结果:', { influencerData, influencerError })
 
       if (influencerError) {
         if (influencerError.code === 'PGRST116') {
@@ -84,9 +117,10 @@ export function InfluencerProfilePage() {
           setError('获取资料失败，请重试')
         }
       } else {
+        console.log('成功获取达人资料:', influencerData)
         setInfluencer(influencerData)
         // 填充表单数据
-        setFormData({
+        const formDataToSet = {
           nickname: influencerData.nickname || '',
           real_name: influencerData.real_name || '',
           tiktok_account: influencerData.tiktok_account || '',
@@ -96,7 +130,9 @@ export function InfluencerProfilePage() {
           tags: influencerData.tags || [],
           hourly_rate: influencerData.hourly_rate || 0,
           experience_years: influencerData.experience_years || 0
-        })
+        }
+        console.log('设置表单数据:', formDataToSet)
+        setFormData(formDataToSet)
         setAvatarPreview(influencerData.avatar_url || null)
       }
     } catch (error) {
@@ -132,9 +168,11 @@ export function InfluencerProfilePage() {
       alert('该分类已存在')
       return
     }
+    const updatedCategories = [...formData.categories, newCategory.trim()]
+    console.log('添加专业领域:', newCategory.trim(), '更新后的分类:', updatedCategories)
     setFormData(prev => ({
       ...prev,
-      categories: [...prev.categories, newCategory.trim()]
+      categories: updatedCategories
     }))
     setNewCategory('')
   }
@@ -145,9 +183,11 @@ export function InfluencerProfilePage() {
       alert('该标签已存在')
       return
     }
+    const updatedTags = [...formData.tags, newTag.trim()]
+    console.log('添加技能标签:', newTag.trim(), '更新后的标签:', updatedTags)
     setFormData(prev => ({
       ...prev,
-      tags: [...prev.tags, newTag.trim()]
+      tags: updatedTags
     }))
     setNewTag('')
   }
@@ -166,48 +206,34 @@ export function InfluencerProfilePage() {
     }))
   }
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
       setAvatarFile(file)
-      
-      // 创建预览
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setAvatarPreview(reader.result as string)
+      setAvatarPreview('') // 清空预览
+      setError(null)
+      try {
+        const formData = new FormData();
+        formData.append('filename', file);
+        const res = await fetch('https://prod.api.market/api/v1/magicapi/image-upload/upload', {
+          method: 'POST',
+          headers: {
+            'x-magicapi-key': apiKey,
+            'accept': 'application/json',
+          },
+          body: formData,
+        });
+        const data = await res.json();
+        if (data.url) {
+          setAvatarPreview(data.url);
+        } else if (data.data && data.data.url) {
+          setAvatarPreview(data.data.url);
+        } else {
+          setError(data.message || '上传失败');
+        }
+      } catch (e: any) {
+        setError(e.message || '上传异常');
       }
-      reader.readAsDataURL(file)
-    }
-  }
-
-  const uploadAvatar = async (): Promise<string | null> => {
-    if (!avatarFile || !user) return null
-    
-    try {
-      // 生成唯一文件名
-      const fileExt = avatarFile.name.split('.').pop()
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`
-      const filePath = `avatars/${fileName}`
-      
-      // 上传到 Storage
-      const { error: uploadError } = await supabase.storage
-        .from('influencer-avatars')
-        .upload(filePath, avatarFile)
-      
-      if (uploadError) {
-        console.error('上传头像失败:', uploadError)
-        throw new Error('上传头像失败')
-      }
-      
-      // 获取公共URL
-      const { data } = supabase.storage
-        .from('influencer-avatars')
-        .getPublicUrl(filePath)
-      
-      return data.publicUrl
-    } catch (error) {
-      console.error('处理头像时发生错误:', error)
-      return null
     }
   }
 
@@ -224,6 +250,8 @@ export function InfluencerProfilePage() {
       setError(null)
       setSuccess(null)
       
+      console.log('开始保存资料，表单数据:', formData)
+      
       // 验证必填字段
       if (!formData.nickname) {
         setError('昵称不能为空')
@@ -232,11 +260,8 @@ export function InfluencerProfilePage() {
       
       // 上传头像（如果有）
       let avatarUrl = influencer?.avatar_url || null
-      if (avatarFile) {
-        const newAvatarUrl = await uploadAvatar()
-        if (newAvatarUrl) {
-          avatarUrl = newAvatarUrl
-        }
+      if (avatarPreview) {
+        avatarUrl = avatarPreview
       }
       
       const updateData = {
@@ -245,39 +270,69 @@ export function InfluencerProfilePage() {
         updated_at: new Date().toISOString()
       }
       
+      console.log('准备保存的数据:', updateData)
+      
       if (influencer) {
         // 更新现有资料
-        const { error: updateError } = await supabase
+        console.log('更新现有资料，用户ID:', user.id)
+        const { data: updateResult, error: updateError } = await supabase
           .from('influencers')
           .update(updateData)
           .eq('user_id', user.id)
+          .select()
+        
+        console.log('更新结果:', { updateResult, updateError })
         
         if (updateError) {
           console.error('更新资料失败:', updateError)
           setError('更新资料失败，请重试')
           return
         }
+        
+        // 立即更新本地状态
+        if (updateResult && updateResult[0]) {
+          setInfluencer(updateResult[0])
+        }
       } else {
         // 创建新资料
-        const { error: insertError } = await supabase
+        console.log('创建新资料，用户ID:', user.id)
+        const { data: insertResult, error: insertError } = await supabase
           .from('influencers')
           .insert({
             user_id: user.id,
             ...updateData
           })
+          .select()
+        
+        console.log('创建结果:', { insertResult, insertError })
         
         if (insertError) {
           console.error('创建资料失败:', insertError)
           setError('创建资料失败，请重试')
           return
         }
+        
+        // 立即更新本地状态
+        if (insertResult && insertResult[0]) {
+          setInfluencer(insertResult[0])
+        }
       }
       
       setSuccess('资料保存成功！')
       setEditMode(false)
       
-      // 重新获取资料
-      fetchInfluencerProfile()
+      // 清除头像相关状态
+      setAvatarFile(null)
+      setAvatarPreview(null)
+      setAvatarKey(prev => prev + 1) // 强制重新渲染头像
+      
+      // 重新获取资料以确保数据同步
+      await fetchInfluencerProfile()
+      
+      // 延迟更新头像显示
+      setTimeout(() => {
+        setAvatarKey(prev => prev + 1)
+      }, 500)
       
     } catch (error) {
       console.error('保存资料时发生错误:', error)
@@ -384,6 +439,9 @@ export function InfluencerProfilePage() {
           </div>
         )}
 
+        {/* 存储管理器 - 仅在开发环境显示 */}
+        {import.meta.env.DEV && <StorageManager />}
+
         {/* 主内容区 */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
           {/* 封面图 */}
@@ -400,7 +458,7 @@ export function InfluencerProfilePage() {
           {/* 个人资料 */}
           <div className="px-8 pt-0 pb-8 relative">
             {/* 头像 */}
-            <div className="w-24 h-24 rounded-full border-4 border-white overflow-hidden absolute -top-12 left-8">
+            <div className="w-24 h-24 rounded-full border-4 border-white overflow-hidden absolute -top-12 right-8" key={`avatar-${avatarKey}-${influencer?.avatar_url}`}>
               {editMode ? (
                 <div className="relative w-full h-full">
                   <img
@@ -420,7 +478,7 @@ export function InfluencerProfilePage() {
                 </div>
               ) : (
                 <img
-                  src={influencer?.avatar_url || 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400'}
+                  src={avatarPreview || influencer?.avatar_url ? `${avatarPreview || influencer.avatar_url}?t=${Date.now()}` : 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400'}
                   alt="用户头像"
                   className="w-full h-full object-cover"
                   onError={(e) => {

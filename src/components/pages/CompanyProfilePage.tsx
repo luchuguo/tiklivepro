@@ -18,10 +18,10 @@ import {
   ArrowLeft
 } from 'lucide-react'
 import { supabase, Company } from '../../lib/supabase'
-import { useAuth } from '../../hooks/useAuth'
+import { useAuthContext } from '../../hooks/useAuth'
 
 export function CompanyProfilePage() {
-  const { user, profile, loading: authLoading } = useAuth()
+  const { user, profile, loading: authLoading } = useAuthContext()
   const [company, setCompany] = useState<Company | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -39,6 +39,7 @@ export function CompanyProfilePage() {
   })
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
+  const [logoKey, setLogoKey] = useState(0)
 
   const companySizes = [
     '1-10人', '11-50人', '51-100人', '101-500人', '501-1000人', '1000人以上'
@@ -189,37 +190,54 @@ export function CompanyProfilePage() {
       
       if (company) {
         // 更新现有资料
-        const { error: updateError } = await supabase
+        const { data: updateResult, error: updateError } = await supabase
           .from('companies')
           .update(updateData)
           .eq('user_id', user.id)
+          .select()
         
         if (updateError) {
           console.error('更新资料失败:', updateError)
           setError('更新资料失败，请重试')
           return
         }
+        
+        // 立即更新本地状态
+        if (updateResult && updateResult[0]) {
+          setCompany(updateResult[0])
+        }
       } else {
         // 创建新资料
-        const { error: insertError } = await supabase
+        const { data: insertResult, error: insertError } = await supabase
           .from('companies')
           .insert({
             user_id: user.id,
             ...updateData
           })
+          .select()
         
         if (insertError) {
           console.error('创建资料失败:', insertError)
           setError('创建资料失败，请重试')
           return
         }
+        
+        // 立即更新本地状态
+        if (insertResult && insertResult[0]) {
+          setCompany(insertResult[0])
+        }
       }
       
       setSuccess('资料保存成功！')
       setEditMode(false)
       
-      // 重新获取资料
-      fetchCompanyProfile()
+      // 清除Logo相关状态
+      setLogoFile(null)
+      setLogoPreview(null)
+      setLogoKey(prev => prev + 1) // 强制重新渲染Logo
+      
+      // 重新获取资料以确保数据同步
+      await fetchCompanyProfile()
       
     } catch (error) {
       console.error('保存资料时发生错误:', error)
@@ -342,7 +360,7 @@ export function CompanyProfilePage() {
           {/* 企业资料 */}
           <div className="px-8 pt-0 pb-8 relative">
             {/* Logo */}
-            <div className="w-24 h-24 rounded-lg border-4 border-white overflow-hidden absolute -top-12 left-8 bg-white">
+            <div className="w-24 h-24 rounded-lg border-4 border-white overflow-hidden absolute -top-12 right-8 bg-white" key={`logo-${logoKey}-${company?.logo_url}`}>
               {editMode ? (
                 <div className="relative w-full h-full">
                   <img

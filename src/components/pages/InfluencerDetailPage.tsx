@@ -38,6 +38,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
   const [message, setMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [similarInfluencers, setSimilarInfluencers] = useState<Influencer[]>([])
+  const [avatarLoaded, setAvatarLoaded] = useState(false)
   
   const { user, isCompany } = useAuth()
 
@@ -213,7 +214,22 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* 返回按钮 */}
         <button
-          onClick={onBack}
+          onClick={() => {
+            // 检查URL参数，判断是否从列表页面打开
+            const urlParams = new URLSearchParams(window.location.search)
+            const fromList = urlParams.get('from') === 'list'
+            
+            if (fromList && window.opener) {
+              // 如果是从列表页面新标签页打开，关闭当前标签页
+              window.close()
+            } else if (window.history.length > 1) {
+              // 如果有历史记录，返回上一页
+              onBack()
+            } else {
+              // 否则跳转到达人列表页面
+              window.location.href = '/influencers'
+            }
+          }}
           className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -228,21 +244,28 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
           {/* 基本信息 */}
           <div className="px-8 pt-0 pb-8 relative">
             {/* 头像 */}
-            <div className="w-24 h-24 rounded-full border-4 border-white overflow-hidden absolute -top-12 left-8">
+            <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden absolute -top-12 left-8 bg-gray-100">
               <img
                 src={influencer.avatar_url || 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400'}
                 alt={influencer.nickname}
                 className="w-full h-full object-cover"
+                loading="lazy"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement
                   target.src = 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400'
+                  target.onerror = null // 防止无限循环
                 }}
+                onLoad={(e) => {
+                  const target = e.target as HTMLImageElement
+                  target.style.opacity = '1'
+                }}
+                style={{ opacity: 0, transition: 'opacity 0.3s ease-in-out' }}
               />
             </div>
             
             {/* 名称和状态 */}
             <div className="flex justify-between items-start mt-16 mb-6">
-              <div>
+              <div className="flex-1 ml-32">
                 <div className="flex items-center space-x-3 mb-1">
                   <h1 className="text-2xl font-bold text-gray-900">{influencer.nickname}</h1>
                   {influencer.is_verified && (
@@ -593,15 +616,22 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
               {similarInfluencers.map((similarInfluencer) => (
                 <div key={similarInfluencer.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                   <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-12 h-12 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="w-12 h-12 bg-gray-100 rounded-full overflow-hidden shadow-sm">
                       <img
                         src={similarInfluencer.avatar_url || 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150'}
                         alt={similarInfluencer.nickname}
                         className="w-full h-full object-cover"
+                        loading="lazy"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement
                           target.src = 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150'
+                          target.onerror = null // 防止无限循环
                         }}
+                        onLoad={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.style.opacity = '1'
+                        }}
+                        style={{ opacity: 0, transition: 'opacity 0.3s ease-in-out' }}
                       />
                     </div>
                     <div>

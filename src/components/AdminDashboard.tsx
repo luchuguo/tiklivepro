@@ -23,7 +23,7 @@ import {
   LogOut
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import { useAuth } from '../hooks/useAuth'
+import { useAuthContext } from '../hooks/useAuth'
 
 interface AdminStats {
   totalUsers: number
@@ -45,7 +45,7 @@ interface RecentActivity {
 }
 
 export function AdminDashboard() {
-  const { signOut, isAdmin } = useAuth()
+  const { signOut, isAdmin, loading } = useAuthContext()
   const [activeTab, setActiveTab] = useState('overview')
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
@@ -58,7 +58,7 @@ export function AdminDashboard() {
     totalRevenue: 0
   })
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([])
-  const [loading, setLoading] = useState(true)
+  const [dashboardLoading, setDashboardLoading] = useState(true)
 
   useEffect(() => {
     if (isAdmin) {
@@ -68,7 +68,7 @@ export function AdminDashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      setLoading(true)
+      setDashboardLoading(true)
       
       // 获取统计数据
       const { data: statsData } = await supabase
@@ -111,7 +111,7 @@ export function AdminDashboard() {
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
     } finally {
-      setLoading(false)
+      setDashboardLoading(false)
     }
   }
 
@@ -249,37 +249,81 @@ export function AdminDashboard() {
       fetchUsers()
     }, [])
 
-    // 获取用户并附加审核状态
+    // 获取用户并附加审核状态和手机号码
     const fetchUsers = async () => {
       try {
         setLoadingUsers(true)
 
-        const { data: profiles, error } = await supabase
-          .from('user_accounts') // 视图，包含 user_id/ email/ user_type 等
+        // 使用user_accounts视图获取用户信息，包含正确的邮箱和手机号码
+        const { data: userAccounts, error } = await supabase
+          .from('user_accounts')
           .select('*')
+          .order('created_at', { ascending: false })
 
         if (error) throw error
 
-        // 并发获取审核字段
+        // 并发获取详细信息
         const enhanced = await Promise.all(
-          (profiles || []).map(async (u: any) => {
+          (userAccounts || []).map(async (u: any) => {
+            let approve_status = true
+            let profileData = null
+            
             if (u.user_type === 'influencer') {
               const { data } = await supabase
                 .from('influencers')
-                .select('is_approved')
+                .select(`
+                  is_approved, 
+                  nickname, 
+                  real_name, 
+                  tiktok_account, 
+                  bio, 
+                  location, 
+                  categories, 
+                  tags, 
+                  hourly_rate, 
+                  experience_years, 
+                  avatar_url,
+                  followers_count,
+                  rating,
+                  total_reviews,
+                  total_live_count,
+                  avg_views,
+                  status,
+                  is_verified,
+                  created_at,
+                  updated_at
+                `)
                 .eq('user_id', u.user_id)
                 .single()
-              return { ...u, approve_status: data?.is_approved ?? false }
-            }
-            if (u.user_type === 'company') {
+              approve_status = data?.is_approved ?? false
+              profileData = data
+            } else if (u.user_type === 'company') {
               const { data } = await supabase
                 .from('companies')
-                .select('is_verified')
+                .select(`
+                  is_verified, 
+                  company_name, 
+                  contact_person, 
+                  business_license, 
+                  industry, 
+                  company_size, 
+                  website, 
+                  description, 
+                  logo_url,
+                  created_at,
+                  updated_at
+                `)
                 .eq('user_id', u.user_id)
                 .single()
-              return { ...u, approve_status: data?.is_verified ?? false }
+              approve_status = data?.is_verified ?? false
+              profileData = data
             }
-            return { ...u, approve_status: true }
+            
+            return { 
+              ...u, 
+              approve_status,
+              profileData
+            }
           })
         )
 
@@ -311,23 +355,8 @@ export function AdminDashboard() {
     // 查看用户详情
     const viewUser = async (u: any) => {
       try {
-        let profileData: any = null
-        if (u.user_type === 'influencer') {
-          const { data } = await supabase
-            .from('influencers')
-            .select('*')
-            .eq('user_id', u.user_id)
-            .single()
-          profileData = data
-        } else if (u.user_type === 'company') {
-          const { data } = await supabase
-            .from('companies')
-            .select('*')
-            .eq('user_id', u.user_id)
-            .single()
-          profileData = data
-        }
-        setSelectedProfile({ basic: u, detail: profileData })
+        // 直接使用已经获取的profileData
+        setSelectedProfile({ basic: u, detail: u.profileData })
       } catch (err) {
         console.error('加载用户详情失败', err)
         alert('加载详情失败')
@@ -431,37 +460,215 @@ export function AdminDashboard() {
       </div>
       {selectedProfile && (
           <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between p-6 border-b border-gray-100">
                 <h3 className="text-xl font-bold text-gray-900">用户详情</h3>
                 <button onClick={() => setSelectedProfile(null)} className="text-gray-500 hover:text-gray-900">
                   <XCircle className="w-6 h-6" />
                 </button>
               </div>
-              <div className="p-6 space-y-4 text-sm text-gray-800">
-                <p><span className="font-medium">邮箱：</span>{selectedProfile.basic.email}</p>
-                <p><span className="font-medium">类型：</span>{selectedProfile.basic.user_type === 'influencer' ? '达人' : '商家'}</p>
-                <p><span className="font-medium">注册时间：</span>{new Date(selectedProfile.basic.created_at).toLocaleString()}</p>
-                <p><span className="font-medium">更新时间：</span>{new Date(selectedProfile.basic.updated_at).toLocaleString()}</p>
+              <div className="p-6 space-y-6">
+                {/* 基本信息 */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-900 mb-3">基本信息</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div><span className="font-medium text-gray-700">邮箱：</span>{selectedProfile.basic.email}</div>
+                    <div><span className="font-medium text-gray-700">手机号码：</span>{selectedProfile.basic.phone || '未设置'}</div>
+                    <div><span className="font-medium text-gray-700">用户类型：</span>
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        selectedProfile.basic.user_type === 'influencer' 
+                          ? 'bg-pink-100 text-pink-700' 
+                          : selectedProfile.basic.user_type === 'company'
+                          ? 'bg-blue-100 text-blue-700'
+                          : 'bg-purple-100 text-purple-700'
+                      }`}>
+                        {selectedProfile.basic.user_type === 'influencer' ? '达人主播' : 
+                         selectedProfile.basic.user_type === 'company' ? '企业用户' : '管理员'}
+                      </span>
+                    </div>
+                    <div><span className="font-medium text-gray-700">注册时间：</span>{new Date(selectedProfile.basic.created_at).toLocaleString()}</div>
+                    <div><span className="font-medium text-gray-700">更新时间：</span>{new Date(selectedProfile.basic.updated_at).toLocaleString()}</div>
+                    <div><span className="font-medium text-gray-700">审核状态：</span>
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        selectedProfile.basic.approve_status 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        {selectedProfile.basic.approve_status ? '已审核' : '待审核'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
+                {/* 详细信息 */}
                 {selectedProfile.detail && (
-                  <>
+                  <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-900 mb-3">
+                      {selectedProfile.basic.user_type === 'influencer' ? '达人详细信息' : '企业详细信息'}
+                    </h4>
                     {selectedProfile.basic.user_type === 'influencer' ? (
-                      <>
-                        <p><span className="font-medium">昵称：</span>{selectedProfile.detail.nickname}</p>
-                        <p><span className="font-medium">粉丝：</span>{selectedProfile.detail.followers_count?.toLocaleString()}</p>
-                        <p><span className="font-medium">认证：</span>{selectedProfile.detail.is_verified ? '已认证' : '未认证'}</p>
-                        <p><span className="font-medium">审核：</span>{selectedProfile.detail.is_approved ? '已通过' : '未通过'}</p>
-                      </>
+                      <div className="space-y-6">
+                        {/* 头像和基本信息 */}
+                        <div className="flex items-center space-x-4">
+                          <img 
+                            src={selectedProfile.detail.avatar_url || 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150'} 
+                            alt="头像" 
+                            className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement
+                              target.src = 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150'
+                            }}
+                          />
+                          <div className="flex-1">
+                            <h5 className="text-xl font-semibold text-gray-900">{selectedProfile.detail.nickname || '未设置昵称'}</h5>
+                            <p className="text-gray-600">{selectedProfile.detail.real_name || '未设置真实姓名'}</p>
+                            <div className="flex items-center space-x-4 mt-2">
+                              <span className={`px-2 py-1 rounded-full text-xs ${
+                                selectedProfile.detail.is_verified ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                              }`}>
+                                {selectedProfile.detail.is_verified ? '已认证' : '未认证'}
+                              </span>
+                              <span className={`px-2 py-1 rounded-full text-xs ${
+                                selectedProfile.detail.is_approved ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'
+                              }`}>
+                                {selectedProfile.detail.is_approved ? '已审核' : '待审核'}
+                              </span>
+                              <span className={`px-2 py-1 rounded-full text-xs ${
+                                selectedProfile.detail.status === 'active' ? 'bg-green-100 text-green-700' : 
+                                selectedProfile.detail.status === 'inactive' ? 'bg-gray-100 text-gray-700' : 'bg-red-100 text-red-700'
+                              }`}>
+                                {selectedProfile.detail.status === 'active' ? '活跃' : 
+                                 selectedProfile.detail.status === 'inactive' ? '非活跃' : '已暂停'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 统计信息 */}
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <h6 className="font-medium text-gray-900 mb-3">统计信息</h6>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="text-center">
+                              <div className="text-2xl font-bold text-pink-600">{selectedProfile.detail.followers_count?.toLocaleString() || '0'}</div>
+                              <div className="text-sm text-gray-600">粉丝数</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-2xl font-bold text-blue-600">{selectedProfile.detail.rating?.toFixed(1) || '0.0'}</div>
+                              <div className="text-sm text-gray-600">评分</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-2xl font-bold text-green-600">{selectedProfile.detail.total_reviews || '0'}</div>
+                              <div className="text-sm text-gray-600">评价数</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-2xl font-bold text-purple-600">{selectedProfile.detail.total_live_count || '0'}</div>
+                              <div className="text-sm text-gray-600">直播场次</div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* 基本信息 */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div><span className="font-medium text-gray-700">TikTok账号：</span>{selectedProfile.detail.tiktok_account || '未设置'}</div>
+                          <div><span className="font-medium text-gray-700">位置：</span>{selectedProfile.detail.location || '未设置'}</div>
+                          <div><span className="font-medium text-gray-700">时薪：</span>{selectedProfile.detail.hourly_rate ? `¥${selectedProfile.detail.hourly_rate}/小时` : '未设置'}</div>
+                          <div><span className="font-medium text-gray-700">经验年限：</span>{selectedProfile.detail.experience_years ? `${selectedProfile.detail.experience_years}年` : '未设置'}</div>
+                          <div><span className="font-medium text-gray-700">平均观看：</span>{selectedProfile.detail.avg_views?.toLocaleString() || '0'}</div>
+                          <div><span className="font-medium text-gray-700">创建时间：</span>{selectedProfile.detail.created_at ? new Date(selectedProfile.detail.created_at).toLocaleString() : '未知'}</div>
+                        </div>
+                        
+                        {/* 简介 */}
+                        {selectedProfile.detail.bio && (
+                          <div>
+                            <span className="font-medium text-gray-700">个人简介：</span>
+                            <p className="mt-1 text-gray-600 bg-gray-50 p-3 rounded-lg">{selectedProfile.detail.bio}</p>
+                          </div>
+                        )}
+                        
+                        {/* 分类和标签 */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {selectedProfile.detail.categories && selectedProfile.detail.categories.length > 0 && (
+                            <div>
+                              <span className="font-medium text-gray-700">分类：</span>
+                              <div className="mt-1 flex flex-wrap gap-2">
+                                {selectedProfile.detail.categories.map((cat: string, index: number) => (
+                                  <span key={index} className="px-2 py-1 bg-pink-100 text-pink-700 rounded-full text-xs">
+                                    {cat}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {selectedProfile.detail.tags && selectedProfile.detail.tags.length > 0 && (
+                            <div>
+                              <span className="font-medium text-gray-700">标签：</span>
+                              <div className="mt-1 flex flex-wrap gap-2">
+                                {selectedProfile.detail.tags.map((tag: string, index: number) => (
+                                  <span key={index} className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     ) : (
-                      <>
-                        <p><span className="font-medium">公司名称：</span>{selectedProfile.detail.company_name}</p>
-                        <p><span className="font-medium">联系人：</span>{selectedProfile.detail.contact_person}</p>
-                        <p><span className="font-medium">行业：</span>{selectedProfile.detail.industry || '—'}</p>
-                        <p><span className="font-medium">认证：</span>{selectedProfile.detail.is_verified ? '已认证' : '未认证'}</p>
-                      </>
+                      <div className="space-y-6">
+                        {/* Logo和基本信息 */}
+                        <div className="flex items-center space-x-4">
+                          <img 
+                            src={selectedProfile.detail.logo_url || 'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=150'} 
+                            alt="公司Logo" 
+                            className="w-20 h-20 rounded-lg object-cover border-2 border-gray-200"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement
+                              target.src = 'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=150'
+                            }}
+                          />
+                          <div className="flex-1">
+                            <h5 className="text-xl font-semibold text-gray-900">{selectedProfile.detail.company_name || '未设置公司名称'}</h5>
+                            <p className="text-gray-600">{selectedProfile.detail.contact_person || '未设置联系人'}</p>
+                            <div className="flex items-center space-x-4 mt-2">
+                              <span className={`px-2 py-1 rounded-full text-xs ${
+                                selectedProfile.detail.is_verified ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                              }`}>
+                                {selectedProfile.detail.is_verified ? '已认证' : '未认证'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* 基本信息 */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div><span className="font-medium text-gray-700">行业：</span>{selectedProfile.detail.industry || '未设置'}</div>
+                          <div><span className="font-medium text-gray-700">公司规模：</span>{selectedProfile.detail.company_size || '未设置'}</div>
+                          <div><span className="font-medium text-gray-700">营业执照：</span>{selectedProfile.detail.business_license || '未设置'}</div>
+                          <div><span className="font-medium text-gray-700">创建时间：</span>{selectedProfile.detail.created_at ? new Date(selectedProfile.detail.created_at).toLocaleString() : '未知'}</div>
+                          <div><span className="font-medium text-gray-700">更新时间：</span>{selectedProfile.detail.updated_at ? new Date(selectedProfile.detail.updated_at).toLocaleString() : '未知'}</div>
+                          <div><span className="font-medium text-gray-700">网站：</span>
+                            {selectedProfile.detail.website ? (
+                              <a href={selectedProfile.detail.website.startsWith('http') ? selectedProfile.detail.website : `https://${selectedProfile.detail.website}`} 
+                                 target="_blank" 
+                                 rel="noopener noreferrer"
+                                 className="text-blue-600 hover:underline">
+                                {selectedProfile.detail.website}
+                              </a>
+                            ) : '未设置'}
+                          </div>
+                        </div>
+                        
+                        {/* 公司描述 */}
+                        {selectedProfile.detail.description && (
+                          <div>
+                            <span className="font-medium text-gray-700">公司描述：</span>
+                            <p className="mt-1 text-gray-600 bg-gray-50 p-3 rounded-lg">{selectedProfile.detail.description}</p>
+                          </div>
+                        )}
+                      </div>
                     )}
-                  </>
+                  </div>
                 )}
               </div>
             </div>
@@ -719,8 +926,31 @@ export function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* 管理后台专用顶部栏 */}
+      <div className="fixed top-0 left-0 right-0 h-16 bg-white shadow-sm border-b border-gray-200 z-40">
+        <div className="flex items-center justify-between h-full px-6">
+          <div className="flex items-center space-x-4">
+            <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <Shield className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-gray-900">TikLive Pro 管理后台</h1>
+              <p className="text-xs text-gray-500">超级管理员控制台</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="text-sm text-gray-500">
+              <span className="text-green-600">●</span> 系统在线
+            </div>
+            <div className="text-sm text-gray-500">
+              {new Date().toLocaleString()}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* 侧边栏 */}
-      <div className="fixed inset-y-0 left-0 w-64 bg-white shadow-lg z-30">
+      <div className="fixed inset-y-0 left-0 w-64 bg-white shadow-lg z-30" style={{ top: '64px' }}>
         <div className="flex items-center space-x-2 p-6 border-b border-gray-200">
           <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
             <Shield className="w-5 h-5 text-white" />
@@ -760,8 +990,8 @@ export function AdminDashboard() {
       </div>
 
       {/* 主内容区 */}
-      <div className="ml-64">
-        {/* 顶部栏 */}
+      <div className="ml-64" style={{ marginTop: '64px' }}>
+        {/* 页面标题栏 */}
         <div className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
@@ -781,6 +1011,16 @@ export function AdminDashboard() {
         {/* 内容区 */}
         <div className="p-6">
           <ActiveComponent />
+        </div>
+        
+        {/* 管理后台专用底部 */}
+        <div className="bg-white border-t border-gray-200 px-6 py-4 text-center">
+          <div className="text-sm text-gray-500">
+            <span className="font-medium">TikLive Pro</span> 管理后台 | 
+            版本 1.0.0 | 
+            最后更新: {new Date().toLocaleString()} | 
+            <span className="text-green-600 ml-2">● 系统运行正常</span>
+          </div>
         </div>
       </div>
     </div>

@@ -12,10 +12,13 @@ import {
   Building2,
   Tag,
   TrendingUp,
-  AlertCircle
+  AlertCircle,
+  RefreshCw,
+  CheckCircle
 } from 'lucide-react'
 import { supabase, Task, TaskCategory } from '../../lib/supabase'
-import { TaskDetailPage } from '../pages/TaskDetailPage'
+import { getCachedTasks, getCachedTaskCategories, invalidateCache } from '../../lib/dataCache'
+
 
 export function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([])
@@ -26,7 +29,7 @@ export function TasksPage() {
   const [budgetRange, setBudgetRange] = useState('all')
   const [sortBy, setSortBy] = useState('created_at')
   const [error, setError] = useState<string | null>(null)
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
+
 
   const budgetRanges = [
     { id: 'all', name: '全部预算' },
@@ -137,7 +140,7 @@ export function TasksPage() {
   const TaskCard = ({ task }: { task: Task }) => (
     <div
       className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-200 group cursor-pointer"
-      onClick={() => setSelectedTaskId(task.id)}
+      onClick={() => window.open(`/task/${task.id}?from=list`, '_blank')}
     >
       <div className="p-6">
         <div className="flex items-start justify-between mb-4">
@@ -250,14 +253,7 @@ export function TasksPage() {
     </div>
   )
 
-  if (selectedTaskId) {
-    return (
-      <TaskDetailPage
-        taskId={selectedTaskId}
-        onBack={() => setSelectedTaskId(null)}
-      />
-    )
-  }
+
 
   return (
     <div className="min-h-screen bg-gray-50">

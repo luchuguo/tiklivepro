@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { Video, Users, Building2, TrendingUp, Star, Play, ArrowRight, Menu, X, User, LogOut, Calendar, Settings, Shield } from 'lucide-react'
+import { Video, Users, Building2, TrendingUp, Star, Play, ArrowRight, Menu, X, User, LogOut, Calendar, Settings, Shield, UserCheck, Cog, Briefcase } from 'lucide-react'
+import { Routes, Route, useNavigate, useLocation, useParams } from 'react-router-dom'
 import { AuthModal } from './components/AuthModal'
 import { AdminDashboard } from './components/AdminDashboard'
 import { AdminSetup } from './components/AdminSetup'
@@ -14,25 +15,69 @@ import { HelpPage } from './components/pages/HelpPage'
 import { ContactPage } from './components/pages/ContactPage'
 import { InfluencersPage } from './components/pages/InfluencersPage'
 import { TasksPage } from './components/pages/TasksPage'
-import { useAuth } from './hooks/useAuth'
+import { useAuthContext } from './hooks/useAuth'
 import { InfluencerDataViewer } from './components/InfluencerDataViewer'
 import { CompanyProfilePage } from './components/pages/CompanyProfilePage'
 import { InfluencerProfilePage } from './components/pages/InfluencerProfilePage'
 import { AccountSettingsPage } from './components/pages/AccountSettingsPage'
 import { InfluencerTasksPage } from './components/pages/InfluencerTasksPage'
 import { CompanyTasksPage } from './components/pages/CompanyTasksPage'
+import { AdminLoginPage } from './components/pages/AdminLoginPage'
+import InfluencerImageUploadTest from './components/pages/InfluencerImageUploadTest'
+import { CompanyDetailPage } from './components/pages/CompanyDetailPage'
+import { InfluencerDetailPage } from './components/pages/InfluencerDetailPage'
+import { TaskDetailPage } from './components/pages/TaskDetailPage'
+import { SmsVerificationTest } from './components/pages/SmsVerificationTest'
+
 
 function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin')
   const [authUserType, setAuthUserType] = useState<'influencer' | 'company'>('influencer')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [currentPage, setCurrentPage] = useState('home')
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
-  const [showDataViewer, setShowDataViewer] = useState(true)
+  const [showDataViewer, setShowDataViewer] = useState(false)
 
-  const { user, profile, loading, signOut, isAdmin } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { user, profile, loading, signOut, isAdmin } = useAuthContext()
+
+  // 公司详情页面包装组件
+  function CompanyDetailWrapper() {
+    const { id } = useParams()
+    const navigate = useNavigate()
+    
+    if (!id) {
+      return <div>公司ID不存在</div>
+    }
+    
+    return <CompanyDetailPage companyId={id} onBack={() => navigate(-1)} />
+  }
+
+  // 达人详情页面包装组件
+  function InfluencerDetailWrapper() {
+    const { id } = useParams()
+    const navigate = useNavigate()
+    
+    if (!id) {
+      return <div>达人ID不存在</div>
+    }
+    
+    return <InfluencerDetailPage influencerId={id} onBack={() => navigate(-1)} />
+  }
+
+  // 任务详情页面包装组件
+  function TaskDetailWrapper() {
+    const { id } = useParams()
+    const navigate = useNavigate()
+    
+    if (!id) {
+      return <div>任务ID不存在</div>
+    }
+    
+    return <TaskDetailPage taskId={id} onBack={() => navigate(-1)} />
+  }
 
   // 检查是否需要显示 Supabase 配置指南
   const needsSupabaseSetup = () => {
@@ -54,10 +99,8 @@ function App() {
       // 用户退出时重置所有状态
       setIsLoggingOut(false)
       setShowUserMenu(false)
-      // 只有在非首页时才重置到首页
-      if (currentPage !== 'home') {
-        setCurrentPage('home')
-      }
+      // 只有在用户退出登录时才重置到首页，而不是每次状态变化都重置
+      // 移除自动导航逻辑，让用户手动导航
       setIsMobileMenuOpen(false)
     }
   }, [user])
@@ -99,7 +142,7 @@ function App() {
       }
       
       // 清理本地状态
-      setCurrentPage('home')
+      navigate('/')
       setIsMobileMenuOpen(false)
       setIsAuthModalOpen(false)
       
@@ -114,17 +157,33 @@ function App() {
   }
 
   const handlePageChange = (page: string) => {
-    setCurrentPage(page)
+    let targetPath = '/'
+    
+    if (page === 'home') {
+      targetPath = '/'
+    } else if (page === 'profile') {
+      // 根据用户类型跳转到不同的个人中心
+      if (profile?.user_type === 'influencer') {
+        targetPath = '/influencer-profile'
+      } else if (profile?.user_type === 'company') {
+        targetPath = '/company-profile'
+      } else {
+        targetPath = '/profile'
+      }
+    } else {
+      targetPath = `/${page}`
+    }
+    
+    navigate(targetPath)
     setIsMobileMenuOpen(false)
     setShowUserMenu(false)
   }
 
   // 如果需要 Supabase 配置，显示配置指南
-  if (needsSupabaseSetup() && currentPage === 'home') {
+  if (needsSupabaseSetup() && location.pathname === '/') {
     return <SupabaseSetupGuide />
   }
 
-  // 首页组件
   function HomePage() {
     const stats = [
       { label: '注册用户', value: '50,000+', icon: Users },
@@ -420,78 +479,8 @@ function App() {
     )
   }
 
-  // 渲染不同页面
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'influencers':
-        return <InfluencersPage />
-      case 'tasks':
-        return <TasksPage />
-      case 'about':
-        return <AboutPage />
-      case 'terms':
-        return <TermsPage />
-      case 'privacy':
-        return <PrivacyPage />
-      case 'help':
-        return <HelpPage />
-      case 'contact':
-        return <ContactPage />
-      case 'admin-setup':
-        return <AdminSetup />
-      case 'admin-login':
-        return (
-          <AdminLogin
-            onLoginSuccess={() => {
-              setCurrentPage('admin')
-            }}
-            onBack={() => setCurrentPage('home')}
-          />
-        )
-      case 'admin':
-        if (isAdmin) {
-          return <AdminDashboard />
-        } else {
-          // 如果不是管理员，跳转到管理员登录
-          setCurrentPage('admin-login')
-          return null
-        }
-      case 'profile':
-        if (loading) {
-          return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
-                <p className="text-gray-600">加载中...</p>
-              </div>
-            </div>
-          )
-        }
-
-        if (profile?.user_type === 'company') {
-          return <CompanyProfilePage />
-        } else if (profile?.user_type === 'influencer') {
-          return <InfluencerProfilePage />
-        } else {
-          return (
-            <div className="min-h-screen flex items-center justify-center text-gray-500">
-              暂未支持的用户类型
-            </div>
-          )
-        }
-      case 'account-settings':
-        return <AccountSettingsPage />
-      case 'influencer-tasks':
-        return <InfluencerTasksPage />
-      case 'company-tasks':
-        return <CompanyTasksPage />
-      default:
-        return <HomePage />
-    }
-  }
-
   // 只在特定页面显示加载界面
-  if (loading && (currentPage === 'admin' || currentPage === 'admin-setup')) {
+  if (loading && (location.pathname === '/admin' || location.pathname === '/admin-setup')) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -504,8 +493,9 @@ function App() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-40">
+      {/* Navigation - 管理后台页面不显示 */}
+      {location.pathname !== '/admin' && (
+        <nav className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -525,37 +515,37 @@ function App() {
             <div className="hidden md:flex items-center space-x-8">
               <button 
                 onClick={() => handlePageChange('home')}
-                className={`text-gray-700 hover:text-pink-600 transition-colors ${currentPage === 'home' ? 'text-pink-600 font-medium' : ''}`}
+                className={`text-gray-700 hover:text-pink-600 transition-colors ${location.pathname === '/' ? 'text-pink-600 font-medium' : ''}`}
               >
                 首页
               </button>
               <button 
                 onClick={() => handlePageChange('influencers')}
-                className={`text-gray-700 hover:text-pink-600 transition-colors ${currentPage === 'influencers' ? 'text-pink-600 font-medium' : ''}`}
+                className={`text-gray-700 hover:text-pink-600 transition-colors ${location.pathname === '/influencers' ? 'text-pink-600 font-medium' : ''}`}
               >
                 达人列表
               </button>
               <button 
                 onClick={() => handlePageChange('tasks')}
-                className={`text-gray-700 hover:text-pink-600 transition-colors ${currentPage === 'tasks' ? 'text-pink-600 font-medium' : ''}`}
+                className={`text-gray-700 hover:text-pink-600 transition-colors ${location.pathname === '/tasks' ? 'text-pink-600 font-medium' : ''}`}
               >
                 任务大厅
               </button>
               <button 
                 onClick={() => handlePageChange('about')}
-                className={`text-gray-700 hover:text-pink-600 transition-colors ${currentPage === 'about' ? 'text-pink-600 font-medium' : ''}`}
+                className={`text-gray-700 hover:text-pink-600 transition-colors ${location.pathname === '/about' ? 'text-pink-600 font-medium' : ''}`}
               >
                 关于我们
               </button>
               <button 
                 onClick={() => handlePageChange('help')}
-                className={`text-gray-700 hover:text-pink-600 transition-colors ${currentPage === 'help' ? 'text-pink-600 font-medium' : ''}`}
+                className={`text-gray-700 hover:text-pink-600 transition-colors ${location.pathname === '/help' ? 'text-pink-600 font-medium' : ''}`}
               >
                 帮助中心
               </button>
               <button 
                 onClick={() => handlePageChange('contact')}
-                className={`text-gray-700 hover:text-pink-600 transition-colors ${currentPage === 'contact' ? 'text-pink-600 font-medium' : ''}`}
+                className={`text-gray-700 hover:text-pink-600 transition-colors ${location.pathname === '/contact' ? 'text-pink-600 font-medium' : ''}`}
               >
                 联系我们
               </button>
@@ -599,87 +589,79 @@ function App() {
                         <p className="text-sm text-gray-600 truncate">
                           {user.email}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {profile?.user_type === 'admin' ? '超级管理员' : 
-                           profile?.user_type === 'company' ? '企业用户' : 
-                           profile?.user_type === 'influencer' ? '达人用户' : '普通用户'}
-                        </p>
                       </div>
                       
-                      {/* 管理员专用功能 */}
+                      {/* 管理员功能 */}
                       {isAdmin && (
-                        <div className="border-b border-gray-100 py-1">
+                        <>
                           <button
                             onClick={() => handlePageChange('admin')}
-                            className="w-full text-left px-4 py-2 text-blue-600 hover:bg-blue-50 transition-colors flex items-center space-x-2"
+                            className="flex items-center w-full text-left py-2 px-4 text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-colors"
                           >
-                            <Shield className="w-4 h-4" />
-                            <span>管理后台</span>
+                            <Shield className="w-4 h-4 mr-3" />
+                            管理后台
                           </button>
                           <button
                             onClick={() => handlePageChange('admin-setup')}
-                            className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-2"
+                            className="flex items-center w-full text-left py-2 px-4 text-gray-700 hover:text-pink-600 hover:bg-pink-50 transition-colors"
                           >
-                            <Settings className="w-4 h-4" />
-                            <span>管理员设置</span>
+                            <Settings className="w-4 h-4 mr-3" />
+                            管理员设置
                           </button>
-                        </div>
+                        </>
                       )}
                       
                       {/* 普通用户功能 */}
                       {!isAdmin && (
-                        <div className="border-b border-gray-100 py-1">
+                        <>
                           <button
                             onClick={() => handlePageChange('profile')}
-                            className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-2"
+                            className="flex items-center w-full text-left py-2 px-4 text-gray-700 hover:text-pink-600 hover:bg-pink-50 transition-colors"
                           >
-                            <User className="w-4 h-4" />
-                            <span>个人中心</span>
+                            <UserCheck className="w-4 h-4 mr-3" />
+                            个人中心
                           </button>
                           <button
                             onClick={() => handlePageChange('account-settings')}
-                            className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-2"
+                            className="flex items-center w-full text-left py-2 px-4 text-gray-700 hover:text-pink-600 hover:bg-pink-50 transition-colors"
                           >
-                            <Settings className="w-4 h-4" />
-                            <span>账号设置</span>
+                            <Cog className="w-4 h-4 mr-3" />
+                            账号设置
                           </button>
                           {profile?.user_type === 'influencer' && (
                             <button
                               onClick={() => handlePageChange('influencer-tasks')}
-                              className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-2"
+                              className="flex items-center w-full text-left py-2 px-4 text-gray-700 hover:text-pink-600 hover:bg-pink-50 transition-colors"
                             >
-                              <Video className="w-4 h-4" />
-                              <span>我的任务</span>
+                              <Briefcase className="w-4 h-4 mr-3" />
+                              我的任务
                             </button>
                           )}
                           {profile?.user_type === 'company' && (
                             <button
                               onClick={() => handlePageChange('company-tasks')}
-                              className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-2"
+                              className="flex items-center w-full text-left py-2 px-4 text-gray-700 hover:text-pink-600 hover:bg-pink-50 transition-colors"
                             >
-                              <Building2 className="w-4 h-4" />
-                              <span>我的任务</span>
+                              <Briefcase className="w-4 h-4 mr-3" />
+                              我的任务
                             </button>
                           )}
-                        </div>
+                        </>
                       )}
                       
-                      {/* 退出登录 */}
-                      <div className="pt-1">
-                        <button
-                          onClick={handleSignOut}
-                          disabled={isLoggingOut}
-                          className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <LogOut className="w-4 h-4" />
-                          <span>{isLoggingOut ? '退出中...' : '退出登录'}</span>
-                        </button>
-                      </div>
+                      <button
+                        onClick={handleSignOut}
+                        disabled={isLoggingOut}
+                        className="flex items-center w-full text-left py-2 px-4 text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <LogOut className="w-4 h-4 mr-3" />
+                        {isLoggingOut ? '退出中...' : '退出登录'}
+                      </button>
                     </div>
                   )}
                 </div>
               ) : (
-                <>
+                <div className="flex items-center space-x-4">
                   <button
                     onClick={() => openAuthModal('signin')}
                     className="text-gray-700 hover:text-pink-600 transition-colors"
@@ -692,7 +674,7 @@ function App() {
                   >
                     注册
                   </button>
-                </>
+                </div>
               )}
             </div>
 
@@ -706,156 +688,176 @@ function App() {
               </button>
             </div>
           </div>
-        </div>
 
-        {/* Mobile Navigation */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden bg-white border-t border-gray-100">
-            <div className="px-4 py-2 space-y-2">
-              <button 
-                onClick={() => handlePageChange('home')}
-                className="block w-full text-left py-2 text-gray-700 hover:text-pink-600 transition-colors"
-              >
-                首页
+          {/* Mobile Navigation */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden py-4 border-t border-gray-100">
+              <div className="space-y-2">
+                <button 
+                  onClick={() => handlePageChange('home')}
+                  className={`block w-full text-left py-2 px-4 rounded-lg transition-colors ${location.pathname === '/' ? 'bg-pink-50 text-pink-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                >
+                  首页
+                </button>
+                <button 
+                  onClick={() => handlePageChange('influencers')}
+                  className={`block w-full text-left py-2 px-4 rounded-lg transition-colors ${location.pathname === '/influencers' ? 'bg-pink-50 text-pink-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                >
+                  达人列表
+                </button>
+                <button 
+                  onClick={() => handlePageChange('tasks')}
+                  className={`block w-full text-left py-2 px-4 rounded-lg transition-colors ${location.pathname === '/tasks' ? 'bg-pink-50 text-pink-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                >
+                  任务大厅
+                </button>
+                <button 
+                  onClick={() => handlePageChange('about')}
+                  className={`block w-full text-left py-2 px-4 rounded-lg transition-colors ${location.pathname === '/about' ? 'bg-pink-50 text-pink-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                >
+                  关于我们
               </button>
-              <button 
-                onClick={() => handlePageChange('influencers')}
-                className="block w-full text-left py-2 text-gray-700 hover:text-pink-600 transition-colors"
-              >
-                达人列表
-              </button>
-              <button 
-                onClick={() => handlePageChange('tasks')}
-                className="block w-full text-left py-2 text-gray-700 hover:text-pink-600 transition-colors"
-              >
-                任务大厅
-              </button>
-              <button 
-                onClick={() => handlePageChange('about')}
-                className="block w-full text-left py-2 text-gray-700 hover:text-pink-600 transition-colors"
-              >
-                关于我们
-              </button>
-              <button 
-                onClick={() => handlePageChange('help')}
-                className="block w-full text-left py-2 text-gray-700 hover:text-pink-600 transition-colors"
-              >
-                帮助中心
-              </button>
-              <button 
-                onClick={() => handlePageChange('contact')}
-                className="block w-full text-left py-2 text-gray-700 hover:text-pink-600 transition-colors"
-              >
-                联系我们
-              </button>
-              
-              {/* 管理员后台入口 */}
-              <button 
-                onClick={() => handlePageChange('admin-login')}
-                className="block w-full text-left py-2 text-purple-600 hover:text-purple-700 transition-colors"
-              >
-                管理后台
-              </button>
-              
-              {user ? (
-                <div className="border-t border-gray-100 pt-2">
-                  <div className="py-2">
-                    <p className="text-sm text-gray-600 truncate">{user.email}</p>
-                    <p className="text-xs text-gray-500">
-                      {profile?.user_type === 'admin' ? '超级管理员' : 
-                       profile?.user_type === 'company' ? '企业用户' : 
-                       profile?.user_type === 'influencer' ? '达人用户' : '普通用户'}
-                    </p>
+                <button 
+                  onClick={() => handlePageChange('help')}
+                  className={`block w-full text-left py-2 px-4 rounded-lg transition-colors ${location.pathname === '/help' ? 'bg-pink-50 text-pink-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                >
+                  帮助中心
+                </button>
+                <button 
+                  onClick={() => handlePageChange('contact')}
+                  className={`block w-full text-left py-2 px-4 rounded-lg transition-colors ${location.pathname === '/contact' ? 'bg-pink-50 text-pink-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                >
+                  联系我们
+                </button>
+                
+                {/* 管理员后台入口 */}
+                <button 
+                  onClick={() => handlePageChange('admin-login')}
+                  className="block w-full text-left py-2 px-4 rounded-lg text-purple-600 hover:bg-purple-50 transition-colors flex items-center space-x-2"
+                >
+                  <Shield className="w-4 h-4" />
+                  <span>管理后台</span>
+                </button>
+                
+                {/* 用户菜单 */}
+                {user ? (
+                  <div className="border-t border-gray-100 pt-2 space-y-2">
+                    <div className="px-4 py-2 text-sm text-gray-600">
+                      {user.email}
+                    </div>
+                    
+                    {/* 管理员功能 */}
+                    {isAdmin && (
+                      <>
+                        <button
+                          onClick={() => handlePageChange('admin')}
+                          className="block w-full text-left py-2 px-4 text-blue-600 hover:text-blue-700 transition-colors"
+                        >
+                          管理后台
+                        </button>
+                        <button
+                          onClick={() => handlePageChange('admin-setup')}
+                          className="block w-full text-left py-2 px-4 text-gray-700 hover:text-pink-600 transition-colors"
+                        >
+                          管理员设置
+                        </button>
+                      </>
+                    )}
+                    
+                    {/* 普通用户功能 */}
+                    {!isAdmin && (
+                      <>
+                        <button
+                          onClick={() => handlePageChange('profile')}
+                          className="block w-full text-left py-2 px-4 text-gray-700 hover:text-pink-600 transition-colors"
+                        >
+                          个人中心
+                        </button>
+                        <button
+                          onClick={() => handlePageChange('account-settings')}
+                          className="block w-full text-left py-2 px-4 text-gray-700 hover:text-pink-600 transition-colors"
+                        >
+                          账号设置
+                        </button>
+                        {profile?.user_type === 'influencer' && (
+                          <button
+                            onClick={() => handlePageChange('influencer-tasks')}
+                            className="block w-full text-left py-2 px-4 text-gray-700 hover:text-pink-600 transition-colors"
+                          >
+                            我的任务
+                          </button>
+                        )}
+                        {profile?.user_type === 'company' && (
+                          <button
+                            onClick={() => handlePageChange('company-tasks')}
+                            className="block w-full text-left py-2 px-4 text-gray-700 hover:text-pink-600 transition-colors"
+                          >
+                            我的任务
+                          </button>
+                        )}
+                      </>
+                    )}
+                    
+                    <button
+                      onClick={handleSignOut}
+                      disabled={isLoggingOut}
+                      className="block w-full text-left py-2 px-4 text-red-600 hover:text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isLoggingOut ? '退出中...' : '退出登录'}
+                    </button>
                   </div>
-                  
-                  {/* 管理员专用功能 */}
-                  {isAdmin && (
-                    <>
-                      <button
-                        onClick={() => handlePageChange('admin')}
-                        className="block w-full text-left py-2 text-blue-600 hover:text-blue-700 transition-colors"
-                      >
-                        管理后台
-                      </button>
-                      <button
-                        onClick={() => handlePageChange('admin-setup')}
-                        className="block w-full text-left py-2 text-gray-700 hover:text-pink-600 transition-colors"
-                      >
-                        管理员设置
-                      </button>
-                    </>
-                  )}
-                  
-                  {/* 普通用户功能 */}
-                  {!isAdmin && (
-                    <>
-                      <button
-                        onClick={() => handlePageChange('profile')}
-                        className="block w-full text-left py-2 text-gray-700 hover:text-pink-600 transition-colors"
-                      >
-                        个人中心
-                      </button>
-                      <button
-                        onClick={() => handlePageChange('account-settings')}
-                        className="block w-full text-left py-2 text-gray-700 hover:text-pink-600 transition-colors"
-                      >
-                        账号设置
-                      </button>
-                      {profile?.user_type === 'influencer' && (
-                        <button
-                          onClick={() => handlePageChange('influencer-tasks')}
-                          className="block w-full text-left py-2 text-gray-700 hover:text-pink-600 transition-colors"
-                        >
-                          我的任务
-                        </button>
-                      )}
-                      {profile?.user_type === 'company' && (
-                        <button
-                          onClick={() => handlePageChange('company-tasks')}
-                          className="block w-full text-left py-2 text-gray-700 hover:text-pink-600 transition-colors"
-                        >
-                          我的任务
-                        </button>
-                      )}
-                    </>
-                  )}
-                  
-                  <button
-                    onClick={handleSignOut}
-                    disabled={isLoggingOut}
-                    className="block w-full text-left py-2 text-red-600 hover:text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isLoggingOut ? '退出中...' : '退出登录'}
-                  </button>
-                </div>
-              ) : (
-                <div className="border-t border-gray-100 pt-2 space-y-2">
-                  <button
-                    onClick={() => openAuthModal('signin')}
-                    className="block w-full text-left py-2 text-gray-700 hover:text-pink-600 transition-colors"
-                  >
-                    登录
-                  </button>
-                  <button
-                    onClick={() => openAuthModal('signup')}
-                    className="block w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 rounded-lg font-semibold text-center"
-                  >
-                    注册
-                  </button>
-                </div>
-              )}
+                ) : (
+                  <div className="border-t border-gray-100 pt-2 space-y-2">
+                    <button
+                      onClick={() => openAuthModal('signin')}
+                      className="block w-full text-left py-2 px-4 text-gray-700 hover:text-pink-600 transition-colors"
+                    >
+                      登录
+                    </button>
+                    <button
+                      onClick={() => openAuthModal('signup')}
+                      className="block w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 px-4 rounded-lg font-semibold text-center"
+                    >
+                      注册
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </nav>
+      )}
 
       {/* Main Content */}
       <main>
-        {renderPage()}
+        
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/influencers" element={<InfluencersPage />} />
+          <Route path="/tasks" element={<TasksPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/help" element={<HelpPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/admin-login" element={<AdminLoginPage />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/influencer-profile" element={<InfluencerProfilePage />} />
+          <Route path="/influencer-image-upload-test" element={<InfluencerImageUploadTest />} />        
+          <Route path="/company-profile" element={<CompanyProfilePage />} />
+          <Route path="/account-settings" element={<AccountSettingsPage />} />
+          <Route path="/influencer-tasks" element={<InfluencerTasksPage />} />
+          <Route path="/company-tasks" element={<CompanyTasksPage />} />
+          <Route path="/company/:id" element={<CompanyDetailWrapper />} />
+          <Route path="/influencer/:id" element={<InfluencerDetailWrapper />} />
+          <Route path="/task/:id" element={<TaskDetailWrapper />} />
+          <Route path="/sms-test" element={<SmsVerificationTest />} />
+        </Routes>
       </main>
 
-      {/* Footer */}
-      <Footer onPageChange={handlePageChange} />
+      {/* Footer - 管理后台页面不显示 */}
+      {location.pathname !== '/admin' && <Footer onPageChange={handlePageChange} />}
 
       {/* Auth Modal */}
       <AuthModal
@@ -867,6 +869,8 @@ function App() {
 
       {/* Data Viewer */}
       {showDataViewer && <InfluencerDataViewer />}
+
+
     </div>
   )
 }

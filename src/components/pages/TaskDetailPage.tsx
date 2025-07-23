@@ -43,6 +43,7 @@ export function TaskDetailPage({ taskId, onBack }: TaskDetailPageProps) {
   const [processingId, setProcessingId] = useState<string | null>(null)
   // 申请列表 Tab 状态：pending / accepted / refused
   const [activeTab, setActiveTab] = useState<'pending' | 'accepted' | 'refused'>('pending')
+  const [selectedCompany, setSelectedCompany] = useState<any>(null)
   
   const { user, profile, isInfluencer, isCompany } = useAuth()
 
@@ -439,7 +440,22 @@ export function TaskDetailPage({ taskId, onBack }: TaskDetailPageProps) {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* 返回按钮 */}
         <button
-          onClick={onBack}
+          onClick={() => {
+            // 检查URL参数，判断是否从列表页面打开
+            const urlParams = new URLSearchParams(window.location.search)
+            const fromList = urlParams.get('from') === 'list'
+            
+            if (fromList && window.opener) {
+              // 如果是从列表页面新标签页打开，关闭当前标签页
+              window.close()
+            } else if (window.history.length > 1) {
+              // 如果有历史记录，返回上一页
+              onBack()
+            } else {
+              // 否则跳转到任务列表页面
+              window.location.href = '/tasks'
+            }
+          }}
           className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -505,7 +521,12 @@ export function TaskDetailPage({ taskId, onBack }: TaskDetailPageProps) {
                   )}
                 </div>
                 <div>
-                  <div className="font-medium text-gray-900">{task.company.company_name}</div>
+                  <button 
+                    onClick={() => window.open(`/company/${task.company.id}`, '_blank')}
+                    className="font-medium text-gray-900 hover:text-blue-600 transition-colors cursor-pointer text-left"
+                  >
+                    {task.company.company_name}
+                  </button>
                   <div className="text-sm text-gray-500">
                     {task.company.industry} · {task.company.is_verified ? '已认证' : '未认证'}
                   </div>
@@ -829,6 +850,137 @@ export function TaskDetailPage({ taskId, onBack }: TaskDetailPageProps) {
           </div>
         </div>
       </div>
+
+      {/* 企业详情弹窗 */}
+      {selectedCompany && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <h3 className="text-xl font-bold text-gray-900">企业详情</h3>
+              <button 
+                onClick={() => setSelectedCompany(null)} 
+                className="text-gray-500 hover:text-gray-900"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              {/* 企业基本信息 */}
+              <div className="flex items-center space-x-4 mb-6">
+                <div className="w-16 h-16 bg-gray-200 rounded-full overflow-hidden">
+                  {selectedCompany.logo_url ? (
+                    <img 
+                      src={selectedCompany.logo_url} 
+                      alt={selectedCompany.company_name} 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.src = 'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=200'
+                      }}
+                    />
+                  ) : (
+                    <Building2 className="w-full h-full p-3 text-gray-500" />
+                  )}
+                </div>
+                <div>
+                  <h4 className="text-xl font-bold text-gray-900 mb-1">{selectedCompany.company_name}</h4>
+                  <div className="flex items-center space-x-2">
+                    <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">
+                      {selectedCompany.industry || '未知行业'}
+                    </span>
+                    {selectedCompany.is_verified && (
+                      <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs flex items-center space-x-1">
+                        <CheckCircle className="w-3 h-3" />
+                        <span>已认证</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* 企业详细信息 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {selectedCompany.contact_person && (
+                  <div>
+                    <div className="text-sm text-gray-500 mb-1">联系人</div>
+                    <div className="font-medium text-gray-900">{selectedCompany.contact_person}</div>
+                  </div>
+                )}
+                
+                {selectedCompany.contact_phone && (
+                  <div>
+                    <div className="text-sm text-gray-500 mb-1">联系电话</div>
+                    <div className="font-medium text-gray-900">{selectedCompany.contact_phone}</div>
+                  </div>
+                )}
+                
+                {selectedCompany.contact_email && (
+                  <div>
+                    <div className="text-sm text-gray-500 mb-1">联系邮箱</div>
+                    <div className="font-medium text-gray-900">{selectedCompany.contact_email}</div>
+                  </div>
+                )}
+                
+                {selectedCompany.website && (
+                  <div>
+                    <div className="text-sm text-gray-500 mb-1">官方网站</div>
+                    <div className="font-medium text-gray-900">
+                      <a 
+                        href={selectedCompany.website} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-700 underline"
+                      >
+                        {selectedCompany.website}
+                      </a>
+                    </div>
+                  </div>
+                )}
+                
+                {selectedCompany.address && (
+                  <div className="md:col-span-2">
+                    <div className="text-sm text-gray-500 mb-1">公司地址</div>
+                    <div className="font-medium text-gray-900">{selectedCompany.address}</div>
+                  </div>
+                )}
+                
+                {selectedCompany.description && (
+                  <div className="md:col-span-2">
+                    <div className="text-sm text-gray-500 mb-1">公司简介</div>
+                    <div className="text-gray-900 whitespace-pre-line">{selectedCompany.description}</div>
+                  </div>
+                )}
+              </div>
+
+              {/* 企业统计信息 */}
+              <div className="mt-8 pt-6 border-t border-gray-100">
+                <h5 className="text-lg font-semibold text-gray-900 mb-4">企业统计</h5>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-pink-600">
+                      {selectedCompany.total_tasks || 0}
+                    </div>
+                    <div className="text-sm text-gray-600">发布任务</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-600">
+                      {selectedCompany.completed_tasks || 0}
+                    </div>
+                    <div className="text-sm text-gray-600">完成任务</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {selectedCompany.avg_rating ? Number(selectedCompany.avg_rating).toFixed(1) : '0.0'}
+                    </div>
+                    <div className="text-sm text-gray-600">平均评分</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
