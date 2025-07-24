@@ -28,6 +28,7 @@ import { CompanyDetailPage } from './components/pages/CompanyDetailPage'
 import { InfluencerDetailPage } from './components/pages/InfluencerDetailPage'
 import { TaskDetailPage } from './components/pages/TaskDetailPage'
 import { SmsVerificationTest } from './components/pages/SmsVerificationTest'
+import { ErrorBoundary } from './components/ErrorBoundary'
 
 
 function App() {
@@ -831,29 +832,30 @@ function App() {
 
       {/* Main Content */}
       <main>
-        
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/influencers" element={<InfluencersPage />} />
-          <Route path="/tasks" element={<TasksPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/help" element={<HelpPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/admin-login" element={<AdminLoginPage />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/influencer-profile" element={<InfluencerProfilePage />} />
-          <Route path="/influencer-image-upload-test" element={<InfluencerImageUploadTest />} />        
-          <Route path="/company-profile" element={<CompanyProfilePage />} />
-          <Route path="/account-settings" element={<AccountSettingsPage />} />
-          <Route path="/influencer-tasks" element={<InfluencerTasksPage />} />
-          <Route path="/company-tasks" element={<CompanyTasksPage />} />
-          <Route path="/company/:id" element={<CompanyDetailWrapper />} />
-          <Route path="/influencer/:id" element={<InfluencerDetailWrapper />} />
-          <Route path="/task/:id" element={<TaskDetailWrapper />} />
-          <Route path="/sms-test" element={<SmsVerificationTest />} />
-        </Routes>
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/influencers" element={<InfluencersPage />} />
+            <Route path="/tasks" element={<TasksPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/help" element={<HelpPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/admin-login" element={<AdminLoginPage />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/influencer-profile" element={<InfluencerProfilePage />} />
+            <Route path="/influencer-image-upload-test" element={<InfluencerImageUploadTest />} />        
+            <Route path="/company-profile" element={<CompanyProfilePage />} />
+            <Route path="/account-settings" element={<AccountSettingsPage />} />
+            <Route path="/influencer-tasks" element={<InfluencerTasksPage />} />
+            <Route path="/company-tasks" element={<CompanyTasksPage />} />
+            <Route path="/company/:id" element={<CompanyDetailWrapper />} />
+            <Route path="/influencer/:id" element={<InfluencerDetailWrapper />} />
+            <Route path="/task/:id" element={<TaskDetailWrapper />} />
+            <Route path="/sms-test" element={<SmsVerificationTest />} />
+          </Routes>
+        </ErrorBoundary>
       </main>
 
       {/* Footer - 管理后台页面不显示 */}
