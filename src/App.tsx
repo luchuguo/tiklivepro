@@ -28,6 +28,7 @@ import { CompanyDetailPage } from './components/pages/CompanyDetailPage'
 import { InfluencerDetailPage } from './components/pages/InfluencerDetailPage'
 import { TaskDetailPage } from './components/pages/TaskDetailPage'
 import { SmsVerificationTest } from './components/pages/SmsVerificationTest'
+import { RouteTestPage } from './components/pages/RouteTestPage'
 import { ErrorBoundary } from './components/ErrorBoundary'
 
 
@@ -853,6 +854,7 @@ function App() {
             <Route path="/company/:id" element={<CompanyDetailWrapper />} />
             <Route path="/influencer/:id" element={<InfluencerDetailWrapper />} />
             <Route path="/task/:id" element={<TaskDetailWrapper />} />
+            <Route path="/route-test/:id" element={<RouteTestPage />} />
             <Route path="/sms-test" element={<SmsVerificationTest />} />
           </Routes>
         </ErrorBoundary>
