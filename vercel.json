@@ -1,6 +1,82 @@
 {
   "rewrites": [
     {
+      "source": "/help",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/about",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/terms",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/contact",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/influencers",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/tasks",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin-login",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/influencer-profile",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/company-profile",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/account-settings",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/influencer-tasks",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/company-tasks",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/sms-test",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/influencer/(.*)",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/company/(.*)",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/task/(.*)",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/route-test/(.*)",
+      "destination": "/index.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
