@@ -274,7 +274,7 @@ export function DatabaseConnectionFixer({ onClose }: DatabaseConnectionFixerProp
 
   const copyDiagnosticReport = () => {
     const report = `
-TikLive Pro 数据库诊断报告
+tkgo.vip 数据库诊断报告
 生成时间: ${new Date().toLocaleString()}
 
 === 环境信息 ===

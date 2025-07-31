@@ -36,7 +36,7 @@ export function AboutPage() {
     {
       year: '2023',
       title: '平台创立',
-      description: 'TikLive Pro正式上线，开始为品牌和达人提供专业的直播带货服务'
+      description: 'tkgo.vip正式上线，开始为品牌和达人提供专业的直播带货服务'
     },
     {
       year: '2023',
@@ -64,7 +64,7 @@ export function AboutPage() {
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
               关于
               <span className="bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-                TikLive Pro
+                tkgo.vip
               </span>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
@@ -106,7 +106,7 @@ export function AboutPage() {
               <h2 className="text-3xl font-bold text-gray-900 mb-6">我们的使命</h2>
               <p className="text-lg text-gray-600 mb-6">
                 在数字化营销时代，我们相信直播带货是连接品牌与消费者最有效的方式之一。
-                TikLive Pro致力于构建一个透明、高效、互利共赢的生态平台。
+                tkgo.vip致力于构建一个透明、高效、互利共赢的生态平台。
               </p>
               <p className="text-lg text-gray-600 mb-8">
                 我们通过先进的技术和专业的服务，帮助品牌找到最适合的达人合作伙伴，

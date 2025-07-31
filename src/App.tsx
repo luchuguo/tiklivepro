@@ -222,7 +222,7 @@ function App() {
         name: '张小美',
         role: '美妆达人',
         avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150',
-        content: '通过TikLive Pro，我找到了很多优质的品牌合作机会，平台的服务很专业，结算也很及时。',
+        content: '通过tkgo.vip，我找到了很多优质的品牌合作机会，平台的服务很专业，结算也很及时。',
         rating: 5
       },
       {
@@ -255,15 +255,14 @@ function App() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div className="text-center lg:text-left">
                 <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                  连接品牌与
+                  一站式
                   <span className="bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-                    TikTok达人
+                    TikTok
                   </span>
-                  的专业平台
+                  海外代播平台
                 </h1>
                 <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                  TikLive Pro为品牌方和TikTok达人提供高效的合作平台，
-                  通过专业的匹配系统和完善的服务保障，实现双方共赢。
+                  集达人带货、短视频剪辑、账号托管于一体，助力中国商家轻松出海
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                   <button 
@@ -330,7 +329,7 @@ function App() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                为什么选择TikLive Pro
+                为什么选择tkgo.vip
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
                 我们致力于为品牌方和达人提供最专业、最高效的合作平台
@@ -442,7 +441,7 @@ function App() {
               准备开始您的TikTok直播带货之旅？
             </h2>
             <p className="text-xl text-pink-100 mb-8">
-              加入TikLive Pro，与优质合作伙伴一起创造更大价值
+              加入tkgo.vip，与优质合作伙伴一起创造更大价值
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button 
@@ -509,7 +508,7 @@ function App() {
                 <Video className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-                TikLive Pro
+                tkgo.vip
               </span>
             </button>
 

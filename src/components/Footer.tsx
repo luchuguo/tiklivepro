@@ -33,7 +33,7 @@ export function Footer({ onPageChange }: FooterProps) {
                 <Video className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
-                TikLive Pro
+                tkgo.vip
               </span>
             </div>
             <p className="text-gray-300 mb-6 max-w-md">
@@ -42,7 +42,7 @@ export function Footer({ onPageChange }: FooterProps) {
             <div className="flex space-x-4">
               <div className="flex items-center space-x-2 text-gray-300">
                 <Mail className="w-4 h-4" />
-                <span className="text-sm">contact@tiklive.pro</span>
+                <span className="text-sm">contact@tkgo.vip</span>
               </div>
               <div className="flex items-center space-x-2 text-gray-300">
                 <Phone className="w-4 h-4" />
@@ -86,7 +86,7 @@ export function Footer({ onPageChange }: FooterProps) {
         <div className="border-t border-gray-800 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-4 text-gray-400 text-sm">
-              <span>© 2024 TikLive Pro. 保留所有权利.</span>
+              <span>© 2024 tkgo.vip. 保留所有权利.</span>
               <div className="flex items-center space-x-1">
                 <MapPin className="w-4 h-4" />
                 <span>中国·上海</span>
@@ -95,7 +95,7 @@ export function Footer({ onPageChange }: FooterProps) {
             <div className="flex items-center space-x-1 text-gray-400 text-sm mt-4 md:mt-0">
               <span>Made with</span>
               <Heart className="w-4 h-4 text-pink-500" />
-              <span>by TikLive Team</span>
+              <span>by tkgo Team</span>
             </div>
           </div>
         </div>
