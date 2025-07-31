@@ -30,6 +30,7 @@ import { TaskDetailPage } from './components/pages/TaskDetailPage'
 import { SmsVerificationTest } from './components/pages/SmsVerificationTest'
 import { RouteTestPage } from './components/pages/RouteTestPage'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { EmailVerificationTest } from './components/pages/EmailVerificationTest'
 
 
 function App() {
@@ -855,6 +856,7 @@ function App() {
             <Route path="/task/:id" element={<TaskDetailWrapper />} />
             <Route path="/route-test/:id" element={<RouteTestPage />} />
             <Route path="/sms-test" element={<SmsVerificationTest />} />
+            <Route path="/email-test" element={<EmailVerificationTest />} />
           </Routes>
         </ErrorBoundary>
       </main>

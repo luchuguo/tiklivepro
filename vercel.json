@@ -77,6 +77,10 @@
       "destination": "/index.html"
     },
     {
+      "source": "/email-test",
+      "destination": "/index.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

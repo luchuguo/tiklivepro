@@ -29,6 +29,71 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
   const [smsError, setSmsError] = useState('')
   const [smsSuccess, setSmsSuccess] = useState('')
 
+  // -------------- 新增：邮箱验证码状态 & API 配置 --------------
+  // 邮箱验证码相关状态
+  const [emailCodeSent, setEmailCodeSent] = useState('')
+  const [emailInputCode, setEmailInputCode] = useState('')
+  const [sendingEmail, setSendingEmail] = useState(false)
+  const [emailVerified, setEmailVerified] = useState(false)
+  const [emailError, setEmailError] = useState('')
+  const [emailSuccess, setEmailSuccess] = useState('')
+
+  // AOKSend 邮件接口配置
+  const EMAIL_API_URL = 'https://www.aoksend.com/index/api/send_email'
+  const EMAIL_API_KEY = import.meta.env.VITE_AOKSEND_API_KEY as string
+  const EMAIL_TEMPLATE_ID = 'E_125139060306'
+
+  // 发送邮箱验证码函数
+  const sendEmailCode = async () => {
+    if (!email) {
+      setEmailError('请输入邮箱地址')
+      return
+    }
+    const code = Math.floor(100000 + Math.random() * 900000).toString()
+    setEmailCodeSent(code)
+    setSendingEmail(true)
+    setEmailError('')
+    setEmailSuccess('')
+
+    try {
+      const formData = new URLSearchParams()
+      formData.append('app_key', EMAIL_API_KEY)
+      formData.append('to', email)
+      formData.append('template_id', EMAIL_TEMPLATE_ID)
+      formData.append('data', JSON.stringify({ code }))
+
+      const res = await fetch(EMAIL_API_URL, { method: 'POST', body: formData })
+      const data = await res.json()
+      if (data.code === 0 || data.success || data.status === 'success') {
+        setEmailSuccess('验证码已发送，请检查邮箱')
+      } else {
+        setEmailError(data.message || '发送失败')
+      }
+    } catch (e: any) {
+      setEmailError('发送失败: ' + e.message)
+    } finally {
+      setSendingEmail(false)
+    }
+  }
+
+  // 验证邮箱验证码
+  const verifyEmailCode = () => {
+    if (!emailInputCode) {
+      setEmailError('请输入验证码')
+      return
+    }
+    if (emailInputCode === emailCodeSent) {
+      setEmailVerified(true)
+      setEmailError('')
+      setEmailSuccess('邮箱验证成功！')
+    } else {
+      setEmailVerified(false)
+      setEmailError('验证码错误，请重试')
+      setEmailSuccess('')
+    }
+  }
+  // -------------- 新增结束 --------------
+
   // 短信宝API配置
   const SMS_USERNAME = 'luchuguo'
   const SMS_PASSWORD_MD5 = '95895002b700461898a9821c0704e929'
@@ -161,12 +226,8 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
           setError('密码至少需要6位字符')
           return
         }
-        if (!phoneNumber) {
-          setError('请输入手机号码')
-          return
-        }
-        if (!smsVerified) {
-          setError('请先完成手机号码验证')
+        if (!emailVerified) {
+          setError('请先完成邮箱验证')
           return
         }
 
@@ -208,6 +269,11 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
     setSmsVerified(false)
     setSmsError('')
     setSmsSuccess('')
+    setEmailCodeSent('')
+    setEmailInputCode('')
+    setEmailVerified(false)
+    setEmailError('')
+    setEmailSuccess('')
     setError('')
   }
 
@@ -286,67 +352,49 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
             </div>
 
             {mode === 'signup' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  手机号码 <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="tel"
-                    value={phoneNumber}
-                    onChange={(e) => handleSmsInputChange('phone', e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                    placeholder="请输入手机号码"
-                    required
-                    disabled={loading}
-                  />
-                </div>
-                
-                {/* 短信验证码发送 */}
-                <div className="mt-2">
-                  <button
-                    type="button"
-                    onClick={sendSmsCode}
-                    disabled={sendingSms || !phoneNumber || loading}
-                    className="w-full py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                  >
-                    {sendingSms ? (
-                      <>
-                        <Loader className="w-4 h-4 animate-spin" />
-                        <span>发送中...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-4 h-4" />
-                        <span>发送验证码</span>
-                      </>
-                    )}
-                  </button>
-                </div>
+              <div className="mt-4">
+                {/* 发送邮箱验证码 */}
+                <button
+                  type="button"
+                  onClick={sendEmailCode}
+                  disabled={sendingEmail || !email || loading}
+                  className="w-full py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                  {sendingEmail ? (
+                    <>
+                      <Loader className="w-4 h-4 animate-spin" />
+                      <span>发送中...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      <span>发送验证码</span>
+                    </>
+                  )}
+                </button>
 
-                {/* 短信验证码输入 */}
+                {/* 邮箱验证码输入 */}
                 <div className="mt-3">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    短信验证码 <span className="text-red-500">*</span>
+                    邮箱验证码 <span className="text-red-500">*</span>
                   </label>
                   <div className="flex space-x-2">
                     <div className="relative flex-1">
                       <MessageSquare className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <input
                         type="text"
-                        value={inputCode}
-                        onChange={(e) => handleSmsInputChange('code', e.target.value)}
+                        value={emailInputCode}
+                        onChange={(e) => setEmailInputCode(e.target.value)}
                         className="w-full pl-9 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                         placeholder="请输入验证码"
-                        maxLength={4}
+                        maxLength={6}
                         disabled={loading}
                       />
                     </div>
                     <button
                       type="button"
-                      onClick={verifySmsCode}
-                      disabled={!inputCode || loading}
+                      onClick={verifyEmailCode}
+                      disabled={!emailInputCode || loading}
                       className="px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
                     >
                       验证
@@ -354,23 +402,23 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
                   </div>
                 </div>
 
-                {/* 短信验证状态 */}
-                {smsError && (
+                {/* 邮箱验证状态 */}
+                {emailError && (
                   <div className="mt-2 flex items-center space-x-2 text-red-600 text-sm">
                     <XCircle className="w-4 h-4" />
-                    <span>{smsError}</span>
+                    <span>{emailError}</span>
                   </div>
                 )}
-                {smsSuccess && (
+                {emailSuccess && (
                   <div className="mt-2 flex items-center space-x-2 text-green-600 text-sm">
                     <CheckCircle className="w-4 h-4" />
-                    <span>{smsSuccess}</span>
+                    <span>{emailSuccess}</span>
                   </div>
                 )}
-                {smsVerified && (
+                {emailVerified && (
                   <div className="mt-2 flex items-center space-x-2 text-green-600 text-sm">
                     <CheckCircle className="w-4 h-4" />
-                    <span>手机号码验证成功</span>
+                    <span>邮箱验证成功</span>
                   </div>
                 )}
               </div>
@@ -430,7 +478,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
 
             <button
               type="submit"
-              disabled={loading || (mode === 'signup' && !smsVerified)}
+              disabled={loading || (mode === 'signup' && !emailVerified)}
               className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {loading ? (
