@@ -60,25 +60,25 @@ export function ContactPage() {
       icon: Users,
       title: '达人服务',
       description: '达人注册、认证、任务申请相关问题',
-      email: 'influencer@tiklive.pro'
+      email: 'contact@tkgo.vip'
     },
     {
       icon: Building2,
       title: '企业服务',
       description: '企业合作、任务发布、商务洽谈',
-      email: 'business@tiklive.pro'
+      email: 'contact@tkgo.vip'
     },
     {
       icon: Headphones,
       title: '技术支持',
       description: '平台使用、技术问题、功能建议',
-      email: 'support@tiklive.pro'
+      email: 'contact@tkgo.vip'
     },
     {
       icon: MessageCircle,
       title: '媒体合作',
       description: '媒体采访、品牌合作、公关事务',
-      email: 'media@tiklive.pro'
+      email: 'contact@tkgo.vip'
     }
   ]
 

@@ -103,15 +103,11 @@ export function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">我们的使命</h2>
-              <p className="text-lg text-gray-600 mb-6">
-                在数字化营销时代，我们相信直播带货是连接品牌与消费者最有效的方式之一。
-                tkgo.vip致力于构建一个透明、高效、互利共赢的生态平台。
-              </p>
-              <p className="text-lg text-gray-600 mb-8">
-                我们通过先进的技术和专业的服务，帮助品牌找到最适合的达人合作伙伴，
-                同时为达人提供优质的商业机会和全方位的支持。
-              </p>
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">服务对象</h2>
+              <ul className="list-disc pl-6 text-lg text-gray-600 mb-8 space-y-2">
+                <li>中国商家 / 工厂 / 品牌方：希望在TikTok国际市场拓展销量。</li>
+                <li>海外TikTok达人 / 华人主播 / 工作室：具备带货能力、希望接单变现。</li>
+              </ul>
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <CheckCircle className="w-6 h-6 text-green-500" />
