@@ -84,7 +84,7 @@ export function HelpPage() {
     {
       icon: Phone,
       title: '客服热线',
-      description: '400-888-9999',
+      description: '中国025-84799999 美国610-8577777',
       action: '拨打电话',
       color: 'from-green-500 to-blue-600'
     },

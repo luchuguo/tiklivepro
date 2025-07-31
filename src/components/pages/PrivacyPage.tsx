@@ -240,7 +240,7 @@ export function PrivacyPage() {
               </div>
               <div className="bg-white rounded-lg p-4">
                 <strong className="text-gray-900">客服电话</strong>
-                <p className="text-gray-600">400-888-9999</p>
+                <p className="text-gray-600">中国025-84799999 美国610-8577777</p>
               </div>
               <div className="bg-white rounded-lg p-4">
                 <strong className="text-gray-900">工作时间</strong>

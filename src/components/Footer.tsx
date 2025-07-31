@@ -46,7 +46,7 @@ export function Footer({ onPageChange }: FooterProps) {
               </div>
               <div className="flex items-center space-x-2 text-gray-300">
                 <Phone className="w-4 h-4" />
-                <span className="text-sm">400-888-9999</span>
+                <span className="text-sm">中国025-84799999 美国610-8577777</span>
               </div>
             </div>
           </div>

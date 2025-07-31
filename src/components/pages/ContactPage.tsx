@@ -28,7 +28,7 @@ export function ContactPage() {
     {
       icon: Phone,
       title: '客服热线',
-      content: '400-888-9999',
+      content: '中国025-84799999 美国610-8577777',
       description: '7×24小时专业客服',
       color: 'from-blue-500 to-purple-600'
     },
