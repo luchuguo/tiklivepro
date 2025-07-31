@@ -28,7 +28,7 @@ export function ContactPage() {
     {
       icon: Phone,
       title: '客服热线',
-      content: '中国025-84799999 美国610-8577777',
+      content: '中国025-84799999\n美国610-8577777',
       description: '7×24小时专业客服',
       color: 'from-blue-500 to-purple-600'
     },
@@ -140,7 +140,7 @@ export function ContactPage() {
                   <info.icon className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">{info.title}</h3>
-                <p className="text-lg font-medium text-gray-800 mb-1">{info.content}</p>
+                <p className="text-lg font-medium text-gray-800 mb-1 whitespace-pre-line">{info.content}</p>
                 <p className="text-sm text-gray-600">{info.description}</p>
               </div>
             ))}
