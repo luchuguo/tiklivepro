@@ -552,15 +552,6 @@ function App() {
               >
                 联系我们
               </button>
-              
-              {/* 管理员后台入口 */}
-              <button 
-                onClick={() => handlePageChange('admin-login')}
-                className="text-purple-600 hover:text-purple-700 transition-colors flex items-center space-x-1 text-sm"
-              >
-                <Shield className="w-4 h-4" />
-                <span>管理后台</span>
-              </button>
             </div>
 
             {/* User Menu / Auth Buttons */}
