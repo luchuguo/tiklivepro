@@ -42,7 +42,7 @@ export function ContactPage() {
     {
       icon: MapPin,
       title: '公司地址',
-      content: '上海市浦东新区陆家嘴金融中心',
+      content: '中国·江苏',
       description: '欢迎预约实地拜访',
       color: 'from-pink-500 to-red-600'
     },
@@ -321,26 +321,6 @@ export function ContactPage() {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Map Section */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">找到我们</h2>
-            <p className="text-lg text-gray-600">
-              欢迎来到我们的办公室进行面对面交流
-            </p>
-          </div>
-          
-          <div className="bg-gray-200 rounded-2xl h-96 flex items-center justify-center">
-            <div className="text-center">
-              <MapPin className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">地图加载中...</h3>
-              <p className="text-gray-500">上海市浦东新区陆家嘴金融中心</p>
             </div>
           </div>
         </div>

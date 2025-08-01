@@ -75,7 +75,7 @@ export function Footer({ onPageChange }: FooterProps) {
               <span>© 2024 tkgo.vip. 保留所有权利.</span>
               <div className="flex items-center space-x-1">
                 <MapPin className="w-4 h-4" />
-                <span>中国·上海</span>
+                <span>中国·江苏</span>
               </div>
             </div>
             <div className="flex items-center space-x-1 text-gray-400 text-sm mt-4 md:mt-0">
