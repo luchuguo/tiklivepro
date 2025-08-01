@@ -121,6 +121,7 @@ function App() {
   }, [])
 
   const openAuthModal = (mode: 'signin' | 'signup', userType: 'influencer' | 'company' = 'influencer') => {
+    console.log('打开认证模态框:', { mode, userType });
     setAuthMode(mode)
     setAuthUserType(userType)
     setIsAuthModalOpen(true)
@@ -865,12 +866,14 @@ function App() {
       {location.pathname !== '/admin' && <Footer onPageChange={handlePageChange} />}
 
       {/* Auth Modal */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        defaultMode={authMode}
-        defaultUserType={authUserType}
-      />
+      {isAuthModalOpen && (
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          defaultMode={authMode}
+          defaultUserType={authUserType}
+        />
+      )}
 
       {/* Data Viewer */}
       {showDataViewer && <InfluencerDataViewer />}

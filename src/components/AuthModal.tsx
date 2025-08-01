@@ -11,6 +11,11 @@ interface AuthModalProps {
 }
 
 export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUserType = 'influencer' }: AuthModalProps) {
+  // 如果模态框未打开，不渲染任何内容
+  if (!isOpen) {
+    return null;
+  }
+
   const [mode, setMode] = useState<'signin' | 'signup'>(defaultMode)
   const [userType, setUserType] = useState<'influencer' | 'company'>(defaultUserType)
   const [email, setEmail] = useState('')
@@ -234,35 +239,59 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
         // 注册时的验证
         if (password !== confirmPassword) {
           setError('密码不匹配')
+          setLoading(false)
           return
         }
         if (password.length < 6) {
           setError('密码至少需要6位字符')
+          setLoading(false)
           return
         }
         if (!emailVerified) {
           setError('请先完成邮箱验证')
+          setLoading(false)
           return
         }
 
         console.log('开始注册:', email, userType, phoneNumber)
-        const { error } = await signUp(email, password, userType, phoneNumber)
-        if (error) {
-          console.error('注册失败:', error)
-          setError(typeof error === 'object' && error !== null && 'message' in error ? String(error.message) : '注册失败，请重试')
-        } else {
-          console.log('注册成功')
-          onClose()
+        
+        // 添加错误边界保护
+        try {
+          const { error } = await signUp(email, password, userType, phoneNumber)
+          if (error) {
+            console.error('注册失败:', error)
+            setError(typeof error === 'object' && error !== null && 'message' in error ? String(error.message) : '注册失败，请重试')
+          } else {
+            console.log('注册成功')
+            // 注册成功后清空缓存并显示提示
+            localStorage.clear()
+            sessionStorage.clear()
+            alert('注册成功，请重新登录！')
+            // 切换到登录模式
+            setMode('signin')
+            resetForm()
+          }
+        } catch (signUpError) {
+          console.error('注册API调用失败:', signUpError)
+          setError('注册服务暂时不可用，请稍后重试')
         }
       } else {
         console.log('开始登录:', email)
-        const { error } = await signIn(email, password)
-        if (error) {
-          console.error('登录失败:', error)
-          setError(typeof error === 'object' && error !== null && 'message' in error ? String(error.message) : '登录失败，请重试')
-        } else {
-          console.log('登录成功')
-          onClose()
+        
+        // 添加错误边界保护
+        try {
+          const { error } = await signIn(email, password)
+          if (error) {
+            console.error('登录失败:', error)
+            setError(typeof error === 'object' && error !== null && 'message' in error ? String(error.message) : '登录失败，请重试')
+          } else {
+            console.log('登录成功')
+            // 登录成功后关闭模态框
+            onClose()
+          }
+        } catch (signInError) {
+          console.error('登录API调用失败:', signInError)
+          setError('登录服务暂时不可用，请稍后重试')
         }
       }
     } catch (err) {
