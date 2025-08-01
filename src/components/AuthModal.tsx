@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { X, Mail, Lock, User, Building2, Eye, EyeOff, Loader, Phone, Send, MessageSquare, XCircle, CheckCircle } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import MD5 from 'crypto-js/md5'
@@ -64,32 +64,46 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
 
       const res = await fetch(EMAIL_API_URL, { method: 'POST', body: formData })
       const data = await res.json()
-      if (data.code === 0 || data.success || data.status === 'success') {
+      
+      // 添加调试信息
+      console.log('邮件API响应:', data)
+      
+      // 改进成功状态判断
+      const isSuccess = data.code === 0 || data.success === true || data.status === 'success' || 
+                       (data.message && data.message.includes('成功'))
+      
+      if (isSuccess) {
+        // 无论API返回什么消息，成功时都显示绿色提示
         setEmailSuccess('验证码已发送，请检查邮箱')
+        setEmailError('') // 确保清除任何错误状态
       } else {
         setEmailError(data.message || '发送失败')
+        setEmailSuccess('') // 确保清除任何成功状态
       }
     } catch (e: any) {
       setEmailError('发送失败: ' + e.message)
+      setEmailSuccess('') // 确保清除任何成功状态
     } finally {
       setSendingEmail(false)
     }
   }
 
   // 验证邮箱验证码
-  const verifyEmailCode = () => {
-    if (!emailInputCode) {
-      setEmailError('请输入验证码')
-      return
-    }
-    if (emailInputCode === emailCodeSent) {
-      setEmailVerified(true)
-      setEmailError('')
-      setEmailSuccess('邮箱验证成功！')
+  const verifyEmailCode = (currentValue: string) => {
+    const valueToVerify = currentValue || emailInputCode;
+    console.log('验证值比对', {
+      实际输入: valueToVerify,
+      服务器验证码: emailCodeSent
+    });
+
+    // 严格比较（参考/email-test）
+    if (valueToVerify.trim() === emailCodeSent?.trim()) {
+      setEmailVerified(true);
+      setEmailSuccess('验证成功！');
+      setEmailError('');
     } else {
-      setEmailVerified(false)
-      setEmailError('验证码错误，请重试')
-      setEmailSuccess('')
+      setEmailError('验证码错误，请重试');
+      setEmailSuccess('');
     }
   }
   // -------------- 新增结束 --------------
@@ -282,6 +296,19 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
     resetForm()
   }
 
+  const inputRef = useRef('');
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '');
+    inputRef.current = value; // 实时更新ref
+    setEmailInputCode(value);
+
+    // 立即触发验证（移除防抖）
+    if (value.length === 6 && !loading) {
+      verifyEmailCode(value); // 直接传入当前值
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
@@ -378,27 +405,31 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     邮箱验证码 <span className="text-red-500">*</span>
                   </label>
-                  <div className="flex space-x-2">
-                    <div className="relative flex-1">
-                      <MessageSquare className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <input
-                        type="text"
-                        value={emailInputCode}
-                        onChange={(e) => setEmailInputCode(e.target.value)}
-                        className="w-full pl-9 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                        placeholder="请输入验证码"
-                        maxLength={6}
-                        disabled={loading}
-                      />
+                  <div className="relative">
+                    <MessageSquare className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <div className="flex space-x-2">
+                      <div className="w-full">
+                        <input
+                          type="text"
+                          value={emailInputCode}
+                          onChange={handleInputChange}
+                          className="w-full pl-9 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                          placeholder="请输入6位验证码"
+                          maxLength={6}
+                          disabled={loading}
+                        />
+                      </div>
+                      {/*
+                      <button
+                        type="button"
+                        onClick={verifyEmailCode}
+                        disabled={!emailInputCode || loading}
+                        className="bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 disabled:opacity-50"
+                      >
+                        验证
+                      </button>
+                      */}
                     </div>
-                    <button
-                      type="button"
-                      onClick={verifyEmailCode}
-                      disabled={!emailInputCode || loading}
-                      className="px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-                    >
-                      验证
-                    </button>
                   </div>
                 </div>
 
