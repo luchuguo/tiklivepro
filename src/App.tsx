@@ -31,6 +31,7 @@ import { SmsVerificationTest } from './components/pages/SmsVerificationTest'
 import { RouteTestPage } from './components/pages/RouteTestPage'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { EmailVerificationTest } from './components/pages/EmailVerificationTest'
+import { ImageUploadTest } from './components/pages/ImageUploadTest'
 
 
 function App() {
@@ -849,6 +850,7 @@ function App() {
             <Route path="/route-test/:id" element={<RouteTestPage />} />
             <Route path="/sms-test" element={<SmsVerificationTest />} />
             <Route path="/email-test" element={<EmailVerificationTest />} />
+            <Route path="/image-upload-test" element={<ImageUploadTest />} />
           </Routes>
         </ErrorBoundary>
       </main>

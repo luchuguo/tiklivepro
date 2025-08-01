@@ -24,7 +24,6 @@ import {
 } from 'lucide-react'
 import { supabase, Influencer } from '../../lib/supabase'
 import { useAuthContext } from '../../hooks/useAuth'
-import { StorageManager } from '../StorageManager'
 
 export function InfluencerProfilePage() {
   const { user, profile, loading: authLoading } = useAuthContext()
@@ -61,31 +60,15 @@ export function InfluencerProfilePage() {
     '健身运动', '母婴用品', '家居家装', '图书教育'
   ]
 
-  const apiKey = import.meta.env.VITE_DEBLUR_API_KEY;
-
-  // 测试存储桶配置
-  const testStorageBucket = async () => {
-    try {
-      const { data: buckets, error } = await supabase.storage.listBuckets()
-      if (error) {
-        console.error('存储桶检查失败:', error)
-        return false
-      }
-      
-      const bucketExists = buckets?.some(bucket => bucket.name === 'influencer-avatars')
-      console.log('存储桶检查结果:', { buckets: buckets?.map(b => b.name), bucketExists })
-      return bucketExists
-    } catch (error) {
-      console.error('存储桶检查异常:', error)
-      return false
-    }
+  // 验证PICUI API密钥是否配置
+  const PICUI_API_KEY = import.meta.env.VITE_PICUI_API_KEY as string
+  if (!PICUI_API_KEY) {
+    console.warn('PICUI API密钥未配置，头像上传功能可能无法正常工作')
   }
 
   useEffect(() => {
     if (user && !authLoading) {
       fetchInfluencerProfile()
-      // 检查存储桶配置
-      testStorageBucket()
     }
   }, [user, authLoading])
 
@@ -212,27 +195,42 @@ export function InfluencerProfilePage() {
       setAvatarFile(file)
       setAvatarPreview('') // 清空预览
       setError(null)
+      
+      console.log('开始上传头像:', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type
+      })
+      
       try {
-        const formData = new FormData();
-        formData.append('filename', file);
-        const res = await fetch('https://prod.api.market/api/v1/magicapi/image-upload/upload', {
+        // 使用PICUI图床API
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('permission', '1') // 公开权限
+
+        console.log('发送PICUI API请求...')
+        const response = await fetch('https://picui.cn/api/v1/upload', {
           method: 'POST',
           headers: {
-            'x-magicapi-key': apiKey,
-            'accept': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_PICUI_API_KEY}`,
+            'Accept': 'application/json'
           },
-          body: formData,
-        });
-        const data = await res.json();
-        if (data.url) {
-          setAvatarPreview(data.url);
-        } else if (data.data && data.data.url) {
-          setAvatarPreview(data.data.url);
+          body: formData
+        })
+
+        const result = await response.json()
+        console.log('PICUI API响应:', result)
+
+        if (result.status && result.data?.links?.url) {
+          setAvatarPreview(result.data.links.url)
+          console.log('头像上传成功:', result.data.links.url)
         } else {
-          setError(data.message || '上传失败');
+          setError(result.message || '上传失败')
+          console.error('头像上传失败:', result)
         }
-      } catch (e: any) {
-        setError(e.message || '上传异常');
+      } catch (error: any) {
+        console.error('头像上传异常:', error)
+        setError(error.message || '上传异常')
       }
     }
   }
@@ -439,9 +437,6 @@ export function InfluencerProfilePage() {
           </div>
         )}
 
-        {/* 存储管理器 - 仅在开发环境显示 */}
-        {import.meta.env.DEV && <StorageManager />}
-
         {/* 主内容区 */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
           {/* 封面图 */}
@@ -478,7 +473,7 @@ export function InfluencerProfilePage() {
                 </div>
               ) : (
                 <img
-                  src={avatarPreview || influencer?.avatar_url ? `${avatarPreview || influencer.avatar_url}?t=${Date.now()}` : 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400'}
+                  src={avatarPreview || influencer?.avatar_url ? `${avatarPreview || influencer?.avatar_url}?t=${Date.now()}` : 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400'}
                   alt="用户头像"
                   className="w-full h-full object-cover"
                   onError={(e) => {

@@ -109,49 +109,56 @@ export function CompanyProfilePage() {
     }))
   }
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
       setLogoFile(file)
+      setLogoPreview('') // 清空预览
+      setError(null)
       
-      // 创建预览
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setLogoPreview(reader.result as string)
+      console.log('开始上传企业Logo:', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type
+      })
+      
+      try {
+        // 使用PICUI图床API
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('permission', '1') // 公开权限
+
+        console.log('发送PICUI API请求...')
+        const response = await fetch('https://picui.cn/api/v1/upload', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_PICUI_API_KEY}`,
+            'Accept': 'application/json'
+          },
+          body: formData
+        })
+
+        const result = await response.json()
+        console.log('PICUI API响应:', result)
+
+        if (result.status && result.data?.links?.url) {
+          setLogoPreview(result.data.links.url)
+          console.log('企业Logo上传成功:', result.data.links.url)
+        } else {
+          setError(result.message || '上传失败')
+          console.error('企业Logo上传失败:', result)
+        }
+      } catch (error: any) {
+        console.error('企业Logo上传异常:', error)
+        setError(error.message || '上传异常')
       }
-      reader.readAsDataURL(file)
     }
   }
 
-  const uploadLogo = async (): Promise<string | null> => {
-    if (!logoFile || !user) return null
-    
-    try {
-      // 生成唯一文件名
-      const fileExt = logoFile.name.split('.').pop()
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`
-      const filePath = `logos/${fileName}`
-      
-      // 上传到 Storage
-      const { error: uploadError } = await supabase.storage
-        .from('company-logos')
-        .upload(filePath, logoFile)
-      
-      if (uploadError) {
-        console.error('上传Logo失败:', uploadError)
-        throw new Error('上传Logo失败')
-      }
-      
-      // 获取公共URL
-      const { data } = supabase.storage
-        .from('company-logos')
-        .getPublicUrl(filePath)
-      
-      return data.publicUrl
-    } catch (error) {
-      console.error('处理Logo时发生错误:', error)
-      return null
-    }
+  // 验证PICUI API密钥是否配置
+  const PICUI_API_KEY = import.meta.env.VITE_PICUI_API_KEY as string
+  if (!PICUI_API_KEY) {
+    console.warn('PICUI API密钥未配置，Logo上传功能可能无法正常工作')
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -175,11 +182,8 @@ export function CompanyProfilePage() {
       
       // 上传Logo（如果有）
       let logoUrl = company?.logo_url || null
-      if (logoFile) {
-        const newLogoUrl = await uploadLogo()
-        if (newLogoUrl) {
-          logoUrl = newLogoUrl
-        }
+      if (logoPreview) {
+        logoUrl = logoPreview
       }
       
       const updateData = {
