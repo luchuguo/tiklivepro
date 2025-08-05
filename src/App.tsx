@@ -270,18 +270,18 @@ function App() {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                   <button 
+                    onClick={() => openAuthModal('signup', 'influencer')}
+                    className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg transform hover:scale-105"
+                  >
+                    <Users className="w-5 h-5" />
+                    <span>达人入驻</span>
+                  </button>
+                  <button 
                     onClick={() => openAuthModal('signup', 'company')}
-                    className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 flex items-center justify-center space-x-2"
+                    className="border-2 border-gray-300 text-gray-600 px-8 py-4 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200 flex items-center justify-center space-x-2 opacity-75"
                   >
                     <Building2 className="w-5 h-5" />
                     <span>品牌方入驻</span>
-                  </button>
-                  <button 
-                    onClick={() => openAuthModal('signup', 'influencer')}
-                    className="border-2 border-pink-500 text-pink-600 px-8 py-4 rounded-xl font-semibold hover:bg-pink-50 transition-all duration-200 flex items-center justify-center space-x-2"
-                  >
-                    <Users className="w-5 h-5" />
-                    <span>达人注册</span>
                   </button>
                 </div>
               </div>
@@ -449,19 +449,19 @@ function App() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button 
-                onClick={() => openAuthModal('signup', 'company')}
-                className="bg-white text-pink-600 px-8 py-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 flex items-center justify-center space-x-2"
-              >
-                <Building2 className="w-5 h-5" />
-                <span>我是品牌方</span>
-                <ArrowRight className="w-5 h-5" />
-              </button>
-              <button 
                 onClick={() => openAuthModal('signup', 'influencer')}
-                className="border-2 border-white text-white px-8 py-4 rounded-xl font-semibold hover:bg-white hover:text-pink-600 transition-all duration-200 flex items-center justify-center space-x-2"
+                className="bg-white text-pink-600 px-8 py-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg transform hover:scale-105"
               >
                 <Users className="w-5 h-5" />
                 <span>我是达人</span>
+                <ArrowRight className="w-5 h-5" />
+              </button>
+              <button 
+                onClick={() => openAuthModal('signup', 'company')}
+                className="border-2 border-white text-white px-8 py-4 rounded-xl font-medium hover:bg-white hover:text-pink-600 transition-all duration-200 flex items-center justify-center space-x-2 opacity-75"
+              >
+                <Building2 className="w-5 h-5" />
+                <span>我是品牌方</span>
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>
