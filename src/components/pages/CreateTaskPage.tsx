@@ -21,7 +21,9 @@ export function CreateTaskPage({ company, onBack }: CreateTaskPageProps) {
     live_date: '',
     is_urgent: false,
     is_advance_paid: false,
-    paid_amount: 0
+    paid_amount: 0,
+    requires_deposit: false,
+    deposit_amount: 0
   })
 
   const [categories, setCategories] = useState<TaskCategory[]>([])
@@ -47,7 +49,7 @@ export function CreateTaskPage({ company, onBack }: CreateTaskPageProps) {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target
-    const numeric = ['budget_min', 'budget_max', 'max_applicants', 'paid_amount']
+    const numeric = ['budget_min', 'budget_max', 'max_applicants', 'paid_amount', 'deposit_amount']
     setForm(prev => ({
       ...prev,
       [name]: numeric.includes(name) ? Number(value) : value
@@ -71,6 +73,11 @@ export function CreateTaskPage({ company, onBack }: CreateTaskPageProps) {
     /* 简单校验 */
     if (form.is_advance_paid && form.paid_amount <= 0) {
       setError('请填写有效的预付金额')
+      return
+    }
+
+    if (form.requires_deposit && form.deposit_amount <= 0) {
+      setError('请填写有效的保证金金额')
       return
     }
 
@@ -103,7 +110,10 @@ export function CreateTaskPage({ company, onBack }: CreateTaskPageProps) {
           is_advance_paid: form.is_advance_paid,
           paid_amount: form.is_advance_paid ? form.paid_amount : null,
           is_settled: false,
-          settlement_amount: null
+          settlement_amount: null,
+          /* 保证金字段 */
+          requires_deposit: form.requires_deposit,
+          deposit_amount: form.requires_deposit ? form.deposit_amount : null
         }
       ])
 
@@ -214,7 +224,7 @@ export function CreateTaskPage({ company, onBack }: CreateTaskPageProps) {
           {/* 预算 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">预算最小值 (¥)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">预算最小值 ($)</label>
               <input
                 type="number"
                 name="budget_min"
@@ -226,7 +236,7 @@ export function CreateTaskPage({ company, onBack }: CreateTaskPageProps) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">预算最大值 (¥)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">预算最大值 ($)</label>
               <input
                 type="number"
                 name="budget_max"
@@ -274,7 +284,7 @@ export function CreateTaskPage({ company, onBack }: CreateTaskPageProps) {
               onChange={handleCheckbox}
               className="h-4 w-4 text-red-600 border-gray-300 rounded"
             />
-            <span className="text-sm text-red-700">紧急任务</span>
+            <span className="text-sm text-red-700">是否为紧急任务</span>
           </label>
 
           {/* 预付 */}
@@ -287,7 +297,7 @@ export function CreateTaskPage({ company, onBack }: CreateTaskPageProps) {
                 onChange={handleCheckbox}
                 className="h-4 w-4 text-blue-600 border-gray-300 rounded"
               />
-              <span className="text-sm text-gray-700">预付</span>
+              <span className="text-sm text-gray-700">是否任务预付（填写任务预付会增加任务中标机率、达人参加的兴趣）</span>
             </label>
             {form.is_advance_paid && (
               <input
@@ -296,7 +306,34 @@ export function CreateTaskPage({ company, onBack }: CreateTaskPageProps) {
                 value={form.paid_amount}
                 onChange={handleChange}
                 min={0}
-                placeholder="预付金额 (¥)"
+                placeholder="预付金额 ($)"
+                required
+                className="w-40 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            )}
+          </div>
+
+          {/* 保证金 */}
+          <div className="flex items-center space-x-4">
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                name="requires_deposit"
+                checked={form.requires_deposit}
+                onChange={handleCheckbox}
+                className="h-4 w-4 text-orange-600 border-gray-300 rounded"
+              />
+              <span className="text-sm text-gray-700">是否要求达人支付样品保证金</span>
+            </label>
+            {form.requires_deposit && (
+              <input
+                type="number"
+                name="deposit_amount"
+                value={form.deposit_amount}
+                onChange={handleChange}
+                min={0}
+                step="0.01"
+                placeholder="保证金金额 ($)"
                 required
                 className="w-40 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
