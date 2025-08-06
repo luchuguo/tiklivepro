@@ -862,12 +862,12 @@ function App() {
 
       {/* Auth Modal */}
       {isAuthModalOpen && (
-        <AuthModal
-          isOpen={isAuthModalOpen}
-          onClose={() => setIsAuthModalOpen(false)}
-          defaultMode={authMode}
-          defaultUserType={authUserType}
-        />
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        defaultMode={authMode}
+        defaultUserType={authUserType}
+      />
       )}
 
       {/* Data Viewer */}

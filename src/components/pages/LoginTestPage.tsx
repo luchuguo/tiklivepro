@@ -73,10 +73,10 @@ export default function LoginTestPage() {
         let userType = null
         let userProfile = null
 
-        // 快速检查用户类型
+        // 优化查询：只获取必要字段
         const { data: influencerData } = await supabase
           .from('influencers')
-          .select('*')
+          .select('id, nickname, user_type, avatar_url, bio')
           .eq('user_id', user.id)
           .single()
 
@@ -86,7 +86,7 @@ export default function LoginTestPage() {
         } else {
           const { data: companyData } = await supabase
             .from('companies')
-            .select('*')
+            .select('id, company_name, industry, company_size, logo_url')
             .eq('user_id', user.id)
             .single()
 

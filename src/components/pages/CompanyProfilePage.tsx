@@ -121,8 +121,8 @@ export function CompanyProfilePage() {
         fileSize: file.size,
         fileType: file.type
       })
-      
-      try {
+    
+    try {
         // 使用PICUI图床API
         const formData = new FormData()
         formData.append('file', file)
