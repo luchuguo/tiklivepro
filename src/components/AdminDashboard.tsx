@@ -20,7 +20,8 @@ import {
   Download,
   RefreshCw,
   Loader,
-  LogOut
+  LogOut,
+  Trash2
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuthContext } from '../hooks/useAuth'
@@ -715,6 +716,20 @@ export function AdminDashboard() {
       }
     }
 
+    const deleteTask = async (taskId: string) => {
+      if (!window.confirm('确定要删除此任务吗？此操作不可逆。')) {
+        return
+      }
+      try {
+        await supabase.from('tasks').delete().eq('id', taskId)
+        setTasks(prev => prev.filter(task => task.id !== taskId))
+        alert('任务删除成功！')
+      } catch (error) {
+        console.error('删除任务失败:', error)
+        alert('删除任务失败，请重试')
+      }
+    }
+
     const TaskDetailModal = ({ task, onClose }: { task: any; onClose: () => void }) => {
       const [applications, setApplications] = useState<any[]>([])
       const [loadingApps, setLoadingApps] = useState(true)
@@ -841,6 +856,7 @@ export function AdminDashboard() {
                   <th className="px-4 py-3 font-medium text-gray-700">预付</th>
                   <th className="px-4 py-3 font-medium text-gray-700">已结算</th>
                   <th className="px-4 py-3 font-medium text-gray-700">结算金额</th>
+                  <th className="px-4 py-3 font-medium text-gray-700">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -863,6 +879,19 @@ export function AdminDashboard() {
                     <td className="px-4 py-2 text-gray-600">{t.is_advance_paid ? '是' : '否'}</td>
                     <td className="px-4 py-2 text-gray-600">{t.is_settled ? '是' : '否'}</td>
                     <td className="px-4 py-2 text-gray-600">{t.settlement_amount ? `¥${t.settlement_amount.toLocaleString()}` : '—'}</td>
+                    <td className="px-4 py-2 space-x-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation(); // 阻止点击任务行触发详情弹窗
+                          deleteTask(t.id);
+                        }}
+                        className="flex items-center space-x-1 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 px-2 py-1 rounded transition-colors"
+                        title="删除任务"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span>删除</span>
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

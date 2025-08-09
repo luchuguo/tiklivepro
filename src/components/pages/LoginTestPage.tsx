@@ -73,30 +73,25 @@ export default function LoginTestPage() {
         let userType = null
         let userProfile = null
 
-        // 使用 user_accounts 视图进行单次查询，提高性能
-        const { data: userAccount, error: accountError } = await supabase
-          .from('user_accounts')
-          .select('*')
+        // 优化查询：只获取必要字段
+        const { data: influencerData } = await supabase
+          .from('influencers')
+          .select('id, nickname, user_type, avatar_url, bio')
           .eq('user_id', user.id)
           .single()
 
-        if (userAccount) {
-          userType = userAccount.user_type
-          
-          // 根据用户类型获取详细信息
-          if (userType === 'influencer') {
-            const { data: influencerData } = await supabase
-              .from('influencers')
-              .select('id, nickname, user_type, avatar_url, bio')
-              .eq('user_id', user.id)
-              .single()
-            userProfile = influencerData
-          } else if (userType === 'company') {
-            const { data: companyData } = await supabase
-              .from('companies')
-              .select('id, company_name, industry, company_size, logo_url')
-              .eq('user_id', user.id)
-              .single()
+        if (influencerData) {
+          userType = 'influencer'
+          userProfile = influencerData
+        } else {
+          const { data: companyData } = await supabase
+            .from('companies')
+            .select('id, company_name, industry, company_size, logo_url')
+            .eq('user_id', user.id)
+            .single()
+
+          if (companyData) {
+            userType = 'company'
             userProfile = companyData
           }
         }
@@ -106,8 +101,6 @@ export default function LoginTestPage() {
           permissions.push('profile_edit', 'content_upload', 'campaign_view')
         } else if (userType === 'company') {
           permissions.push('profile_edit', 'campaign_create', 'influencer_search', 'analytics_view')
-        } else if (userType === 'admin') {
-          permissions.push('user_management', 'task_management', 'system_settings', 'data_analytics', 'content_moderation')
         }
 
         setAuthStatus({
@@ -117,22 +110,16 @@ export default function LoginTestPage() {
           permissions
         })
 
-        // 只有在非手动登录时才更新消息
-        if (!loading) {
-          setMessage({
-            type: 'success',
-            text: `登录成功！用户类型: ${userType === 'influencer' ? '达人用户' : userType === 'company' ? '企业用户' : '管理员'}`
-          })
-        }
+        setMessage({
+          type: 'success',
+          text: `快速登录成功！用户类型: ${userType === 'influencer' ? '达人用户' : '企业用户'}`
+        })
       } catch (error) {
         console.error('获取用户信息失败:', error)
-        // 只有在非手动登录时才显示错误消息
-        if (!loading) {
-          setMessage({
-            type: 'error',
-            text: '获取用户信息失败'
-          })
-        }
+        setMessage({
+          type: 'error',
+          text: '获取用户信息失败'
+        })
       }
     } else {
       setAuthStatus({
@@ -238,23 +225,10 @@ export default function LoginTestPage() {
         const loginDuration = endTime - startTime
         setLoginTime(loginDuration)
         
-        // 立即显示登录成功消息，不等待用户资料获取
         setMessage({
           type: 'success',
           text: `手动登录成功！耗时: ${loginDuration}ms`
         })
-        
-        // 异步获取用户资料，不阻塞登录响应
-        // 使用 requestIdleCallback 在浏览器空闲时执行
-        if ('requestIdleCallback' in window) {
-          (window as any).requestIdleCallback(() => {
-            updateAuthStatus()
-          })
-        } else {
-          setTimeout(() => {
-            updateAuthStatus()
-          }, 100)
-        }
       }
     } catch (error: any) {
       console.error('手动登录失败:', error)

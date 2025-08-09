@@ -58,16 +58,7 @@ export function useAuth() {
       setUser(session?.user ?? null)
       
       if (session?.user) {
-        // 异步获取用户资料，不阻塞登录响应
-        if ('requestIdleCallback' in window) {
-          (window as any).requestIdleCallback(() => {
-            fetchProfile(session.user.id, session.user.email)
-          })
-        } else {
-          setTimeout(() => {
-            fetchProfile(session.user.id, session.user.email)
-          }, 100)
-        }
+        await fetchProfile(session.user.id, session.user.email)
       } else {
         // 用户退出登录时立即清理所有状态
         console.log('用户退出登录，清理状态...')

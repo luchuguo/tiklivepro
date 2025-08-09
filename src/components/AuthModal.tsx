@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react'
-import { X, Mail, Lock, User, Building2, Eye, EyeOff, Loader, Phone, Send, MessageSquare, XCircle, CheckCircle, Clock } from 'lucide-react'
+import { X, Mail, Lock, User, Building2, Eye, EyeOff, Loader, Phone, Send, MessageSquare, XCircle, CheckCircle } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
-import { supabase } from '../lib/supabase'
 import MD5 from 'crypto-js/md5'
 
 interface AuthModalProps {
@@ -25,8 +24,6 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [loginTime, setLoginTime] = useState<number | null>(null)
-  const [showLoginTime, setShowLoginTime] = useState(false)
   
   // 短信验证相关状态
   const [phoneNumber, setPhoneNumber] = useState('')
@@ -281,35 +278,16 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
       } else {
         console.log('开始登录:', email)
         
-        const startTime = Date.now()
-        setShowLoginTime(false)
-        
-        // 直接调用 Supabase Auth，避免额外的 hook 逻辑
+        // 添加错误边界保护
         try {
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email: email.trim(),
-            password: password.trim(),
-          })
-
+          const { error } = await signIn(email, password)
           if (error) {
             console.error('登录失败:', error)
             setError(typeof error === 'object' && error !== null && 'message' in error ? String(error.message) : '登录失败，请重试')
           } else {
-            const endTime = Date.now()
-            const loginDuration = endTime - startTime
-            setLoginTime(loginDuration)
-            setShowLoginTime(true)
-            
-            console.log('登录成功，耗时:', loginDuration, 'ms')
-            
-            // 显示登录成功消息
-            setError('')
-            
-            // 延迟关闭模态框，让用户看到登录时间
-            setTimeout(() => {
-              onClose()
-              setShowLoginTime(false)
-            }, 1500)
+            console.log('登录成功')
+            // 登录成功后关闭模态框
+            onClose()
           }
         } catch (signInError) {
           console.error('登录API调用失败:', signInError)
@@ -340,8 +318,6 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
     setEmailError('')
     setEmailSuccess('')
     setError('')
-    setLoginTime(null)
-    setShowLoginTime(false)
   }
 
   const switchMode = (newMode: 'signin' | 'signup') => {
@@ -574,16 +550,6 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
                 <span>{mode === 'signin' ? '登录' : '注册'}</span>
               )}
             </button>
-
-            {/* 登录时间显示 */}
-            {showLoginTime && loginTime && mode === 'signin' && (
-              <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <div className="flex items-center justify-center space-x-2 text-green-700">
-                  <Clock className="w-4 h-4" />
-                  <span className="text-sm font-medium">登录成功！耗时: {loginTime}ms</span>
-                </div>
-              </div>
-            )}
           </form>
 
           <div className="mt-6 text-center">
