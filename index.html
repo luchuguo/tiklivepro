@@ -6,9 +6,313 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>tkgo.vip - 专业TikTok(抖音)代播平台</title>
     <meta name="description" content="专业的TikTok代播平台，连接优质品牌与专业主播，提供高效的直播带货解决方案" />
+    
+    <!-- Google翻译插件 - 默认样式和语言 -->
+    <script>
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement(
+          { 
+            pageLanguage: 'auto',  // 自动检测网页语言
+            includedLanguages: 'zh-CN,en',  // 只保留中文简体和英文
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE 
+          },
+          'google_translate_element'  // 翻译控件要显示的位置
+        );
+        
+        // 确保样式在控件加载后应用
+        setTimeout(function() {
+          var combo = document.querySelector('.goog-te-combo');
+          if (combo) {
+            combo.style.padding = '10px 16px';
+            combo.style.border = '2px solid #e2e8f0';
+            combo.style.borderRadius = '12px';
+            combo.style.background = 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)';
+            combo.style.color = '#475569';
+            combo.style.fontSize = '14px';
+            combo.style.fontWeight = '600';
+            combo.style.cursor = 'pointer';
+            combo.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+            combo.style.boxShadow = '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)';
+            combo.style.width = '110px';
+            combo.style.height = '35px';
+            combo.style.webkitAppearance = 'none';
+            combo.style.mozAppearance = 'none';
+            combo.style.appearance = 'none';
+            combo.style.backgroundImage = 'url("data:image/svg+xml;utf8,<svg fill=\'none\' height=\'24\' stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' viewBox=\'0 0 24 24\' width=\'24\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M19 9l-7 7-7-7\'/></svg>")';
+            combo.style.backgroundRepeat = 'no-repeat';
+            combo.style.backgroundPosition = 'right 0.7em center';
+            combo.style.backgroundSize = '16px';
+            combo.style.overflow = 'hidden';
+            combo.style.textOverflow = 'ellipsis';
+            // 设置默认文字为大写Language
+            combo.options[0].text = 'LANGUAGE';
+          }
+        }, 1000); // 延迟1秒以确保控件已加载
+      }
+    </script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    
+    <!-- Microsoft Translator样式优化 -->
+    <style>
+      /* Microsoft Translator控件样式 */
+      .MicrosoftTranslatorWidget {
+        display: inline-block;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      
+      /* 自定义翻译按钮样式 */
+      .custom-translate-btn {
+        padding: 8px 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+        color: #374151;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 120px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      
+      .custom-translate-btn:hover {
+        border-color: #f472b6;
+        background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+        color: #be185d;
+        box-shadow: 0 2px 8px rgba(244, 114, 182, 0.2);
+        transform: translateY(-1px);
+      }
+      
+      .custom-translate-btn:active {
+        transform: translateY(0);
+      }
+      
+      /* 翻译状态指示器 */
+      .translate-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: #6b7280;
+      }
+      
+      .translate-status.translating {
+        color: #f472b6;
+        animation: pulse 1.5s infinite;
+      }
+      
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+      
+      /* 确保页面不会因为翻译而偏移 */
+      body { 
+        top: 0px !important; 
+      }
+      
+      /* 自定义美观的语言切换按钮 */
+      .custom-language-switcher {
+        position: relative;
+        display: inline-block;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      
+      .custom-language-switcher .language-button {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        color: #475569;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        min-width: 120px;
+      }
+      
+      .custom-language-switcher .language-button:hover {
+        border-color: #f472b6;
+        background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+        box-shadow: 0 4px 12px 0 rgba(244, 114, 182, 0.15), 0 2px 4px 0 rgba(244, 114, 182, 0.1);
+        transform: translateY(-2px);
+        color: #be185d;
+      }
+      
+      .custom-language-switcher .language-button.dropdown-open {
+        border-color: #f472b6;
+        background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+        color: #be185d;
+        box-shadow: 0 4px 12px 0 rgba(244, 114, 182, 0.15), 0 2px 4px 0 rgba(244, 114, 182, 0.1);
+      }
+      
+      .custom-language-switcher .dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        margin-top: 8px;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        min-width: 120px;
+        overflow: hidden;
+        z-index: 50;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
+      .custom-language-switcher .dropdown.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+      
+      .custom-language-switcher .dropdown-item {
+        padding: 10px 16px;
+        color: #475569;
+        font-size: 14px;
+        display: block;
+        width: 100%;
+        text-align: left;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: background 0.2s ease, color 0.2s ease;
+      }
+      
+      .custom-language-switcher .dropdown-item:hover {
+        background: #f8fafc;
+        color: #be185d;
+      }
+      
+      .custom-language-switcher .dropdown-item.active {
+        background: #f8fafc;
+        color: #be185d;
+        font-weight: 600;
+      }
+      
+      /* 隐藏顶部横幅和Google Logo */
+      .goog-te-banner-frame, .goog-logo-link { display: none !important; }
+      
+      /* 调整下拉框样式 - 与网站风格一致 */
+      .goog-te-combo {
+        padding: 10px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        color: #475569;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        width: 110px;
+        height: 35px;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml;utf8,<svg fill='none' height='24' stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M19 9l-7 7-7-7'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 0.7em center;
+        background-size: 16px;
+      }
+      
+      .goog-te-combo:hover {
+        border-color: #f472b6;
+        background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+        box-shadow: 0 4px 12px 0 rgba(244, 114, 182, 0.15), 0 2px 4px 0 rgba(244, 114, 182, 0.1);
+        transform: translateY(-2px);
+        color: #be185d;
+      }
+      
+      .goog-te-combo:focus {
+        outline: none;
+        border-color: #f472b6;
+        box-shadow: 0 0 0 3px rgba(244, 114, 182, 0.2);
+      }
+      
+      /* 确保Google翻译控件和下拉菜单可见 */
+      #google_translate_element, .goog-te-combo, .goog-te-menu-value, .goog-te-menu-frame, .goog-te-menu2 {
+        display: block !important;
+        visibility: visible !important;
+        height: auto !important;
+        width: auto !important;
+        overflow: visible !important;
+        position: relative !important;
+        z-index: 9999 !important;
+      }
+      
+      /* 修改规则，确保Google翻译控件可见 - 更精确 */
+      body > div:not(#root):not(#google_translate_element):not([id^='goog']):not([class^='goog-']) {
+        display: none !important;
+      }
+      
+      body {
+        position: static !important;
+      }
+      
+      /* 自定义语言切换按钮样式 */
+      .custom-language-btn {
+        padding: 10px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        color: #475569;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        min-width: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      
+      .custom-language-btn:hover {
+        border-color: #f472b6;
+        background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+        box-shadow: 0 4px 12px 0 rgba(244, 114, 182, 0.15), 0 2px 4px 0 rgba(244, 114, 182, 0.1);
+        transform: translateY(-2px);
+        color: #be185d;
+      }
+    </style>
+    <link rel="stylesheet" href="./src/googleTranslate.css">
   </head>
   <body>
     <div id="root"></div>
+    
+    <!-- Google翻译元素容器 - 现在在导航栏中直接使用 -->
+    
     <script type="module" src="/src/main.tsx"></script>
+    
+        <!-- Google翻译插件脚本 -->
+    <script>
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement(
+          { 
+            pageLanguage: 'auto', 
+            includedLanguages: 'zh-CN,en', 
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE 
+          },
+          'google_translate_element'
+        );
+      }
+    </script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    
+    <!-- 语言切换功能已集成到React组件中 -->
   </body>
 </html>

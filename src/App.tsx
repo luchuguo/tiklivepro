@@ -1,6 +1,23 @@
 import React, { useState, useEffect } from 'react'
 import { Video, Users, Building2, TrendingUp, Star, Play, ArrowRight, Menu, X, User, LogOut, Calendar, Settings, Shield, UserCheck, Cog, Briefcase } from 'lucide-react'
-import { Routes, Route, useNavigate, useLocation, useParams } from 'react-router-dom'
+import { Routes, Route, useNavigate, useLocation, useParams, Link } from 'react-router-dom'
+
+// Google翻译类型声明
+declare global {
+  interface Window {
+    translatePage?: (fromLang: string, toLang: string) => void;
+    google?: {
+      translate: {
+        TranslateElement: {
+          new(config: any, elementId: string): any;
+          InlineLayout: {
+            SIMPLE: any;
+          };
+        };
+      };
+    };
+  }
+}
 import { AuthModal } from './components/AuthModal'
 import { AdminDashboard } from './components/AdminDashboard'
 import { AdminSetup } from './components/AdminSetup'
@@ -33,6 +50,7 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { EmailVerificationTest } from './components/pages/EmailVerificationTest'
 import { ImageUploadTest } from './components/pages/ImageUploadTest'
 import LoginTestPage from './components/pages/LoginTestPage'
+import LanguageSwitcher from './components/LanguageSwitcher';
 
 
 function App() {
@@ -43,10 +61,68 @@ function App() {
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [showDataViewer, setShowDataViewer] = useState(false)
+  // 移除不再需要的状态和函数，使用Google翻译默认控件
+  // const [currentLanguage, setCurrentLanguage] = useState<'zh' | 'en'>('zh');
+  // const [isTranslating, setIsTranslating] = useState(false);
+  // const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
 
   const navigate = useNavigate()
   const location = useLocation()
   const { user, profile, loading, signOut, isAdmin } = useAuthContext()
+
+  // 切换语言下拉菜单
+  // const toggleLanguageDropdown = () => {
+  //   setShowLanguageDropdown(!showLanguageDropdown)
+  // }
+
+  // 选择语言并触发翻译
+  // const selectLanguage = (lang: 'zh' | 'en') => {
+  //   if (lang === currentLanguage) {
+  //     setShowLanguageDropdown(false)
+  //     return
+  //   }
+    
+  //   setCurrentLanguage(lang)
+  //   setIsTranslating(true)
+  //   setShowLanguageDropdown(false)
+    
+  //   // 使用Google翻译API
+  //   const triggerTranslation = () => {
+  //     try {
+  //       console.log('Starting Google translation process for language:', lang);
+        
+  //       if (lang === 'en') {
+  //         // 切换到英文
+  //         if (window.translatePage) {
+  //           window.translatePage('zh', 'en');
+  //           console.log('Triggered English translation via Google Translate');
+  //         } else {
+  //           console.log('Google Translate not ready yet');
+  //         }
+  //       } else {
+  //         // 切换到中文
+  //         if (window.translatePage) {
+  //           window.translatePage('en', 'zh');
+  //           console.log('Triggered Chinese translation via Google Translate');
+  //         } else {
+  //           console.log('Google Translate not ready yet');
+  //         }
+  //       }
+        
+  //       // 3秒后重置翻译状态
+  //       setTimeout(() => {
+  //         setIsTranslating(false);
+  //         console.log('Translation timeout completed');
+  //       }, 3000);
+  //     } catch (error) {
+  //       console.error('Google Translate error:', error);
+  //       setIsTranslating(false);
+  //     }
+  //   }
+    
+  //   // 延迟一点执行，确保Google翻译已加载
+  //   setTimeout(triggerTranslation, 1000);
+  // }
 
   // 公司详情页面包装组件
   function CompanyDetailWrapper() {
@@ -109,6 +185,45 @@ function App() {
       setIsMobileMenuOpen(false)
     }
   }, [user])
+
+  // 监听Google翻译准备就绪事件
+  useEffect(() => {
+    const checkGoogleTranslateStatus = () => {
+      if (window.translatePage && typeof (window as any).google !== 'undefined' && (window as any).google.translate) {
+        console.log('Google翻译准备就绪');
+      } else {
+        console.log('Google翻译还未加载');
+      }
+    };
+
+    // 定期检查Google翻译状态
+    const interval = setInterval(checkGoogleTranslateStatus, 3000);
+    
+    // 页面加载完成后立即检查一次
+    setTimeout(checkGoogleTranslateStatus, 2000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [])
+
+  // 点击外部关闭语言下拉菜单
+  // useEffect(() => {
+  //   const handleClickOutside = (event: MouseEvent) => {
+  //     const target = event.target as Element;
+  //     if (!target.closest('.language-switcher')) {
+  //       setShowLanguageDropdown(false);
+  //     }
+  //   };
+
+  //   if (showLanguageDropdown) {
+  //     document.addEventListener('click', handleClickOutside);
+  //   }
+
+  //   return () => {
+  //     document.removeEventListener('click', handleClickOutside);
+  //   };
+  // }, [showLanguageDropdown]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -516,6 +631,11 @@ function App() {
               </span>
             </button>
 
+            {/* Google翻译控件 - 桌面版 - 确保正确显示 */}
+            <div id="google_translate_element" className="mr-6" style={{ display: 'block', visibility: 'visible' }}></div>
+
+            {/* 移除自定义语言切换按钮，使用Google翻译默认控件 */}
+
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
               <button 
@@ -558,6 +678,7 @@ function App() {
 
             {/* User Menu / Auth Buttons */}
             <div className="hidden md:flex items-center space-x-4">
+              
               {user ? (
                 <div className="relative user-menu">
                   <button
@@ -688,6 +809,15 @@ function App() {
           {/* Mobile Navigation */}
           {isMobileMenuOpen && (
             <div className="md:hidden py-4 border-t border-gray-100">
+              
+              {/* 移除移动端自定义语言切换按钮，使用Google翻译默认控件 */}
+              <div className="px-4 py-3 border-b border-gray-100">
+                {/* 移动端语言选择菜单 */}
+                {/* Removed showLanguageDropdown && !isTranslating */}
+              </div>
+              
+              {/* 移除移动端Google翻译控件，避免重复ID */}
+
               <div className="space-y-2">
                 <button 
                   onClick={() => handlePageChange('home')}

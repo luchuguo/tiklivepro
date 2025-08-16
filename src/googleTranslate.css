@@ -1,0 +1,75 @@
+/* 自定义Google翻译按钮样式 */
+.goog-te-combo, select.goog-te-combo, .goog-te-menu-value, .goog-te-menu-value span, .goog-te-gadget-simple {
+  padding: 10px 16px !important;
+  border: 2px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+  color: #475569 !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+  width: 130px !important;
+  height: 65px !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='none' height='24' stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M19 9l-7 7-7-7'/></svg>") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.7em center !important;
+  background-size: 16px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+.goog-te-combo:hover, select.goog-te-combo:hover, .goog-te-menu-value:hover, .goog-te-menu-value span:hover, .goog-te-gadget-simple:hover {
+  border-color: #f472b6 !important;
+  background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%) !important;
+  box-shadow: 0 4px 12px 0 rgba(244, 114, 182, 0.15), 0 2px 4px 0 rgba(244, 114, 182, 0.1) !important;
+  transform: translateY(-2px) !important;
+  color: #be185d !important;
+}
+.goog-te-combo:focus, select.goog-te-combo:focus, .goog-te-menu-value:focus, .goog-te-menu-value span:focus, .goog-te-gadget-simple:focus {
+  outline: none !important;
+  border-color: #f472b6 !important;
+  box-shadow: 0 0 0 3px rgba(244, 114, 182, 0.2) !important;
+}
+/* 确保Google翻译控件和下拉菜单可见 */
+#google_translate_element, .goog-te-combo, .goog-te-menu-value, .goog-te-menu-frame, .goog-te-menu2 {
+  display: block !important;
+  visibility: visible !important;
+  height: auto !important;
+  width: auto !important;
+  overflow: visible !important;
+  position: relative !important;
+  z-index: 9999 !important;
+}
+/* 隐藏顶部横幅和Google Logo */
+.goog-te-banner-frame, .goog-logo-link { display: none !important; }
+/* 修改规则，确保Google翻译控件可见 - 更精确 */
+body > div:not(#root):not(#google_translate_element):not([id^='goog']):not([class^='goog-']) {
+  display: none !important;
+}
+body {
+  position: static !important;
+  top: 0 !important;
+}
+/* 确保下拉菜单项的样式 */
+.goog-te-menu2, .goog-te-menu-frame {
+  border: 2px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.15) !important;
+  overflow: auto !important;
+  max-height: 300px !important;
+  z-index: 9999 !important;
+}
+.goog-te-menu2-item, .goog-te-menu2-item div {
+  color: #475569 !important;
+  font-weight: 500 !important;
+  padding: 8px 16px !important;
+}
+.goog-te-menu2-item:hover, .goog-te-menu2-item:hover div {
+  background: #fdf2f8 !important;
+  color: #be185d !important;
+} 
