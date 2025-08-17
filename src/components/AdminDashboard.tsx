@@ -353,6 +353,23 @@ export function AdminDashboard() {
       }
     }
 
+    // 审核拒绝
+    const rejectUser = async (u: any) => {
+      try {
+        if (u.user_type === 'influencer') {
+          await supabase.from('influencers').update({ is_approved: false }).eq('user_id', u.user_id)
+        } else if (u.user_type === 'company') {
+          await supabase.from('companies').update({ is_verified: false }).eq('user_id', u.user_id)
+        }
+        // 更新本地状态
+        setUsers(prev => prev.map(item => item.user_id === u.user_id ? { ...item, approve_status: false } : item))
+        alert('用户审核已拒绝')
+      } catch (error) {
+        console.error('拒绝用户审核失败:', error)
+        alert('拒绝审核失败，请重试')
+      }
+    }
+
     // 查看用户详情
     const viewUser = async (u: any) => {
       try {
@@ -449,6 +466,14 @@ export function AdminDashboard() {
                           className="text-sm text-white bg-emerald-500 hover:bg-emerald-600 px-3 py-1 rounded-lg"
                         >
                           审核通过
+                        </button>
+                      )}
+                      {!u.approve_status && (
+                        <button
+                          onClick={() => rejectUser(u)}
+                          className="text-sm text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded-lg"
+                        >
+                          审核拒绝
                         </button>
                       )}
                     </td>
