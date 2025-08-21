@@ -116,7 +116,7 @@ export function TasksPage() {
 
       // 应用客户端筛选和排序
       let filteredTasks = data || []
-      
+
       // 预算筛选
       if (budgetRange !== 'all') {
         const [min, max] = budgetRange.split('-').map(Number)
@@ -146,7 +146,7 @@ export function TasksPage() {
         default:
           filteredTasks.sort((a: Task, b: Task) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       }
-
+      
       setTasks(filteredTasks)
       console.log(`成功获取 ${filteredTasks.length} 个任务`)
     } catch (error) {

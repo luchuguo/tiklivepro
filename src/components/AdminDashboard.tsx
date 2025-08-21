@@ -21,10 +21,12 @@ import {
   RefreshCw,
   Loader,
   LogOut,
-  Trash2
+  Trash2,
+  Tag
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuthContext } from '../hooks/useAuth'
+import { CategoriesTab } from './CategoriesTab'
 
 interface AdminStats {
   totalUsers: number
@@ -960,6 +962,7 @@ export function AdminDashboard() {
   const tabs = [
     { id: 'overview', name: '概览', icon: BarChart3, component: OverviewTab },
     { id: 'users', name: '用户管理', icon: Users, component: UsersTab },
+{ id: 'categories', name: '分类管理', icon: Tag, component: CategoriesTab },
     { id: 'tasks', name: '任务管理', icon: Calendar, component: TasksTab },
     { id: 'analytics', name: '数据分析', icon: TrendingUp, component: AnalyticsTab },
     { id: 'settings', name: '系统设置', icon: Settings, component: SettingsTab },
