@@ -16,9 +16,7 @@ import {
   RefreshCw,
   CheckCircle
 } from 'lucide-react'
-import { supabase, Task, TaskCategory } from '../../lib/supabase'
-import { getCachedTasks, getCachedTaskCategories, invalidateCache } from '../../lib/dataCache'
-
+import { Task, TaskCategory } from '../../lib/supabase'
 
 export function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([])
@@ -29,7 +27,7 @@ export function TasksPage() {
   const [budgetRange, setBudgetRange] = useState('all')
   const [sortBy, setSortBy] = useState('created_at')
   const [error, setError] = useState<string | null>(null)
-
+  const [cacheStatus, setCacheStatus] = useState<'fresh' | 'cached' | 'loading'>('loading')
 
   const budgetRanges = [
     { id: 'all', name: '全部预算' },
@@ -47,13 +45,19 @@ export function TasksPage() {
 
   const fetchCategories = async () => {
     try {
-      const { data, error } = await supabase
-        .from('task_categories')
-        .select('*')
-        .eq('is_active', true)
-        .order('sort_order')
+      // 从本地 API 服务器获取分类数据
+      const response = await fetch('/api/categories', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
 
-      if (error) throw error
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
       setCategories(data || [])
       console.log('任务分类:', data)
     } catch (error) {
@@ -65,64 +69,86 @@ export function TasksPage() {
     try {
       setLoading(true)
       setError(null)
+      setCacheStatus('loading')
       
-      console.log('开始获取任务数据...')
+      console.log('开始从服务器缓存获取任务数据...')
       
-      let query = supabase
-        .from('tasks')
-        .select(`
-          *,
-          company:companies(*),
-          category:task_categories(*)
-        `)
-
-      // 先不过滤状态，看看是否有数据
-      // .eq('status', 'open')
-
+      // 构建查询参数
+      const params = new URLSearchParams()
       if (selectedCategory !== 'all') {
-        query = query.eq('category_id', selectedCategory)
+        params.append('category', selectedCategory)
+      }
+      if (budgetRange !== 'all') {
+        params.append('budget', budgetRange)
+      }
+      if (sortBy !== 'created_at') {
+        params.append('sort', sortBy)
       }
 
+      // 从本地 API 服务器获取任务数据（带缓存）
+      const apiUrl = `/api/tasks${params.toString() ? `?${params.toString()}` : ''}`
+      console.log('API URL:', apiUrl)
+
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      
+      // 检查缓存状态
+      const cacheControl = response.headers.get('Cache-Control')
+      const age = response.headers.get('Age')
+      
+      if (cacheControl && cacheControl.includes('s-maxage')) {
+        setCacheStatus('cached')
+        console.log('✅ 数据来自服务器缓存')
+      } else {
+        setCacheStatus('fresh')
+        console.log('🔄 数据来自数据库')
+      }
+
+      // 应用客户端筛选和排序
+      let filteredTasks = data || []
+      
       // 预算筛选
       if (budgetRange !== 'all') {
         const [min, max] = budgetRange.split('-').map(Number)
         if (max) {
-          query = query.gte('budget_min', min).lte('budget_max', max)
+          filteredTasks = filteredTasks.filter((task: Task) => 
+            task.budget_min >= min && task.budget_max <= max
+          )
         } else if (budgetRange === '50000+') {
-          query = query.gte('budget_min', 50000)
+          filteredTasks = filteredTasks.filter((task: Task) => task.budget_min >= 50000)
         }
       }
 
       // 排序
       switch (sortBy) {
         case 'budget_desc':
-          query = query.order('budget_max', { ascending: false })
+          filteredTasks.sort((a: Task, b: Task) => b.budget_max - a.budget_max)
           break
         case 'budget_asc':
-          query = query.order('budget_min', { ascending: true })
+          filteredTasks.sort((a: Task, b: Task) => a.budget_min - b.budget_min)
           break
         case 'live_date':
-          query = query.order('live_date', { ascending: true })
+          filteredTasks.sort((a: Task, b: Task) => new Date(a.live_date).getTime() - new Date(b.live_date).getTime())
           break
         case 'urgent':
-          query = query.order('is_urgent', { ascending: false })
+          filteredTasks.sort((a: Task, b: Task) => (b.is_urgent ? 1 : 0) - (a.is_urgent ? 1 : 0))
           break
         default:
-          query = query.order('created_at', { ascending: false })
+          filteredTasks.sort((a: Task, b: Task) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       }
 
-      const { data, error } = await query.limit(20)
-
-      console.log('任务查询结果:', { data, error })
-
-      if (error) {
-        console.error('获取任务数据失败:', error)
-        setError(`获取任务数据失败: ${error.message}`)
-        throw error
-      }
-      
-      setTasks(data || [])
-      console.log(`成功获取 ${data?.length || 0} 个任务`)
+      setTasks(filteredTasks)
+      console.log(`成功获取 ${filteredTasks.length} 个任务`)
     } catch (error) {
       console.error('Error fetching tasks:', error)
       setError('获取任务数据时发生错误')
@@ -253,8 +279,6 @@ export function TasksPage() {
     </div>
   )
 
-
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -268,6 +292,28 @@ export function TasksPage() {
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               发现优质直播带货任务，开启您的变现之旅
             </p>
+            
+            {/* 缓存状态指示器 */}
+            <div className="mt-4 flex items-center justify-center space-x-2">
+              {cacheStatus === 'cached' && (
+                <div className="flex items-center space-x-2 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                  <CheckCircle className="w-4 h-4" />
+                  <span>服务器缓存</span>
+                </div>
+              )}
+              {cacheStatus === 'fresh' && (
+                <div className="flex items-center space-x-2 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
+                  <RefreshCw className="w-4 h-4" />
+                  <span>实时数据</span>
+                </div>
+              )}
+              {cacheStatus === 'loading' && (
+                <div className="flex items-center space-x-2 bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm">
+                  <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                  <span>加载中</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -329,9 +375,10 @@ export function TasksPage() {
               
               <button
                 onClick={fetchTasks}
-                className="bg-blue-500 text-white px-4 py-3 rounded-lg hover:bg-blue-600 transition-colors"
+                className="bg-blue-500 text-white px-4 py-3 rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
               >
-                刷新
+                <RefreshCw className="w-4 h-4" />
+                <span>刷新</span>
               </button>
             </div>
           </div>
