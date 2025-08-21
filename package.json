@@ -15,7 +15,12 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
     "@types/crypto-js": "^4.2.2",
+    "@vercel/edge-config": "^1.4.0",
+    "@vercel/kv": "^3.0.0",
+    "cors": "^2.8.5",
     "crypto-js": "^4.2.0",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

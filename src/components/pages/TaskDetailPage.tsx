@@ -20,7 +20,7 @@ import {
   Star,
   Send
 } from 'lucide-react'
-import { supabase, Task, TaskApplication, Influencer } from '../../lib/supabase'
+import { Task, TaskApplication, Influencer } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 
 interface TaskDetailPageProps {
@@ -44,6 +44,7 @@ export function TaskDetailPage({ taskId, onBack }: TaskDetailPageProps) {
   // 申请列表 Tab 状态：pending / accepted / refused
   const [activeTab, setActiveTab] = useState<'pending' | 'accepted' | 'refused'>('pending')
   const [selectedCompany, setSelectedCompany] = useState<any>(null)
+  const [cacheStatus, setCacheStatus] = useState<'loading' | 'cached' | 'fresh'>('loading')
   
   const { user, profile, isInfluencer, isCompany } = useAuth()
 
@@ -62,92 +63,61 @@ export function TaskDetailPage({ taskId, onBack }: TaskDetailPageProps) {
     try {
       setLoading(true)
       setError(null)
+      setCacheStatus('loading')
       
-      // 获取任务详情
-      const { data: taskData, error: taskError } = await supabase
-        .from('tasks')
-        .select(`
-          *,
-          company:companies(*),
-          category:task_categories(*),
-          selected_influencer:influencers(*)
-        `)
-        .eq('id', taskId)
-        .single()
+      console.log(`开始从服务器缓存获取任务详情: ${taskId}`)
 
-      if (taskError) {
-        console.error('获取任务详情失败:', taskError)
-        setError('获取任务详情失败，请重试')
-        return
+      // 从本地 API 服务器获取任务详情（带缓存）
+      const response = await fetch(`/api/task/${taskId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      setTask(taskData)
-      
-      // 更新浏览量
-      await supabase
-        .from('tasks')
-        .update({ views_count: (taskData.views_count || 0) + 1 })
-        .eq('id', taskId)
+      const data = await response.json()
+
+      // 检查缓存状态
+      const cacheControl = response.headers.get('Cache-Control')
+      const age = response.headers.get('Age')
+
+      if (cacheControl && cacheControl.includes('s-maxage')) {
+        setCacheStatus('cached')
+        console.log('✅ 任务详情数据来自服务器缓存')
+      } else {
+        setCacheStatus('fresh')
+        console.log('🔄 任务详情数据来自数据库')
+      }
+
+      setTask(data)
       
       // 获取任务申请
       if (isCompany && profile) {
-        const { data: applicationsData, error: applicationsError } = await supabase
-          .from('task_applications')
-          .select(`
-            *,
-            influencer:influencers(*)
-          `)
-          .eq('task_id', taskId)
-          .order('applied_at', { ascending: false })
+        const applicationsResponse = await fetch(`/api/task/${taskId}/applications`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
 
-        if (!applicationsError) {
+        if (applicationsResponse.ok) {
+          const applicationsData = await applicationsResponse.json()
           setApplications(applicationsData || [])
         }
       }
       
-      // 检查当前用户是否已申请
-      if (isInfluencer && profile) {
-        const { data: influencerData } = await supabase
-          .from('influencers')
-          .select('id')
-          .eq('user_id', user?.id)
-          .single()
-        
-        if (influencerData) {
-          const { data: applicationData } = await supabase
-            .from('task_applications')
-            .select('id')
-            .eq('task_id', taskId)
-            .eq('influencer_id', influencerData.id)
-            .limit(1)
-          
-          setHasApplied(applicationData && applicationData.length > 0)
-        }
-      }
+      // 获取相似任务（暂时使用空数组，因为 API 中没有专门的相似任务端点）
+      setSimilarTasks([])
       
-      // 获取相似任务
-      if (taskData.category_id) {
-        const { data: similarTasksData } = await supabase
-          .from('tasks')
-          .select(`
-            id,
-            title,
-            budget_min,
-            budget_max,
-            live_date,
-            company:companies(company_name, logo_url)
-          `)
-          .eq('category_id', taskData.category_id)
-          .eq('status', 'open')
-          .neq('id', taskId)
-          .limit(3)
-        
-        setSimilarTasks(similarTasksData || [])
-      }
+      console.log(`成功获取任务详情: ${taskId}`)
       
     } catch (error) {
       console.error('获取任务详情时发生错误:', error)
-      setError('获取任务详情时发生错误，请重试')
+      setError('获取任务详情失败，请重试')
     } finally {
       setLoading(false)
     }
@@ -438,29 +408,53 @@ export function TaskDetailPage({ taskId, onBack }: TaskDetailPageProps) {
   return (
     <div className="min-h-screen bg-gray-50 pt-8 pb-16">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* 返回按钮 */}
-        <button
-          onClick={() => {
-            // 检查URL参数，判断是否从列表页面打开
-            const urlParams = new URLSearchParams(window.location.search)
-            const fromList = urlParams.get('from') === 'list'
-            
-            if (fromList && window.opener) {
-              // 如果是从列表页面新标签页打开，关闭当前标签页
-              window.close()
-            } else if (window.history.length > 1) {
-              // 如果有历史记录，返回上一页
-              onBack()
-            } else {
-              // 否则跳转到任务列表页面
-              window.location.href = '/tasks'
-            }
-          }}
-          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span>返回任务列表</span>
-        </button>
+        {/* 返回按钮和缓存状态 */}
+        <div className="flex justify-between items-center mb-6">
+          <button
+            onClick={() => {
+              // 检查URL参数，判断是否从列表页面打开
+              const urlParams = new URLSearchParams(window.location.search)
+              const fromList = urlParams.get('from') === 'list'
+              
+              if (fromList && window.opener) {
+                // 如果是从列表页面新标签页打开，关闭当前标签页
+                window.close()
+              } else if (window.history.length > 1) {
+                // 如果有历史记录，返回上一页
+                onBack()
+              } else {
+                // 否则跳转到任务列表页面
+                window.location.href = '/tasks'
+              }
+            }}
+            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>返回任务列表</span>
+          </button>
+          
+          {/* Cache Status */}
+          <div className="flex items-center space-x-2">
+            {cacheStatus === 'loading' && (
+              <div className="flex items-center space-x-2 text-blue-600">
+                <Clock className="w-4 h-4 animate-spin" />
+                <span className="text-xs">加载中...</span>
+              </div>
+            )}
+            {cacheStatus === 'cached' && (
+              <div className="flex items-center space-x-2 text-green-600">
+                <CheckCircle className="w-4 h-4" />
+                <span className="text-xs">服务器缓存</span>
+              </div>
+            )}
+            {cacheStatus === 'fresh' && (
+              <div className="flex items-center space-x-2 text-orange-600">
+                <Clock className="w-4 h-4" />
+                <span className="text-xs">实时数据</span>
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* 任务详情卡片 */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-8">

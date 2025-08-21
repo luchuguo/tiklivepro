@@ -19,7 +19,7 @@ import {
   Briefcase,
   Send
 } from 'lucide-react'
-import { supabase, Influencer, Task, Review } from '../../lib/supabase'
+import { Influencer, Task, Review } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 
 interface InfluencerDetailPageProps {
@@ -39,6 +39,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
   const [submitting, setSubmitting] = useState(false)
   const [similarInfluencers, setSimilarInfluencers] = useState<Influencer[]>([])
   const [avatarLoaded, setAvatarLoaded] = useState(false)
+  const [cacheStatus, setCacheStatus] = useState<'loading' | 'cached' | 'fresh'>('loading')
   
   const { user, isCompany } = useAuth()
 
@@ -50,65 +51,60 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
     try {
       setLoading(true)
       setError(null)
+      setCacheStatus('loading')
       
-      // 获取达人详情
-      const { data: influencerData, error: influencerError } = await supabase
-        .from('influencers')
-        .select('*')
-        .eq('id', influencerId)
-        .single()
+      console.log(`开始从服务器缓存获取达人详情: ${influencerId}`)
 
-      if (influencerError) {
-        console.error('获取达人详情失败:', influencerError)
-        setError('获取达人详情失败，请重试')
-        return
+      // 从本地 API 服务器获取达人详情（带缓存）
+      const response = await fetch(`/api/influencer/${influencerId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      setInfluencer(influencerData)
+      const data = await response.json()
+
+      // 检查缓存状态
+      const cacheControl = response.headers.get('Cache-Control')
+      const age = response.headers.get('Age')
+
+      if (cacheControl && cacheControl.includes('s-maxage')) {
+        setCacheStatus('cached')
+        console.log('✅ 达人详情数据来自服务器缓存')
+      } else {
+        setCacheStatus('fresh')
+        console.log('🔄 达人详情数据来自数据库')
+      }
+
+      setInfluencer(data)
       
       // 获取已完成任务
-      const { data: tasksData } = await supabase
-        .from('tasks')
-        .select(`
-          id,
-          title,
-          live_date,
-          company:companies(company_name, logo_url),
-          category:task_categories(name)
-        `)
-        .eq('selected_influencer_id', influencerId)
-        .eq('status', 'completed')
-        .order('live_date', { ascending: false })
-        .limit(5)
-      
-      setCompletedTasks(tasksData || [])
-      
-      // 获取评价
-      const { data: reviewsData } = await supabase
-        .from('reviews')
-        .select(`
-          *,
-          task:tasks(title)
-        `)
-        .eq('reviewee_id', influencerData.user_id)
-        .order('created_at', { ascending: false })
-      
-      setReviews(reviewsData || [])
-      
-      // 获取相似达人
-      if (influencerData.categories && influencerData.categories.length > 0) {
-        const { data: similarInfluencersData } = await supabase
-          .from('influencers')
-          .select('*')
-          .contains('categories', influencerData.categories)
-          .neq('id', influencerId)
-          .eq('is_approved', true)
-          .eq('status', 'active')
-          .order('rating', { ascending: false })
-          .limit(3)
-        
-        setSimilarInfluencers(similarInfluencersData || [])
+      const tasksResponse = await fetch(`/api/task/${influencerId}/applications`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (tasksResponse.ok) {
+        const tasksData = await tasksResponse.json()
+        // 筛选已完成的任务
+        const completedTasksData = tasksData.filter((task: any) => task.status === 'completed')
+        setCompletedTasks(completedTasksData || [])
       }
+      
+      // 获取评价（暂时使用空数组，因为 API 中没有专门的评价端点）
+      setReviews([])
+      
+      // 获取相似达人（暂时使用空数组，因为 API 中没有专门的相似达人端点）
+      setSimilarInfluencers([])
+      
+      console.log(`成功获取达人详情: ${influencerId}`)
       
     } catch (error) {
       console.error('获取达人详情时发生错误:', error)
@@ -212,29 +208,53 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
   return (
     <div className="min-h-screen bg-gray-50 pt-8 pb-16">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* 返回按钮 */}
-        <button
-          onClick={() => {
-            // 检查URL参数，判断是否从列表页面打开
-            const urlParams = new URLSearchParams(window.location.search)
-            const fromList = urlParams.get('from') === 'list'
-            
-            if (fromList && window.opener) {
-              // 如果是从列表页面新标签页打开，关闭当前标签页
-              window.close()
-            } else if (window.history.length > 1) {
-              // 如果有历史记录，返回上一页
-              onBack()
-            } else {
-              // 否则跳转到达人列表页面
-              window.location.href = '/influencers'
-            }
-          }}
-          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span>返回达人列表</span>
-        </button>
+        {/* 返回按钮和缓存状态 */}
+        <div className="flex justify-between items-center mb-6">
+          <button
+            onClick={() => {
+              // 检查URL参数，判断是否从列表页面打开
+              const urlParams = new URLSearchParams(window.location.search)
+              const fromList = urlParams.get('from') === 'list'
+              
+              if (fromList && window.opener) {
+                // 如果是从列表页面新标签页打开，关闭当前标签页
+                window.close()
+              } else if (window.history.length > 1) {
+                // 如果有历史记录，返回上一页
+                onBack()
+              } else {
+                // 否则跳转到达人列表页面
+                window.location.href = '/influencers'
+              }
+            }}
+            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>返回达人列表</span>
+          </button>
+          
+          {/* Cache Status */}
+          <div className="flex items-center space-x-2">
+            {cacheStatus === 'loading' && (
+              <div className="flex items-center space-x-2 text-blue-600">
+                <Clock className="w-4 h-4 animate-spin" />
+                <span className="text-xs">加载中...</span>
+              </div>
+            )}
+            {cacheStatus === 'cached' && (
+              <div className="flex items-center space-x-2 text-green-600">
+                <CheckCircle className="w-4 h-4" />
+                <span className="text-xs">服务器缓存</span>
+              </div>
+            )}
+            {cacheStatus === 'fresh' && (
+              <div className="flex items-center space-x-2 text-orange-600">
+                <Clock className="w-4 h-4" />
+                <span className="text-xs">实时数据</span>
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* 达人资料卡片 */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-8">

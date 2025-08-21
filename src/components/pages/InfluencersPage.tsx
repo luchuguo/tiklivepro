@@ -14,8 +14,7 @@ import {
   Clock,
   RefreshCw
 } from 'lucide-react'
-import { supabase, Influencer } from '../../lib/supabase'
-
+import { Influencer } from '../../lib/supabase'
 
 export function InfluencersPage() {
   const [influencers, setInfluencers] = useState<Influencer[]>([])
@@ -24,7 +23,7 @@ export function InfluencersPage() {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [sortBy, setSortBy] = useState('rating')
   const [error, setError] = useState<string | null>(null)
-
+  const [cacheStatus, setCacheStatus] = useState<'loading' | 'cached' | 'fresh'>('loading')
 
   const categories = [
     { id: 'all', name: '全部分类' },
@@ -40,56 +39,109 @@ export function InfluencersPage() {
 
   useEffect(() => {
     fetchInfluencers()
-  }, [selectedCategory, sortBy])
+  }, []) // 移除依赖，只在组件挂载时获取一次
 
   const fetchInfluencers = async () => {
     try {
       setLoading(true)
       setError(null)
-      
-      let query = supabase
-        .from('influencers')
-        .select('*')
-      
+      setCacheStatus('loading')
+
+      console.log('开始从服务器缓存获取达人数据...')
+
+      // 从本地 API 服务器获取达人数据（带缓存）
+      const response = await fetch('/api/influencers', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+
+      // 检查缓存状态
+      const cacheControl = response.headers.get('Cache-Control')
+      const age = response.headers.get('Age')
+
+      if (cacheControl && cacheControl.includes('s-maxage')) {
+        setCacheStatus('cached')
+        console.log('✅ 数据来自服务器缓存')
+      } else {
+        setCacheStatus('fresh')
+        console.log('🔄 数据来自数据库')
+      }
+
+      // 应用客户端筛选和排序
+      let filteredInfluencers = data || []
+
       // 分类筛选
       if (selectedCategory !== 'all') {
-        query = query.contains('categories', [selectedCategory])
+        filteredInfluencers = filteredInfluencers.filter((influencer: Influencer) =>
+          influencer.categories?.some(cat => cat.toLowerCase().includes(selectedCategory.toLowerCase()))
+        )
       }
 
       // 排序
-      switch (sortBy) {
-        case 'rating':
-          query = query.order('rating', { ascending: false })
-          break
-        case 'followers':
-          query = query.order('followers_count', { ascending: false })
-          break
-        case 'price':
-          query = query.order('hourly_rate', { ascending: true })
-          break
-        case 'experience':
-          query = query.order('experience_years', { ascending: false })
-          break
-        default:
-          query = query.order('created_at', { ascending: false })
-      }
+      filteredInfluencers.sort((a: Influencer, b: Influencer) => {
+        switch (sortBy) {
+          case 'rating':
+            return (b.rating || 0) - (a.rating || 0)
+          case 'followers':
+            return (b.followers_count || 0) - (a.followers_count || 0)
+          case 'price':
+            return (a.hourly_rate || 0) - (b.hourly_rate || 0)
+          case 'experience':
+            return (b.experience_years || 0) - (a.experience_years || 0)
+          default:
+            return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime()
+        }
+      })
 
-      const { data, error } = await query.limit(50)
-
-      if (error) {
-        console.error('获取达人数据失败:', error)
-        setError('获取达人数据失败，请稍后重试')
-        return
-      }
-
-      setInfluencers(data || [])
+      setInfluencers(filteredInfluencers)
+      console.log(`成功获取 ${filteredInfluencers.length} 个达人`)
     } catch (error) {
-      console.error('获取达人数据时发生错误:', error)
-      setError('获取达人数据失败，请稍后重试')
+      console.error('Error fetching influencers:', error)
+      setError('获取达人数据时发生错误')
     } finally {
       setLoading(false)
     }
   }
+
+  // 当筛选或排序条件改变时，重新应用筛选和排序
+  useEffect(() => {
+    if (influencers.length > 0) {
+      let filteredInfluencers = [...influencers]
+
+      // 分类筛选
+      if (selectedCategory !== 'all') {
+        filteredInfluencers = filteredInfluencers.filter((influencer: Influencer) =>
+          influencer.categories?.some(cat => cat.toLowerCase().includes(selectedCategory.toLowerCase()))
+        )
+      }
+
+      // 排序
+      filteredInfluencers.sort((a: Influencer, b: Influencer) => {
+        switch (sortBy) {
+          case 'rating':
+            return (b.rating || 0) - (a.rating || 0)
+          case 'followers':
+            return (b.followers_count || 0) - (a.followers_count || 0)
+          case 'price':
+            return (a.hourly_rate || 0) - (b.hourly_rate || 0)
+          case 'experience':
+            return (b.experience_years || 0) - (a.experience_years || 0)
+          default:
+            return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime()
+        }
+      })
+
+      setInfluencers(filteredInfluencers)
+    }
+  }, [selectedCategory, sortBy])
 
   // 筛选达人
   const filteredInfluencers = influencers.filter(influencer => {
@@ -290,6 +342,28 @@ export function InfluencersPage() {
               <span>筛选后: {filteredInfluencers.length}</span>
               {error && (
                 <span className="text-red-600">错误: {error}</span>
+              )}
+            </div>
+            
+            {/* Cache Status */}
+            <div className="flex items-center space-x-2">
+              {cacheStatus === 'loading' && (
+                <div className="flex items-center space-x-2 text-blue-600">
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span className="text-xs">加载中...</span>
+                </div>
+              )}
+              {cacheStatus === 'cached' && (
+                <div className="flex items-center space-x-2 text-green-600">
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="text-xs">服务器缓存</span>
+                </div>
+              )}
+              {cacheStatus === 'fresh' && (
+                <div className="flex items-center space-x-2 text-orange-600">
+                  <Clock className="w-4 h-4" />
+                  <span className="text-xs">实时数据</span>
+                </div>
               )}
             </div>
           </div>
