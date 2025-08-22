@@ -46,6 +46,14 @@ export function ApiRouteTester() {
       const influencersResult = await testApiEndpoint('/api/influencers', '达人API')
       testResults.push(influencersResult)
       
+      // 测试6: 达人详情API
+      const influencerDetailResult = await testApiEndpoint(`/api/influencer-detail?id=${currentTaskId}`, '达人详情API')
+      testResults.push(influencerDetailResult)
+      
+      // 测试7: 公司详情API
+      const companyDetailResult = await testApiEndpoint(`/api/company-detail?id=${currentTaskId}`, '公司详情API')
+      testResults.push(companyDetailResult)
+      
       console.log('📋 API路由测试完成')
       console.log('测试结果:', testResults)
       
