@@ -546,27 +546,29 @@ export function TaskDetailPage({ taskId, onBack }: TaskDetailPageProps) {
             <span>返回任务列表</span>
           </button>
           
-          {/* Cache Status */}
-          <div className="flex items-center space-x-2">
-            {cacheStatus === 'loading' && (
-              <div className="flex items-center space-x-2 text-blue-600">
-                <Clock className="w-4 h-4 animate-spin" />
-                <span className="text-xs">加载中...</span>
-              </div>
-            )}
-            {cacheStatus === 'cached' && (
-              <div className="flex items-center space-x-2 text-green-600">
-                <CheckCircle className="w-4 h-4" />
-                <span className="text-xs">服务器缓存</span>
-              </div>
-            )}
-            {cacheStatus === 'fresh' && (
-              <div className="flex items-center space-x-2 text-orange-600">
-                <Clock className="w-4 h-4" />
-                <span className="text-xs">实时数据</span>
-              </div>
-            )}
-          </div>
+          {/* 缓存状态 - 生产环境隐藏 */}
+          {!import.meta.env.PROD && (
+            <div className="flex items-center space-x-2">
+              {cacheStatus === 'loading' && (
+                <div className="flex items-center space-x-2 text-blue-600">
+                  <Clock className="w-4 h-4 animate-spin" />
+                  <span className="text-xs">加载中...</span>
+                </div>
+              )}
+              {cacheStatus === 'cached' && (
+                <div className="flex items-center space-x-2 text-green-600">
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="text-xs">服务器缓存</span>
+                </div>
+              )}
+              {cacheStatus === 'fresh' && (
+                <div className="flex items-center space-x-2 text-orange-600">
+                  <Clock className="w-4 h-4" />
+                  <span className="text-xs">实时数据</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* 任务详情卡片 */}
