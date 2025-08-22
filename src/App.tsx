@@ -53,6 +53,7 @@ import LoginTestPage from './components/pages/LoginTestPage'
 import LanguageSwitcher from './components/LanguageSwitcher'
 import { EnvironmentChecker } from './components/EnvironmentChecker'
 import { ProductionDebugger } from './components/ProductionDebugger'
+import { ProductionDataTest } from './components/ProductionDataTest'
 
 
 function App() {
@@ -1009,6 +1010,8 @@ function App() {
       <EnvironmentChecker />
       {/* Production Debugger - 生产环境调试工具 */}
       <ProductionDebugger />
+      {/* Production Data Test - 生产环境数据测试工具 */}
+      <ProductionDataTest />
 
     </div>
   )

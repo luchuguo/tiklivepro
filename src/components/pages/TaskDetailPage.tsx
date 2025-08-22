@@ -20,7 +20,7 @@ import {
   Star,
   Send
 } from 'lucide-react'
-import { Task, TaskApplication, Influencer } from '../../lib/supabase'
+import { Task, TaskApplication, Influencer, supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 
 interface TaskDetailPageProps {
@@ -65,9 +65,9 @@ export function TaskDetailPage({ taskId, onBack }: TaskDetailPageProps) {
       setError(null)
       setCacheStatus('loading')
       
-      console.log(`开始从服务器缓存获取任务详情: ${taskId}`)
+      console.log(`开始从API获取任务详情: ${taskId}`)
 
-      // 从本地 API 服务器获取任务详情（带缓存）
+      // 从API获取任务详情（带缓存）
       const response = await fetch(`/api/task/${taskId}`, {
         method: 'GET',
         headers: {
@@ -76,10 +76,13 @@ export function TaskDetailPage({ taskId, onBack }: TaskDetailPageProps) {
       })
 
       if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('任务不存在')
+        }
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const data = await response.json()
+      const taskData = await response.json()
 
       // 检查缓存状态
       const cacheControl = response.headers.get('Cache-Control')
@@ -87,13 +90,14 @@ export function TaskDetailPage({ taskId, onBack }: TaskDetailPageProps) {
 
       if (cacheControl && cacheControl.includes('s-maxage')) {
         setCacheStatus('cached')
-        console.log('✅ 任务详情数据来自服务器缓存')
+        console.log('✅ 任务详情数据来自API缓存')
       } else {
         setCacheStatus('fresh')
         console.log('🔄 任务详情数据来自数据库')
       }
 
-      setTask(data)
+      console.log('✅ 成功从API获取任务详情:', taskData)
+      setTask(taskData)
       
       // 获取任务申请
       if (isCompany && profile) {
@@ -107,17 +111,19 @@ export function TaskDetailPage({ taskId, onBack }: TaskDetailPageProps) {
         if (applicationsResponse.ok) {
           const applicationsData = await applicationsResponse.json()
           setApplications(applicationsData || [])
+        } else {
+          console.error('获取申请列表失败:', applicationsResponse.status)
         }
       }
       
-      // 获取相似任务（暂时使用空数组，因为 API 中没有专门的相似任务端点）
+      // 获取相似任务（暂时使用空数组，因为API中没有专门的相似任务端点）
       setSimilarTasks([])
       
       console.log(`成功获取任务详情: ${taskId}`)
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('获取任务详情时发生错误:', error)
-      setError('获取任务详情失败，请重试')
+      setError(error.message || '获取任务详情失败，请重试')
     } finally {
       setLoading(false)
     }
