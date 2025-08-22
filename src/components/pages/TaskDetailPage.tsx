@@ -68,7 +68,7 @@ export function TaskDetailPage({ taskId, onBack }: TaskDetailPageProps) {
       console.log(`开始从API获取任务详情: ${taskId}`)
 
       // 从API获取任务详情（带缓存）
-      const response = await fetch(`/api/task/${taskId}`, {
+      const response = await fetch(`/api/task-detail?id=${taskId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -99,22 +99,22 @@ export function TaskDetailPage({ taskId, onBack }: TaskDetailPageProps) {
       console.log('✅ 成功从API获取任务详情:', taskData)
       setTask(taskData)
       
-      // 获取任务申请
-      if (isCompany && profile) {
-        const applicationsResponse = await fetch(`/api/task/${taskId}/applications`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
+              // 获取任务申请
+        if (isCompany && profile) {
+          const applicationsResponse = await fetch(`/api/task-applications?taskId=${taskId}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
 
-        if (applicationsResponse.ok) {
-          const applicationsData = await applicationsResponse.json()
-          setApplications(applicationsData || [])
-        } else {
-          console.error('获取申请列表失败:', applicationsResponse.status)
+          if (applicationsResponse.ok) {
+            const applicationsData = await applicationsResponse.json()
+            setApplications(applicationsData || [])
+          } else {
+            console.error('获取申请列表失败:', applicationsResponse.status)
+          }
         }
-      }
       
       // 获取相似任务（暂时使用空数组，因为API中没有专门的相似任务端点）
       setSimilarTasks([])

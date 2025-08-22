@@ -31,11 +31,11 @@ export function ApiRouteTester() {
       testResults.push(tasksResult)
       
       // 测试2: 任务详情API
-      const taskDetailResult = await testApiEndpoint(`/api/task/${currentTaskId}`, '任务详情API')
+      const taskDetailResult = await testApiEndpoint(`/api/task-detail?id=${currentTaskId}`, '任务详情API')
       testResults.push(taskDetailResult)
       
       // 测试3: 任务申请API
-      const applicationsResult = await testApiEndpoint(`/api/task/${currentTaskId}/applications`, '任务申请API')
+      const applicationsResult = await testApiEndpoint(`/api/task-applications?taskId=${currentTaskId}`, '任务申请API')
       testResults.push(applicationsResult)
       
       // 测试4: 分类API
