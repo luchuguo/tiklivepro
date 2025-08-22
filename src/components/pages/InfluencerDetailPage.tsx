@@ -17,10 +17,12 @@ import {
   Award,
   Eye,
   Briefcase,
-  Send
+  Send,
+  Building2
 } from 'lucide-react'
 import { Influencer, Task, Review } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import { supabase } from '../../lib/supabase'
 
 interface InfluencerDetailPageProps {
   influencerId: string
@@ -53,65 +55,191 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
       setError(null)
       setCacheStatus('loading')
       
-      console.log(`开始从服务器缓存获取达人详情: ${influencerId}`)
+      const isProduction = import.meta.env.PROD
+      console.log(`开始获取达人详情: ${influencerId} (环境: ${isProduction ? '生产' : '开发'})`)
 
-      // 从本地 API 服务器获取达人详情（带缓存）
-      const response = await fetch(`/api/influencer/${influencerId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
-
-      // 检查缓存状态
-      const cacheControl = response.headers.get('Cache-Control')
-      const age = response.headers.get('Age')
-
-      if (cacheControl && cacheControl.includes('s-maxage')) {
-        setCacheStatus('cached')
-        console.log('✅ 达人详情数据来自服务器缓存')
+      if (isProduction) {
+        // 生产环境：使用API端点
+        await fetchFromAPI()
       } else {
-        setCacheStatus('fresh')
-        console.log('🔄 达人详情数据来自数据库')
+        // 开发环境：直接使用Supabase
+        await fetchFromSupabase()
       }
-
-      setInfluencer(data)
-      
-      // 获取已完成任务
-      const tasksResponse = await fetch(`/api/task/${influencerId}/applications`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (tasksResponse.ok) {
-        const tasksData = await tasksResponse.json()
-        // 筛选已完成的任务
-        const completedTasksData = tasksData.filter((task: any) => task.status === 'completed')
-        setCompletedTasks(completedTasksData || [])
-      }
-      
-      // 获取评价（暂时使用空数组，因为 API 中没有专门的评价端点）
-      setReviews([])
-      
-      // 获取相似达人（暂时使用空数组，因为 API 中没有专门的相似达人端点）
-      setSimilarInfluencers([])
       
       console.log(`成功获取达人详情: ${influencerId}`)
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('获取达人详情时发生错误:', error)
-      setError('获取达人详情时发生错误，请重试')
+      setError(error.message || '获取达人详情失败，请重试')
     } finally {
       setLoading(false)
     }
+  }
+
+  const fetchFromAPI = async () => {
+    console.log('🔄 从API获取达人详情')
+    
+    // 从API获取达人详情（带缓存）
+    const response = await fetch(`/api/influencer-detail?id=${influencerId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const data = await response.json()
+
+    // 检查缓存状态
+    const cacheControl = response.headers.get('Cache-Control')
+    const age = response.headers.get('Age')
+
+    if (cacheControl && cacheControl.includes('s-maxage')) {
+      setCacheStatus('cached')
+      console.log('✅ 达人详情数据来自服务器缓存')
+    } else {
+      setCacheStatus('fresh')
+      console.log('🔄 达人详情数据来自数据库')
+    }
+
+    setInfluencer(data)
+    
+    // 从API获取任务申请数据
+    const tasksResponse = await fetch(`/api/task-applications?influencerId=${influencerId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (tasksResponse.ok) {
+      const tasksData = await tasksResponse.json()
+      // 筛选已完成的任务
+      const completedTasksData = tasksData.filter((task: any) => task.status === 'completed')
+      setCompletedTasks(completedTasksData || [])
+    }
+    
+    // 设置评价数据（从API返回的数据中获取）
+    if (data.reviews) {
+      setReviews(data.reviews || [])
+    } else {
+      setReviews([])
+    }
+    
+    // 设置相似达人（暂时使用空数组）
+    setSimilarInfluencers([])
+    
+    setCacheStatus('fresh')
+  }
+
+  const fetchFromSupabase = async () => {
+    console.log('🔄 从Supabase获取达人详情')
+    
+    // 直接从Supabase获取达人详情
+    const { data: influencerData, error: influencerError } = await supabase
+      .from('influencers')
+      .select(`
+        *,
+        user:user_profiles(
+          id,
+          user_id,
+          user_type,
+          phone,
+          avatar_url,
+          created_at,
+          updated_at
+        )
+      `)
+      .eq('id', influencerId)
+      .single()
+
+    if (influencerError) {
+      console.error('Supabase查询达人失败:', influencerError)
+      throw new Error(`数据库查询失败: ${influencerError.message}`)
+    }
+
+    if (!influencerData) {
+      throw new Error('达人不存在')
+    }
+
+    console.log('✅ 成功从Supabase获取达人详情:', influencerData)
+    setInfluencer(influencerData)
+    
+    // 获取任务申请数据
+    const { data: applicationsData, error: applicationsError } = await supabase
+      .from('task_applications')
+      .select(`
+        *,
+        task:tasks(
+          id,
+          title,
+          budget_min,
+          budget_max,
+          status,
+          company:companies(company_name)
+        )
+      `)
+      .eq('influencer_id', influencerId)
+      .order('applied_at', { ascending: false })
+
+    if (applicationsError) {
+      console.error('获取任务申请失败:', applicationsError)
+    } else {
+      // 筛选已完成的任务
+      const completedTasksData = applicationsData?.filter(task => task.status === 'completed') || []
+      setCompletedTasks(completedTasksData)
+    }
+    
+    // 获取评价数据
+    const { data: reviewsData, error: reviewsError } = await supabase
+      .from('reviews')
+      .select(`
+        *,
+        reviewer:user_profiles(
+          id,
+          user_type
+        )
+      `)
+      .eq('influencer_id', influencerId)
+      .order('created_at', { ascending: false })
+
+    if (reviewsError) {
+      console.error('获取评价失败:', reviewsError)
+      setReviews([])
+    } else {
+      setReviews(reviewsData || [])
+    }
+    
+    // 获取相似达人（基于相同分类）
+    if (influencerData.category_id) {
+      const { data: similarData, error: similarError } = await supabase
+        .from('influencers')
+        .select(`
+          id,
+          nickname,
+          avatar_url,
+          followers_count,
+          rating,
+          total_reviews
+        `)
+        .eq('category_id', influencerData.category_id)
+        .neq('id', influencerId)
+        .limit(3)
+
+      if (!similarError && similarData) {
+        // 使用类型断言，简化处理
+        setSimilarInfluencers(similarData as any)
+      } else {
+        setSimilarInfluencers([])
+      }
+    } else {
+      setSimilarInfluencers([])
+    }
+    
+    setCacheStatus('fresh')
   }
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -604,7 +732,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                               <span className="ml-2 text-gray-700 font-medium">{review.rating}.0</span>
                             </div>
                             <div className="text-sm text-gray-500">
-                              {review.task?.title ? `评价任务: ${review.task.title}` : ''}
+                              {review.task_id ? `任务ID: ${review.task_id}` : ''}
                             </div>
                           </div>
                           <div className="text-sm text-gray-500">
