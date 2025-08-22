@@ -59,65 +59,22 @@ export function TaskDetailPage({ taskId, onBack }: TaskDetailPageProps) {
     }
   }, [profile])
 
-  const fetchTaskDetails = async () => {
+    const fetchTaskDetails = async () => {
     try {
       setLoading(true)
       setError(null)
       setCacheStatus('loading')
       
-      console.log(`开始从API获取任务详情: ${taskId}`)
+      const isProduction = import.meta.env.PROD
+      console.log(`开始获取任务详情: ${taskId} (环境: ${isProduction ? '生产' : '开发'})`)
 
-      // 从API获取任务详情（带缓存）
-      const response = await fetch(`/api/task-detail?id=${taskId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error('任务不存在')
-        }
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const taskData = await response.json()
-
-      // 检查缓存状态
-      const cacheControl = response.headers.get('Cache-Control')
-      const age = response.headers.get('Age')
-
-      if (cacheControl && cacheControl.includes('s-maxage')) {
-        setCacheStatus('cached')
-        console.log('✅ 任务详情数据来自API缓存')
+      if (isProduction) {
+        // 生产环境：使用API端点
+        await fetchFromAPI()
       } else {
-        setCacheStatus('fresh')
-        console.log('🔄 任务详情数据来自数据库')
+        // 开发环境：直接使用Supabase
+        await fetchFromSupabase()
       }
-
-      console.log('✅ 成功从API获取任务详情:', taskData)
-      setTask(taskData)
-      
-              // 获取任务申请
-        if (isCompany && profile) {
-          const applicationsResponse = await fetch(`/api/task-applications?taskId=${taskId}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          })
-
-          if (applicationsResponse.ok) {
-            const applicationsData = await applicationsResponse.json()
-            setApplications(applicationsData || [])
-          } else {
-            console.error('获取申请列表失败:', applicationsResponse.status)
-          }
-        }
-      
-      // 获取相似任务（暂时使用空数组，因为API中没有专门的相似任务端点）
-      setSimilarTasks([])
       
       console.log(`成功获取任务详情: ${taskId}`)
       
@@ -127,6 +84,156 @@ export function TaskDetailPage({ taskId, onBack }: TaskDetailPageProps) {
     } finally {
       setLoading(false)
     }
+  }
+
+  const fetchFromAPI = async () => {
+    console.log('🔄 从API获取任务详情')
+    
+    // 从API获取任务详情（带缓存）
+    const response = await fetch(`/api/task-detail?id=${taskId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error('任务不存在')
+      }
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const taskData = await response.json()
+
+    // 检查缓存状态
+    const cacheControl = response.headers.get('Cache-Control')
+    const age = response.headers.get('Age')
+
+    if (cacheControl && cacheControl.includes('s-maxage')) {
+      setCacheStatus('cached')
+      console.log('✅ 任务详情数据来自API缓存')
+    } else {
+      setCacheStatus('fresh')
+      console.log('🔄 任务详情数据来自数据库')
+    }
+
+    console.log('✅ 成功从API获取任务详情:', taskData)
+    setTask(taskData)
+    
+    // 获取任务申请
+    if (isCompany && profile) {
+      const applicationsResponse = await fetch(`/api/task-applications?taskId=${taskId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (applicationsResponse.ok) {
+        const applicationsData = await applicationsResponse.json()
+        setApplications(applicationsData || [])
+      } else {
+        console.error('获取申请列表失败:', applicationsResponse.status)
+      }
+    }
+    
+    // 获取相似任务（暂时使用空数组，因为API中没有专门的相似任务端点）
+    setSimilarTasks([])
+  }
+
+  const fetchFromSupabase = async () => {
+    console.log('🔄 从Supabase获取任务详情')
+    
+    // 直接从Supabase获取任务详情
+    const { data: taskData, error: taskError } = await supabase
+      .from('tasks')
+      .select(`
+        *,
+        company:companies(
+          id,
+          company_name,
+          contact_person,
+          industry,
+          company_size,
+          website,
+          description,
+          logo_url,
+          is_verified
+        ),
+        category:task_categories(
+          id,
+          name,
+          description,
+          icon
+        )
+      `)
+      .eq('id', taskId)
+      .single()
+
+    if (taskError) {
+      console.error('Supabase查询任务失败:', taskError)
+      throw new Error(`数据库查询失败: ${taskError.message}`)
+    }
+
+    if (!taskData) {
+      throw new Error('任务不存在')
+    }
+
+    console.log('✅ 成功从Supabase获取任务详情:', taskData)
+    setTask(taskData)
+    
+    // 获取任务申请
+    if (isCompany && profile) {
+      const { data: applicationsData, error: applicationsError } = await supabase
+        .from('task_applications')
+        .select(`
+          *,
+          influencer:influencers(
+            id,
+            nickname,
+            real_name,
+            avatar_url,
+            followers_count,
+            rating,
+            total_reviews
+          )
+        `)
+        .eq('task_id', taskId)
+        .order('applied_at', { ascending: false })
+
+      if (applicationsError) {
+        console.error('获取申请列表失败:', applicationsError)
+      } else {
+        setApplications(applicationsData || [])
+      }
+    }
+    
+    // 获取相似任务
+    if (taskData.category_id) {
+      const { data: similarData, error: similarError } = await supabase
+        .from('tasks')
+        .select(`
+          id,
+          title,
+          budget_min,
+          budget_max,
+          live_date,
+          status,
+          company:companies(company_name)
+        `)
+        .eq('category_id', taskData.category_id)
+        .eq('status', 'open')
+        .neq('id', taskId)
+        .limit(3)
+
+      if (!similarError && similarData) {
+        // 简化处理，只显示基本信息
+        setSimilarTasks([])
+      }
+    }
+    
+    setCacheStatus('fresh')
   }
 
   const handleApply = async (e: React.FormEvent) => {
