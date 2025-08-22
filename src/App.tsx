@@ -54,6 +54,7 @@ import LanguageSwitcher from './components/LanguageSwitcher'
 import { EnvironmentChecker } from './components/EnvironmentChecker'
 import { ProductionDebugger } from './components/ProductionDebugger'
 import { ProductionDataTest } from './components/ProductionDataTest'
+import { ApiRouteTester } from './components/ApiRouteTester'
 
 
 function App() {
@@ -1012,6 +1013,8 @@ function App() {
       <ProductionDebugger />
       {/* Production Data Test - 生产环境数据测试工具 */}
       <ProductionDataTest />
+      {/* API Route Tester - API路由测试工具 */}
+      <ApiRouteTester />
 
     </div>
   )
