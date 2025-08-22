@@ -55,18 +55,7 @@ export default async function handler(req, res) {
     // 从 Supabase 获取公司详情，包含关联数据
     const { data, error } = await supabase
       .from('companies')
-      .select(`
-        *,
-        user:user_profiles(
-          id,
-          user_id,
-          user_type,
-          phone,
-          avatar_url,
-          created_at,
-          updated_at
-        )
-      `)
+      .select('*')
       .eq('id', id)
       .single();
 
@@ -90,24 +79,7 @@ export default async function handler(req, res) {
     // 获取公司发布的任务
     const { data: publishedTasks, error: tasksError } = await supabase
       .from('tasks')
-      .select(`
-        *,
-        category:task_categories(
-          id,
-          name,
-          description
-        ),
-        applications:task_applications(
-          id,
-          status,
-          influencer:influencers(
-            id,
-            nickname,
-            avatar_url,
-            rating
-          )
-        )
-      `)
+      .select('*')
       .eq('company_id', id)
       .order('created_at', { ascending: false })
       .limit(10);
@@ -119,20 +91,7 @@ export default async function handler(req, res) {
     // 获取公司的直播记录
     const { data: liveSessions, error: liveError } = await supabase
       .from('live_sessions')
-      .select(`
-        *,
-        task:tasks(
-          id,
-          title,
-          category:task_categories(name)
-        ),
-        influencer:influencers(
-          id,
-          nickname,
-          avatar_url,
-          rating
-        )
-      `)
+      .select('*')
       .eq('task_id', publishedTasks?.map(t => t.id) || [])
       .order('created_at', { ascending: false })
       .limit(5);

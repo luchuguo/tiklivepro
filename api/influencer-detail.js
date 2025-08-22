@@ -55,28 +55,7 @@ export default async function handler(req, res) {
     // 从 Supabase 获取达人详情，包含关联数据
     const { data, error } = await supabase
       .from('influencers')
-      .select(`
-        *,
-        user:user_profiles(
-          id,
-          user_id,
-          user_type,
-          phone,
-          avatar_url,
-          created_at,
-          updated_at
-        ),
-        reviews:reviews(
-          id,
-          rating,
-          comment,
-          created_at,
-          reviewer:user_profiles(
-            id,
-            user_type
-          )
-        )
-      `)
+      .select('*')
       .eq('id', id)
       .single();
 
@@ -100,17 +79,7 @@ export default async function handler(req, res) {
     // 获取达人的任务历史
     const { data: taskHistory, error: taskError } = await supabase
       .from('task_applications')
-      .select(`
-        *,
-        task:tasks(
-          id,
-          title,
-          budget_min,
-          budget_max,
-          status,
-          company:companies(company_name)
-        )
-      `)
+      .select('*')
       .eq('influencer_id', id)
       .order('applied_at', { ascending: false })
       .limit(10);
@@ -122,14 +91,7 @@ export default async function handler(req, res) {
     // 获取达人的直播记录
     const { data: liveSessions, error: liveError } = await supabase
       .from('live_sessions')
-      .select(`
-        *,
-        task:tasks(
-          id,
-          title,
-          company:companies(company_name)
-        )
-      `)
+      .select('*')
       .eq('influencer_id', id)
       .order('created_at', { ascending: false })
       .limit(5);
