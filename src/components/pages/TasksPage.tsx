@@ -293,27 +293,29 @@ export function TasksPage() {
               发现优质直播带货任务，开启您的变现之旅
             </p>
             
-            {/* 缓存状态指示器 */}
-            <div className="mt-4 flex items-center justify-center space-x-2">
-              {cacheStatus === 'cached' && (
-                <div className="flex items-center space-x-2 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
-                  <CheckCircle className="w-4 h-4" />
-                  <span>服务器缓存</span>
-                </div>
-              )}
-              {cacheStatus === 'fresh' && (
-                <div className="flex items-center space-x-2 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
-                  <RefreshCw className="w-4 h-4" />
-                  <span>实时数据</span>
-                </div>
-              )}
-              {cacheStatus === 'loading' && (
-                <div className="flex items-center space-x-2 bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm">
-                  <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                  <span>加载中</span>
-                </div>
-              )}
-            </div>
+            {/* 缓存状态指示器 - 生产环境隐藏 */}
+            {!import.meta.env.PROD && (
+              <div className="mt-4 flex items-center justify-center space-x-2">
+                {cacheStatus === 'cached' && (
+                  <div className="flex items-center space-x-2 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>服务器缓存</span>
+                  </div>
+                )}
+                {cacheStatus === 'fresh' && (
+                  <div className="flex items-center space-x-2 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
+                    <RefreshCw className="w-4 h-4" />
+                    <span>实时数据</span>
+                  </div>
+                )}
+                {cacheStatus === 'loading' && (
+                  <div className="flex items-center space-x-2 bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm">
+                    <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                    <span>加载中</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </section>
