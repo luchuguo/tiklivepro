@@ -1,13 +1,26 @@
 import { createClient } from '@supabase/supabase-js';
 import { kv } from '@vercel/kv';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // 检查环境变量
+  if (!supabaseUrl || !supabaseKey) {
+    console.error('环境变量未设置:', { 
+      supabaseUrl: !!supabaseUrl, 
+      supabaseKey: !!supabaseKey,
+      envKeys: Object.keys(process.env).filter(key => key.includes('SUPABASE'))
+    });
+    return res.status(500).json({ 
+      error: 'Supabase configuration missing',
+      details: 'Please check environment variables'
+    });
   }
 
   try {
@@ -18,6 +31,10 @@ export default async function handler(req, res) {
     }
 
     console.log(`获取任务详情: ${id}`);
+    console.log('环境变量状态:', { 
+      supabaseUrl: supabaseUrl ? '已设置' : '未设置',
+      supabaseKey: supabaseKey ? '已设置' : '未设置'
+    });
 
     // 设置缓存头 - 任务详情可以缓存更长时间
     // s-maxage=300: 在边缘网络缓存5分钟
