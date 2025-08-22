@@ -33,18 +33,24 @@ export default async function handler(req, res) {
     }
 
     // 设置缓存头 - 达人详情可以缓存较长时间
-    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600, public');
-    res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=300');
-    res.setHeader('CDN-Cache-Control', 's-maxage=300');
+    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=1200, public');
+    res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=600');
+    res.setHeader('CDN-Cache-Control', 's-maxage=600');
     
-    // 检查缓存
+    // 检查缓存 - 生产环境优先使用缓存
     const cacheKey = `influencer_detail_${id}`;
     const cachedData = await getFromCache(cacheKey);
 
     if (cachedData) {
-      console.log(`返回缓存的达人详情: ${id}`);
+      console.log(`✅ 返回缓存的达人详情: ${id}`);
+      // 设置缓存状态头
+      res.setHeader('X-Cache-Status', 'HIT');
+      res.setHeader('X-Cache-Age', 'cached');
       return res.status(200).json(cachedData);
     }
+
+    console.log(`🔄 缓存未命中，从数据库获取达人详情: ${id}`);
+    res.setHeader('X-Cache-Status', 'MISS');
 
     console.log(`从 Supabase 获取达人详情: ${id}`);
     console.log('环境变量状态:', { 
@@ -107,8 +113,8 @@ export default async function handler(req, res) {
       liveSessions: liveSessions || []
     };
 
-    // 存储到缓存，达人详情缓存5分钟
-    await storeInCache(cacheKey, completeData, 300);
+    // 存储到缓存，达人详情缓存10分钟（生产环境优先使用缓存）
+    await storeInCache(cacheKey, completeData, 600);
 
     return res.status(200).json(completeData);
   } catch (error) {
