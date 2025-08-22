@@ -157,6 +157,11 @@ export function ApiRouteTester() {
     window.open(fullUrl, '_blank')
   }
 
+  // 生产环境隐藏调试组件
+  if (import.meta.env.PROD) {
+    return null;
+  }
+
   return (
     <div className="fixed top-4 left-4 z-50 max-w-lg">
       <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4">

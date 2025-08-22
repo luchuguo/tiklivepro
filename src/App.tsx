@@ -1007,14 +1007,21 @@ function App() {
       {/* Data Viewer */}
       {showDataViewer && <InfluencerDataViewer />}
 
-      {/* Environment Checker - 只在生产环境显示问题 */}
-      <EnvironmentChecker />
-      {/* Production Debugger - 生产环境调试工具 */}
-      <ProductionDebugger />
-      {/* Production Data Test - 生产环境数据测试工具 */}
-      <ProductionDataTest />
-      {/* API Route Tester - API路由测试工具 */}
-      <ApiRouteTester />
+      {/* 调试组件 - 只在开发环境显示 */}
+
+      {/* 生产环境隐藏所有调试组件 */}
+      {!import.meta.env.PROD && (
+        <>
+          {/* Environment Checker - 只在开发环境显示 */}
+          <EnvironmentChecker />
+          {/* Production Debugger - 开发环境调试工具 */}
+          <ProductionDebugger />
+          {/* Production Data Test - 开发环境数据测试工具 */}
+          <ProductionDataTest />
+          {/* API Route Tester - 开发环境API路由测试工具 */}
+          <ApiRouteTester />
+        </>
+      )}
 
     </div>
   )
