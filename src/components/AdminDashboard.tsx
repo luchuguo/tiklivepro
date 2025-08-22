@@ -27,6 +27,8 @@ import {
 import { supabase } from '../lib/supabase'
 import { useAuthContext } from '../hooks/useAuth'
 import { CategoriesTab } from './CategoriesTab'
+import { PermissionDebugPanel } from './PermissionDebugPanel'
+import { ErrorBoundary } from './ErrorBoundary'
 
 interface AdminStats {
   totalUsers: number
@@ -48,8 +50,11 @@ interface RecentActivity {
 }
 
 export function AdminDashboard() {
-  const { signOut, isAdmin, loading } = useAuthContext()
+  const { signOut, isAdmin, loading, user, profile, refreshPermissions } = useAuthContext()
   const [activeTab, setActiveTab] = useState('overview')
+  const [permissionError, setPermissionError] = useState<string | null>(null)
+  const [connectionError, setConnectionError] = useState<string | null>(null)
+  const [isConnecting, setIsConnecting] = useState(false)
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
     totalInfluencers: 0,
@@ -64,10 +69,107 @@ export function AdminDashboard() {
   const [dashboardLoading, setDashboardLoading] = useState(true)
 
   useEffect(() => {
-    if (isAdmin) {
-      fetchDashboardData()
+    console.log('🔄 权限验证 useEffect 触发:', { user: !!user, profile: !!profile, loading, isAdmin })
+    
+    // 权限验证
+    if (user && profile) {
+      if (profile.user_type === 'admin') {
+        console.log('✅ 管理员权限验证通过')
+        setPermissionError(null)
+        fetchDashboardData()
+      } else {
+        console.log('❌ 权限不足，用户类型:', profile.user_type)
+        setPermissionError('权限不足，只有超级管理员可以访问此页面')
+      }
+    } else if (loading) {
+      console.log('⏳ 正在加载用户信息...')
+      // 加载中不显示错误，等待加载完成
+    } else if (!user) {
+      console.log('❌ 用户未登录')
+      setPermissionError('用户未登录，请先登录')
+    } else if (user && !profile) {
+      console.log('⏳ 用户已登录，正在加载用户资料...')
+      // 用户已登录但资料未加载，等待资料加载完成
     }
-  }, [isAdmin])
+  }, [user, profile, loading])
+
+  // 添加超时保护，防止无限加载
+  useEffect(() => {
+    if (loading && user) {
+      const timeoutId = setTimeout(() => {
+        console.log('⏰ 权限验证超时，强制刷新权限...')
+        refreshPermissions()
+      }, 15000) // 15秒超时
+      
+      return () => clearTimeout(timeoutId)
+    }
+  }, [loading, user])
+
+  // 添加延迟权限检查，处理页面刷新后的权限验证
+  useEffect(() => {
+    if (user && !profile && !loading) {
+      console.log('🔄 检测到用户已登录但资料未加载，延迟检查权限...')
+      const timer = setTimeout(() => {
+        if (user && !profile) {
+          console.log('⏰ 延迟检查：用户资料仍未加载，尝试重新获取...')
+          refreshPermissions()
+        }
+      }, 2000) // 2秒后检查
+      
+      return () => clearTimeout(timer)
+    }
+  }, [user, profile, loading])
+
+  // 添加权限验证重试机制
+  useEffect(() => {
+    if (user && profile && profile.user_type === 'admin' && !permissionError) {
+      console.log('✅ 权限验证成功，清除任何可能的错误状态')
+      setPermissionError(null)
+    }
+  }, [user, profile, permissionError])
+
+  // 添加强制权限恢复机制
+  useEffect(() => {
+    if (user && !profile && !loading) {
+      console.log('🔄 检测到权限验证卡住，启动强制恢复...')
+      const timer = setTimeout(() => {
+        if (user && !profile) {
+          console.log('🚨 强制恢复：用户资料仍未加载，强制刷新权限...')
+          refreshPermissions()
+        }
+      }, 5000) // 5秒后强制恢复
+      
+      return () => clearTimeout(timer)
+    }
+  }, [user, profile, loading])
+
+  // 添加连接状态检查
+  const checkConnection = async () => {
+    try {
+      setIsConnecting(true)
+      setConnectionError(null)
+      
+      console.log('🔍 检查服务器连接状态...')
+      
+      // 简单的连接测试
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('count')
+        .limit(1)
+      
+      if (error) {
+        throw error
+      }
+      
+      console.log('✅ 服务器连接正常')
+      setConnectionError(null)
+    } catch (error: any) {
+      console.error('❌ 服务器连接失败:', error)
+      setConnectionError(error?.message || '连接失败')
+    } finally {
+      setIsConnecting(false)
+    }
+  }
 
   const fetchDashboardData = async () => {
     try {
@@ -124,17 +226,18 @@ export function AdminDashboard() {
     await fetchDashboardData()
   }
 
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Shield className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">访问受限</h2>
-          <p className="text-gray-600">您没有权限访问管理后台</p>
-        </div>
-      </div>
-    )
-  }
+  // 移除这个早期返回，让权限验证逻辑来处理
+  // if (!isAdmin) {
+  //   return (
+  //     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+  //       <div className="text-center">
+  //         <Shield className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+  //         <h2 className="text-2xl font-bold text-gray-900 mb-2">访问受限</h2>
+  //         <p className="text-gray-600">您没有权限访问管理后台</p>
+  //       </div>
+  //     </div>
+  //   )
+  // }
 
   const StatCard = ({ title, value, change, icon: Icon, color }: any) => (
     <div className="bg-white rounded-xl shadow-sm p-6">
@@ -970,21 +1073,123 @@ export function AdminDashboard() {
 
   const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || OverviewTab
 
-  if (loading) {
+  // 权限错误处理
+  if (permissionError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Shield className="w-8 h-8 text-red-600" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">访问被拒绝</h2>
+          <p className="text-gray-600 mb-6">{permissionError}</p>
+          <div className="space-y-3">
+            <button
+              onClick={() => window.location.href = '/'}
+              className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+            >
+              返回首页
+            </button>
+            <button
+              onClick={async () => {
+                await signOut()
+                window.location.href = '/admin-login'
+              }}
+              className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            >
+              重新登录
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // 加载状态处理
+  if (loading || !user || !profile) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">加载中...</p>
+          <p className="text-gray-600">
+            {loading ? '验证权限中...' : '加载用户信息中...'}
+          </p>
+          {!loading && user && (
+            <div className="mt-4 text-sm text-gray-500">
+              用户: {user.email} | 状态: 验证中
+            </div>
+          )}
+          {profile && (
+            <div className="mt-2 text-xs text-gray-400">
+              用户类型: {profile.user_type} | 权限验证: {isAdmin ? '通过' : '失败'}
+            </div>
+          )}
+          {/* 调试信息面板 */}
+          <div className="mt-4 p-3 bg-gray-100 rounded-lg text-xs">
+            <div className="font-medium text-gray-700 mb-2">🔍 权限验证调试信息</div>
+            <div className="space-y-1 text-gray-600">
+              <div>用户ID: {user?.id || '未获取'}</div>
+              <div>用户邮箱: {user?.email || '未获取'}</div>
+              <div>用户资料: {profile ? '已加载' : '未加载'}</div>
+              <div>用户类型: {profile?.user_type || '未知'}</div>
+              <div>isAdmin: {isAdmin ? 'true' : 'false'}</div>
+              <div>Loading: {loading ? 'true' : 'false'}</div>
+              <div>权限错误: {permissionError || '无'}</div>
+            </div>
+            <div className="mt-3 pt-3 border-t border-gray-300">
+              <div className="font-medium text-gray-700 mb-2">🔧 权限修复操作</div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600"
+                >
+                  强制刷新页面
+                </button>
+                <button
+                  onClick={async () => {
+                    setPermissionError(null)
+                    await refreshPermissions()
+                  }}
+                  className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                >
+                  重新验证权限
+                </button>
+                <button
+                  onClick={() => {
+                    console.log('🚨 手动强制恢复权限...')
+                    setPermissionError(null)
+                    if (user) {
+                      refreshPermissions()
+                    }
+                  }}
+                  className="px-3 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600"
+                >
+                  🚨 强制恢复
+                </button>
+              </div>
+            </div>
+            {/* 实时状态监控 */}
+            <div className="mt-3 pt-3 border-t border-gray-300">
+              <div className="font-medium text-gray-700 mb-2">📊 实时状态监控</div>
+              <div className="text-xs text-gray-500 space-y-1">
+                <div>最后更新: {new Date().toLocaleTimeString()}</div>
+                <div>权限状态: {isAdmin ? '✅ 已通过' : '❌ 未通过'}</div>
+                <div>加载状态: {loading ? '⏳ 加载中' : '✅ 已完成'}</div>
+                <div>用户状态: {user ? '✅ 已登录' : '❌ 未登录'}</div>
+                <div>资料状态: {profile ? '✅ 已加载' : '❌ 未加载'}</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* 管理后台专用顶部栏 */}
-      <div className="fixed top-0 left-0 right-0 h-16 bg-white shadow-sm border-b border-gray-200 z-40">
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gray-50">
+        {/* 管理后台专用顶部栏 */}
+        <div className="fixed top-0 left-0 right-0 h-16 bg-white shadow-sm border-b border-gray-200 z-40">
         <div className="flex items-center justify-between h-full px-6">
           <div className="flex items-center space-x-4">
             <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
@@ -1070,6 +1275,24 @@ export function AdminDashboard() {
           <ActiveComponent />
         </div>
         
+                 {/* 权限调试面板 */}
+         <PermissionDebugPanel
+           user={user}
+           profile={profile}
+           loading={loading}
+           isAdmin={isAdmin}
+           permissionError={permissionError}
+           connectionError={connectionError}
+           isConnecting={isConnecting}
+           onRefreshPermissions={refreshPermissions}
+           onForceReload={() => window.location.reload()}
+           onSignOut={async () => {
+             await signOut()
+             window.location.href = '/admin-login'
+           }}
+           onCheckConnection={checkConnection}
+         />
+        
         {/* 管理后台专用底部 */}
         <div className="bg-white border-t border-gray-200 px-6 py-4 text-center">
           <div className="text-sm text-gray-500">
@@ -1081,5 +1304,6 @@ export function AdminDashboard() {
         </div>
       </div>
     </div>
+    </ErrorBoundary>
   )
 }

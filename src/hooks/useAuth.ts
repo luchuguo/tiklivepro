@@ -11,33 +11,44 @@ export function useAuth() {
   useEffect(() => {
     let mounted = true
 
+    // 设置超时机制，防止无限加载
+    const timeoutId = setTimeout(() => {
+      if (mounted && loading) {
+        console.warn('权限验证超时，强制设置加载状态为false')
+        setLoading(false)
+      }
+    }, 10000) // 10秒超时
+
     // 获取初始会话
     const getInitialSession = async () => {
       try {
+        console.log('🔄 开始获取初始会话...')
         const { data: { session }, error } = await supabase.auth.getSession()
         
         if (error) {
-          console.error('获取初始会话失败:', error)
+          console.error('❌ 获取初始会话失败:', error)
           if (mounted) {
             setLoading(false)
           }
           return
         }
 
-        console.log('初始会话:', session?.user?.email || '无会话')
+        console.log('📱 初始会话获取成功:', session?.user?.email || '无会话')
         
         if (mounted) {
           setSession(session)
           setUser(session?.user ?? null)
           
           if (session?.user) {
+            console.log('👤 用户已登录，开始获取用户资料...')
             await fetchProfile(session.user.id, session.user.email)
           } else {
+            console.log('👤 用户未登录，设置加载状态为false')
             setLoading(false)
           }
         }
       } catch (error) {
-        console.error('获取初始会话时发生错误:', error)
+        console.error('💥 获取初始会话时发生错误:', error)
         if (mounted) {
           setLoading(false)
         }
@@ -52,16 +63,17 @@ export function useAuth() {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return
 
-      console.log('认证状态变化:', event, session?.user?.email || '无用户')
+      console.log('🔄 认证状态变化:', event, session?.user?.email || '无用户')
       
       setSession(session)
       setUser(session?.user ?? null)
       
       if (session?.user) {
+        console.log('👤 用户登录状态变化，开始获取用户资料...')
         await fetchProfile(session.user.id, session.user.email)
       } else {
         // 用户退出登录时立即清理所有状态
-        console.log('用户退出登录，清理状态...')
+        console.log('👤 用户退出登录，清理状态...')
         setProfile(null)
         setLoading(false)
       }
@@ -69,23 +81,31 @@ export function useAuth() {
 
     return () => {
       mounted = false
+      clearTimeout(timeoutId)
       subscription.unsubscribe()
     }
   }, [])
 
   const fetchProfile = async (userId: string, userEmail?: string) => {
     try {
-      console.log('获取用户资料:', userId, 'email:', userEmail)
-      setLoading(true)
+      console.log('🔍 开始获取用户资料:', userId, 'email:', userEmail)
+      
+      // 设置查询超时
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('查询超时')), 10000) // 10秒超时
+      })
       
       // 获取用户资料
-      const { data, error } = await supabase
+      const profilePromise = supabase
         .from('user_profiles')
         .select('*')
         .eq('user_id', userId)
         .single()
 
-      console.log('用户资料查询结果:', { data, error })
+      const { data, error } = await Promise.race([profilePromise, timeoutPromise]) as any
+
+      console.log('📊 用户资料查询结果:', { data, error })
+      console.log('🔍 当前状态 - user:', !!user, 'profile:', !!profile, 'loading:', loading)
 
       if (error) {
         if (error.code === 'PGRST116') {
@@ -367,6 +387,36 @@ export function useAuth() {
     }
   }
 
+  // 强制刷新权限验证
+  const refreshPermissions = async () => {
+    if (user) {
+      console.log('🔄 强制刷新权限验证...')
+      setLoading(true)
+      try {
+        await fetchProfile(user.id, user.email)
+        console.log('✅ 权限验证刷新完成')
+      } catch (error) {
+        console.error('❌ 权限验证刷新失败:', error)
+        setLoading(false)
+      }
+    }
+  }
+
+  // 添加权限状态监控
+  const isAdmin = profile?.user_type === 'admin'
+  const isInfluencer = profile?.user_type === 'influencer'
+  const isCompany = profile?.user_type === 'company'
+  
+  console.log('🔍 useAuth 状态:', {
+    user: !!user,
+    profile: !!profile,
+    loading,
+    userType: profile?.user_type,
+    isAdmin,
+    isInfluencer,
+    isCompany
+  })
+
   return {
     user,
     session,
@@ -376,10 +426,11 @@ export function useAuth() {
     signIn,
     signOut,
     updateProfile,
+    refreshPermissions,
     isAuthenticated: !!user,
-    isInfluencer: profile?.user_type === 'influencer',
-    isCompany: profile?.user_type === 'company',
-    isAdmin: profile?.user_type === 'admin',
+    isInfluencer,
+    isCompany,
+    isAdmin,
   }
 }
 

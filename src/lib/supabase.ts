@@ -97,6 +97,34 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 })
 
+// 添加连接健康检查函数
+export const checkSupabaseConnection = async (timeout = 10000) => {
+  try {
+    console.log('🔍 检查 Supabase 连接状态...')
+    
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), timeout)
+    
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('count')
+      .limit(1)
+    
+    clearTimeout(timeoutId)
+    
+    if (error) {
+      console.error('❌ Supabase 连接检查失败:', error)
+      return { connected: false, error: error.message }
+    }
+    
+    console.log('✅ Supabase 连接正常')
+    return { connected: true, error: null }
+  } catch (error: any) {
+    console.error('💥 Supabase 连接检查异常:', error)
+    return { connected: false, error: error?.message || '连接检查失败' }
+  }
+}
+
 // 创建一个带超时的查询函数
 async function queryWithTimeout<T>(
   queryFn: () => Promise<T>,
