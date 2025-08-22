@@ -141,18 +141,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
     // 直接从Supabase获取达人详情
     const { data: influencerData, error: influencerError } = await supabase
       .from('influencers')
-      .select(`
-        *,
-        user:user_profiles(
-          id,
-          user_id,
-          user_type,
-          phone,
-          avatar_url,
-          created_at,
-          updated_at
-        )
-      `)
+      .select('*')
       .eq('id', influencerId)
       .single()
 
@@ -171,38 +160,38 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
     // 获取任务申请数据
     const { data: applicationsData, error: applicationsError } = await supabase
       .from('task_applications')
-      .select(`
-        *,
-        task:tasks(
-          id,
-          title,
-          budget_min,
-          budget_max,
-          status,
-          company:companies(company_name)
-        )
-      `)
+      .select('*')
       .eq('influencer_id', influencerId)
       .order('applied_at', { ascending: false })
 
     if (applicationsError) {
       console.error('获取任务申请失败:', applicationsError)
     } else {
-      // 筛选已完成的任务
-      const completedTasksData = applicationsData?.filter(task => task.status === 'completed') || []
-      setCompletedTasks(completedTasksData)
+      // 筛选已完成的任务申请
+      const completedApplications = applicationsData?.filter(app => app.status === 'accepted') || []
+      
+      // 如果有已接受的任务申请，获取对应的任务详情
+      if (completedApplications.length > 0) {
+        const taskIds = completedApplications.map(app => app.task_id)
+        const { data: tasksData, error: tasksError } = await supabase
+          .from('tasks')
+          .select('*')
+          .in('id', taskIds)
+        
+        if (!tasksError && tasksData) {
+          setCompletedTasks(tasksData)
+        } else {
+          setCompletedTasks([])
+        }
+      } else {
+        setCompletedTasks([])
+      }
     }
     
     // 获取评价数据
     const { data: reviewsData, error: reviewsError } = await supabase
       .from('reviews')
-      .select(`
-        *,
-        reviewer:user_profiles(
-          id,
-          user_type
-        )
-      `)
+      .select('*')
       .eq('influencer_id', influencerId)
       .order('created_at', { ascending: false })
 
