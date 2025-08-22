@@ -50,7 +50,9 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { EmailVerificationTest } from './components/pages/EmailVerificationTest'
 import { ImageUploadTest } from './components/pages/ImageUploadTest'
 import LoginTestPage from './components/pages/LoginTestPage'
-import LanguageSwitcher from './components/LanguageSwitcher';
+import LanguageSwitcher from './components/LanguageSwitcher'
+import { EnvironmentChecker } from './components/EnvironmentChecker'
+import { ProductionDebugger } from './components/ProductionDebugger'
 
 
 function App() {
@@ -1003,6 +1005,10 @@ function App() {
       {/* Data Viewer */}
       {showDataViewer && <InfluencerDataViewer />}
 
+      {/* Environment Checker - 只在生产环境显示问题 */}
+      <EnvironmentChecker />
+      {/* Production Debugger - 生产环境调试工具 */}
+      <ProductionDebugger />
 
     </div>
   )
