@@ -6,7 +6,7 @@ interface FooterProps {
 }
 
 export function Footer({ onPageChange }: FooterProps) {
-  const quickLinks = [
+    const quickLinks = [
     { name: '关于我们', page: 'about' },
     { name: '服务条款', page: 'terms' },
     { name: '隐私政策', page: 'privacy' },

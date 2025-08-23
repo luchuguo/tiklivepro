@@ -1059,7 +1059,7 @@ function App() {
             <Route path="/influencers" element={<InfluencersPage />} />
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/about" element={<AboutPage />} />
-            <Route path="/terms" element={<TermsPage />} />
+                        <Route path="/terms" element={<TermsPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/help" element={<HelpPage />} />
             <Route path="/contact" element={<ContactPage />} />
@@ -1074,7 +1074,7 @@ function App() {
             <Route path="/company/:id" element={<CompanyDetailWrapper />} />
             <Route path="/influencer/:id" element={<InfluencerDetailWrapper />} />
             <Route path="/task/:id" element={<TaskDetailWrapper />} />
-            <Route path="/video/:videoId" element={<VideoPlayerPage onBack={() => window.history.back()} />} />
+            <Route path="/video/:videoId" element={<VideoPlayerPage />} />
             <Route path="/videos" element={<VideosPage />} />
             <Route path="/route-test/:id" element={<RouteTestPage />} />
             <Route path="/sms-test" element={<SmsVerificationTest />} />
