@@ -22,11 +22,13 @@ import {
   Loader,
   LogOut,
   Trash2,
-  Tag
+  Tag,
+  Play
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuthContext } from '../hooks/useAuth'
 import { CategoriesTab } from './CategoriesTab'
+import { VideoManagement } from './admin/VideoManagement'
 import { PermissionDebugPanel } from './PermissionDebugPanel'
 import { ErrorBoundary } from './ErrorBoundary'
 
@@ -1065,8 +1067,9 @@ export function AdminDashboard() {
   const tabs = [
     { id: 'overview', name: '概览', icon: BarChart3, component: OverviewTab },
     { id: 'users', name: '用户管理', icon: Users, component: UsersTab },
-{ id: 'categories', name: '分类管理', icon: Tag, component: CategoriesTab },
+    { id: 'categories', name: '分类管理', icon: Tag, component: CategoriesTab },
     { id: 'tasks', name: '任务管理', icon: Calendar, component: TasksTab },
+    { id: 'videos', name: '视频管理', icon: Play, component: VideoManagement },
     { id: 'analytics', name: '数据分析', icon: TrendingUp, component: AnalyticsTab },
     { id: 'settings', name: '系统设置', icon: Settings, component: SettingsTab },
   ]
@@ -1275,8 +1278,8 @@ export function AdminDashboard() {
           <ActiveComponent />
         </div>
         
-                 {/* 权限调试面板 */}
-         <PermissionDebugPanel
+        {/* 权限调试面板 - 已隐藏 */}
+        {/* <PermissionDebugPanel
            user={user}
            profile={profile}
            loading={loading}
@@ -1291,7 +1294,7 @@ export function AdminDashboard() {
              window.location.href = '/admin-login'
            }}
            onCheckConnection={checkConnection}
-         />
+         /> */}
         
         {/* 管理后台专用底部 */}
         <div className="bg-white border-t border-gray-200 px-6 py-4 text-center">

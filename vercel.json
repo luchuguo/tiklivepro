@@ -17,6 +17,14 @@
       "destination": "/api/task-applications"
     },
     {
+      "source": "/api/videos(.*)",
+      "destination": "/api/videos"
+    },
+    {
+      "source": "/api/video-detail(.*)",
+      "destination": "/api/video-detail"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },
@@ -93,6 +101,14 @@
       "destination": "/index.html"
     },
     {
+      "source": "/videos",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/video/:id",
+      "destination": "/index.html"
+    },
+    {
       "source": "/route-test/(.*)",
       "destination": "/index.html"
     },
@@ -147,6 +163,24 @@
     },
     {
       "source": "/task/:id",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=300, stale-while-revalidate=600"
+        }
+      ]
+    },
+    {
+      "source": "/videos",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=300, stale-while-revalidate=600"
+        }
+      ]
+    },
+    {
+      "source": "/video/:id",
       "headers": [
         {
           "key": "Cache-Control",

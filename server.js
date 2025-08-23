@@ -3,7 +3,6 @@ import cors from 'cors';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 
-// 加载环境变量
 dotenv.config();
 
 const app = express();
@@ -36,58 +35,324 @@ if (supabaseUrl && supabaseKey) {
   console.log('⚠️ 跳过 Supabase 客户端创建');
 }
 
-// 内存缓存（开发环境使用）
-const memoryCache = new Map();
-
-// 缓存函数
-async function getFromCache(key) {
+// 视频列表API
+app.get('/videos', async (req, res) => {
   try {
-    const cachedData = memoryCache.get(key);
-    if (cachedData && Date.now() < cachedData.expiry) {
-      console.log(`从内存缓存获取数据: ${key}`);
-      return cachedData.data;
+    console.log('👥 开始获取视频列表...');
+    
+    const {
+      page = 1,
+      limit = 20,
+      category = 'all',
+      search = '',
+      featured = 'all',
+      sort = 'latest'
+    } = req.query;
+
+    // 如果没有 Supabase 连接，返回模拟数据
+    if (!supabase) {
+      console.log('⚠️ 使用模拟视频数据（Supabase 未连接）');
+      const mockVideos = [
+        {
+          id: '1',
+          title: '美妆产品直播带货',
+          description: '专业美妆达人直播带货，展示产品效果，互动性强，转化率高。',
+          video_url: 'https://example.com/video1.mp4',
+          poster_url: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400',
+          views_count: '15.2万',
+          likes_count: '2.8万',
+          comments_count: '1.2万',
+          shares_count: '5.6千',
+          duration: '2:35',
+          category: { name: '美妆', description: '美妆护肤相关' },
+          influencer_name: '张小美',
+          influencer_avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150',
+          influencer_rating: 4.8,
+          tags: ['美妆', '直播带货', '产品展示', '互动性强'],
+          created_at: '2024-01-15',
+          is_featured: true,
+          is_active: true
+        }
+      ];
+      
+      const result = {
+        videos: mockVideos,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: mockVideos.length,
+          totalPages: 1
+        },
+        filters: { category, search, featured, sort }
+      };
+      
+      return res.json(result);
     }
-    console.log(`内存缓存中未找到数据或已过期: ${key}`);
-    return null;
-  } catch (error) {
-    console.error('获取缓存数据失败:', error);
-    return null;
-  }
-}
 
-async function storeInCache(key, data, expirySeconds = 60) {
-  try {
-    const expiryMs = expirySeconds * 1000; // 转换为毫秒
-    memoryCache.set(key, {
-      data: data,
-      expiry: Date.now() + expiryMs
+    // 构建查询
+    let query = supabase
+      .from('videos')
+      .select(`
+        *,
+        category:video_categories(name, description)
+      `)
+      .eq('is_active', true);
+
+    // 应用筛选条件
+    if (category && category !== 'all') {
+      query = query.eq('category_id', category);
+    }
+    
+    if (search) {
+      query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%,influencer_name.ilike.%${search}%`);
+    }
+    
+    if (featured && featured !== 'all') {
+      query = query.eq('is_featured', featured === 'true');
+    }
+
+    // 应用排序
+    switch (sort) {
+      case 'latest':
+        query = query.order('created_at', { ascending: false });
+        break;
+      case 'oldest':
+        query = query.order('created_at', { ascending: true });
+        break;
+      case 'popular':
+        query = query.order('views_count', { ascending: false });
+        break;
+      case 'rating':
+        query = query.order('influencer_rating', { ascending: false });
+        break;
+      case 'sort_order':
+        query = query.order('sort_order', { ascending: true });
+        break;
+      default:
+        query = query.order('created_at', { ascending: false });
+    }
+
+    // 分页
+    const from = (parseInt(page) - 1) * parseInt(limit);
+    const to = from + parseInt(limit) - 1;
+    query = query.range(from, to);
+
+    // 获取总数
+    const { count } = await supabase
+      .from('videos')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_active', true);
+
+    // 执行查询
+    const { data: videos, error } = await query;
+
+    if (error) {
+      console.error('❌ 获取视频列表失败:', error);
+      throw error;
+    }
+
+    // 处理数据
+    const processedVideos = videos.map(video => ({
+      ...video,
+      views_count: video.views_count || '0',
+      likes_count: video.likes_count || '0',
+      comments_count: video.comments_count || '0',
+      shares_count: video.shares_count || '0',
+      tags: video.tags || []
+    }));
+
+    const result = {
+      videos: processedVideos,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / parseInt(limit))
+      },
+      filters: {
+        category,
+        search,
+        featured,
+        sort
+      }
+    };
+
+    console.log(`✅ 成功获取视频列表: ${processedVideos.length} 个`);
+
+    // 设置缓存头
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('X-Cache-Status', 'local-server');
+    res.setHeader('X-Cache-TTL', '0');
+
+    res.json(result);
+  } catch (error) {
+    console.error('❌ 视频列表API错误:', error);
+    res.status(500).json({ 
+      error: '获取视频列表失败',
+      details: error.message 
     });
-    console.log(`数据已存储到内存缓存: ${key}, 过期时间: ${expirySeconds}秒`);
-  } catch (error) {
-    console.error('存储缓存数据失败:', error);
   }
-}
+});
 
-// API 路由
+// 视频详情API
+app.get('/video-detail', async (req, res) => {
+  try {
+    const { id } = req.query;
+    if (!id) {
+      return res.status(400).json({ error: '缺少视频ID参数' });
+    }
+
+    console.log('🎬 开始获取视频详情...');
+
+    // 如果没有 Supabase 连接，返回模拟数据
+    if (!supabase) {
+      console.log('⚠️ 使用模拟视频详情数据（Supabase 未连接）');
+      const mockVideo = {
+        id: id,
+        title: '美妆产品直播带货',
+        description: '专业美妆达人直播带货，展示产品效果，互动性强，转化率高。',
+        video_url: 'https://example.com/video1.mp4',
+        poster_url: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400',
+        views_count: '15.2万',
+        likes_count: '2.8万',
+        comments_count: '1.2万',
+        shares_count: '5.6千',
+        duration: '2:35',
+        category: { name: '美妆', description: '美妆护肤相关' },
+        influencer_name: '张小美',
+        influencer_avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150',
+        influencer_rating: 4.8,
+        tags: ['美妆', '直播带货', '产品展示', '互动性强'],
+        created_at: '2024-01-15',
+        is_featured: true,
+        is_active: true
+      };
+      
+      const mockRelatedVideos = [
+        {
+          id: '2',
+          title: '时尚服装展示',
+          poster_url: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150',
+          duration: '3:12',
+          views_count: '12.8万',
+          likes_count: '2.1万',
+          influencer_name: '李时尚',
+          influencer_avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150',
+          category: { name: '时尚' }
+        }
+      ];
+      
+      const result = {
+        video: mockVideo,
+        relatedVideos: mockRelatedVideos,
+        categories: [{ id: '1', name: '美妆', description: '美妆护肤相关' }],
+        meta: {
+          title: mockVideo.title,
+          description: mockVideo.description,
+          image: mockVideo.poster_url,
+          type: 'video'
+        }
+      };
+      
+      return res.json(result);
+    }
+
+    // 获取视频详情
+    const { data: video, error: videoError } = await supabase
+      .from('videos')
+      .select(`
+        *,
+        category:video_categories(name, description)
+      `)
+      .eq('id', id)
+      .eq('is_active', true)
+      .single();
+
+    if (videoError || !video) {
+      console.error('❌ 视频不存在或已禁用:', videoError);
+      return res.status(404).json({ error: '视频不存在或已禁用' });
+    }
+
+    // 获取相关视频推荐
+    const { data: relatedVideos, error: relatedError } = await supabase
+      .from('videos')
+      .select(`
+        id,
+        title,
+        poster_url,
+        duration,
+        views_count,
+        likes_count,
+        influencer_name,
+        influencer_avatar,
+        category:video_categories(name)
+      `)
+      .eq('is_active', true)
+      .neq('id', id)
+      .eq('category_id', video.category_id)
+      .order('views_count', { ascending: false })
+      .limit(6);
+
+    if (relatedError) {
+      console.error('❌ 获取相关视频失败:', relatedError);
+    }
+
+    // 获取视频分类信息
+    const { data: categories, error: categoriesError } = await supabase
+      .from('video_categories')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+
+    if (categoriesError) {
+      console.error('❌ 获取分类信息失败:', categoriesError);
+    }
+
+    // 构建响应数据
+    const result = {
+      video: {
+        ...video,
+        views_count: video.views_count || '0',
+        likes_count: video.likes_count || '0',
+        comments_count: video.comments_count || '0',
+        shares_count: video.shares_count || '0',
+        tags: video.tags || []
+      },
+      relatedVideos: relatedVideos || [],
+      categories: categories || [],
+      meta: {
+        title: video.title,
+        description: video.description,
+        image: video.poster_url,
+        type: 'video'
+      }
+    };
+
+    console.log('✅ 成功获取视频详情');
+
+    // 设置缓存头
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('X-Cache-Status', 'local-server');
+    res.setHeader('X-Cache-TTL', '0');
+
+    res.json(result);
+  } catch (error) {
+    console.error('❌ 视频详情API错误:', error);
+    res.status(500).json({ 
+      error: '获取视频详情失败',
+      details: error.message 
+    });
+  }
+});
+
+// 任务列表API
 app.get('/tasks', async (req, res) => {
   try {
-    // 设置缓存头
-    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate, public');
-    res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=60');
-    res.setHeader('CDN-Cache-Control', 's-maxage=60');
+    console.log('📋 开始获取任务列表...');
     
-    // 检查缓存
-    const cacheKey = 'tasks';
-    const cachedData = await getFromCache(cacheKey);
-
-    if (cachedData) {
-      console.log('返回缓存数据');
-      return res.status(200).json(cachedData);
-    }
-
     if (!supabase) {
-      // 如果没有 Supabase 连接，返回模拟数据
-      const mockData = [
+      console.log('⚠️ 使用模拟任务数据（Supabase 未连接）');
+      const mockTasks = [
         {
           id: '1',
           title: '测试任务 1',
@@ -100,11 +365,10 @@ app.get('/tasks', async (req, res) => {
         }
       ];
       
-      await storeInCache(cacheKey, mockData);
-      return res.status(200).json(mockData);
+      return res.status(200).json(mockTasks);
     }
 
-    console.log('从 Supabase 获取数据...');
+    console.log('🔗 从 Supabase 获取任务数据...');
     
     // 从 Supabase 获取前 50 个任务
     const { data, error } = await supabase
@@ -141,14 +405,10 @@ app.get('/tasks', async (req, res) => {
       return res.status(500).json({ error: error.message });
     }
 
-    console.log(`成功获取 ${data?.length || 0} 个任务`);
-
-    // 存储到缓存
-    await storeInCache(cacheKey, data);
-
+    console.log(`✅ 成功获取 ${data?.length || 0} 个任务`);
     res.status(200).json(data);
   } catch (error) {
-    console.error('API 处理错误:', error);
+    console.error('❌ API 处理错误:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -210,25 +470,11 @@ app.get('/categories', async (req, res) => {
   }
 });
 
-// 达人列表 API 路由（带缓存）
+// 达人列表 API 路由
 app.get('/influencers', async (req, res) => {
   try {
     console.log('👥 获取达人列表...');
     
-    // 设置缓存头
-    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate, public');
-    res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=300');
-    res.setHeader('CDN-Cache-Control', 's-maxage=300');
-    
-    // 检查缓存
-    const cacheKey = 'influencers';
-    const cachedData = await getFromCache(cacheKey);
-
-    if (cachedData) {
-      console.log('✅ 返回达人列表缓存数据');
-      return res.status(200).json(cachedData);
-    }
-
     if (!supabase) {
       console.log('⚠️ 使用模拟达人数据');
       const mockInfluencers = [
@@ -260,7 +506,6 @@ app.get('/influencers', async (req, res) => {
         }
       ];
       
-      await storeInCache(cacheKey, mockInfluencers, 300);
       return res.status(200).json(mockInfluencers);
     }
 
@@ -297,7 +542,6 @@ app.get('/influencers', async (req, res) => {
     }
 
     console.log(`✅ 成功获取达人数据: ${influencers?.length || 0} 个`);
-    await storeInCache(cacheKey, influencers || [], 300);
     res.status(200).json(influencers || []);
   } catch (error) {
     console.error('❌ 获取达人列表时发生错误:', error);
@@ -305,26 +549,12 @@ app.get('/influencers', async (req, res) => {
   }
 });
 
-// 单个达人详情 API 路由（带缓存）
+// 单个达人详情 API 路由
 app.get('/influencer/:id', async (req, res) => {
   try {
     const influencerId = req.params.id;
     console.log(`👤 获取达人详情: ${influencerId}`);
     
-    // 设置缓存头
-    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate, public');
-    res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=300');
-    res.setHeader('CDN-Cache-Control', 's-maxage=300');
-    
-    // 检查缓存
-    const cacheKey = `influencer_${influencerId}`;
-    const cachedData = await getFromCache(cacheKey);
-
-    if (cachedData) {
-      console.log(`✅ 返回达人详情缓存数据: ${influencerId}`);
-      return res.status(200).json(cachedData);
-    }
-
     if (!supabase) {
       console.log('⚠️ 使用模拟达人详情数据');
       const mockInfluencerDetail = {
@@ -353,7 +583,6 @@ app.get('/influencer/:id', async (req, res) => {
         updated_at: new Date().toISOString()
       };
       
-      await storeInCache(cacheKey, mockInfluencerDetail, 300);
       return res.status(200).json(mockInfluencerDetail);
     }
 
@@ -394,7 +623,6 @@ app.get('/influencer/:id', async (req, res) => {
     }
 
     console.log(`✅ 成功获取达人详情: ${influencerId}`);
-    await storeInCache(cacheKey, influencer, 300);
     res.status(200).json(influencer);
   } catch (error) {
     console.error('❌ 获取达人详情时发生错误:', error);
@@ -402,26 +630,12 @@ app.get('/influencer/:id', async (req, res) => {
   }
 });
 
-// 任务详情 API 路由（带缓存）
+// 任务详情 API 路由
 app.get('/task/:id', async (req, res) => {
   try {
     const taskId = req.params.id;
     console.log(`📋 获取任务详情: ${taskId}`);
     
-    // 设置缓存头
-    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate, public');
-    res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=300');
-    res.setHeader('CDN-Cache-Control', 's-maxage=300');
-    
-    // 检查缓存
-    const cacheKey = `task_${taskId}`;
-    const cachedData = await getFromCache(cacheKey);
-
-    if (cachedData) {
-      console.log(`✅ 返回任务详情缓存数据: ${taskId}`);
-      return res.status(200).json(cachedData);
-    }
-
     if (!supabase) {
       console.log('⚠️ 使用模拟任务详情数据');
       const mockTaskDetail = {
@@ -447,7 +661,6 @@ app.get('/task/:id', async (req, res) => {
         views_count: 150
       };
       
-      await storeInCache(cacheKey, mockTaskDetail, 300);
       return res.status(200).json(mockTaskDetail);
     }
 
@@ -530,7 +743,6 @@ app.get('/task/:id', async (req, res) => {
     };
 
     console.log(`✅ 成功获取任务详情: ${taskId}`);
-    await storeInCache(cacheKey, taskDetail, 300);
     res.status(200).json(taskDetail);
   } catch (error) {
     console.error('❌ 获取任务详情时发生错误:', error);
@@ -538,24 +750,12 @@ app.get('/task/:id', async (req, res) => {
   }
 });
 
-// 任务申请 API 路由（带缓存）
+// 任务申请 API 路由
 app.get('/task/:id/applications', async (req, res) => {
   try {
     const taskId = req.params.id;
     console.log(`👥 获取任务申请: ${taskId}`);
     
-    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate, public');
-    res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=60');
-    res.setHeader('CDN-Cache-Control', 's-maxage=60');
-    
-    const cacheKey = `task_applications_${taskId}`;
-    const cachedData = await getFromCache(cacheKey);
-
-    if (cachedData) {
-      console.log(`✅ 返回任务申请缓存数据: ${taskId}`);
-      return res.status(200).json(cachedData);
-    }
-
     if (!supabase) {
       console.log('⚠️ 使用模拟申请数据');
       const mockApplications = [
@@ -573,7 +773,6 @@ app.get('/task/:id/applications', async (req, res) => {
         }
       ];
       
-      await storeInCache(cacheKey, mockApplications, 60);
       return res.status(200).json(mockApplications);
     }
 
@@ -607,7 +806,6 @@ app.get('/task/:id/applications', async (req, res) => {
     }
 
     console.log(`✅ 成功获取任务申请: ${taskId}, 数量: ${applications?.length || 0}`);
-    await storeInCache(cacheKey, applications || [], 60);
     res.status(200).json(applications || []);
   } catch (error) {
     console.error('❌ 获取任务申请时发生错误:', error);
@@ -620,71 +818,21 @@ app.get('/health', (req, res) => {
   res.status(200).json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
-    supabase: supabase ? 'connected' : 'not_connected',
-    cache: memoryCache.size > 0 ? 'active' : 'empty'
+    supabase: supabase ? 'connected' : 'not_connected'
   });
-});
-
-// 调试分类数据端点
-app.get('/debug/categories', async (req, res) => {
-  try {
-    console.log('🔍 调试分类数据...');
-    
-    if (!supabase) {
-      return res.status(200).json({
-        message: 'Supabase 未连接',
-        mockData: [
-          { id: '1', name: '测试分类 1', is_active: true },
-          { id: '2', name: '测试分类 2', is_active: true }
-        ]
-      });
-    }
-
-    const { data: categories, error } = await supabase
-      .from('task_categories')
-      .select('*')
-      .limit(10);
-
-    if (error) {
-      return res.status(500).json({
-        error: error.message,
-        message: '无法访问 task_categories 表'
-      });
-    }
-
-    res.status(200).json({
-      message: '分类数据检查完成',
-      totalCategories: categories?.length || 0,
-      categories: categories || [],
-      tableExists: true
-    });
-  } catch (error) {
-    res.status(500).json({
-      error: error.message,
-      message: '调试分类数据时发生错误'
-    });
-  }
 });
 
 // 启动服务器
 app.listen(PORT, () => {
-  console.log(`🚀 本地 API 服务器运行在 http://localhost:${PORT}`);
-  console.log(`📊 Tasks API: http://localhost:${PORT}/tasks`);
-  console.log(`🏷️  Categories API: http://localhost:${PORT}/categories`);
-  console.log(`👥 达人列表 API: http://localhost:${PORT}/influencers`);
-  console.log(`👤 达人详情 API: http://localhost:${PORT}/influencer/:id`);
-  console.log(`📋 任务详情 API: http://localhost:${PORT}/task/:id`);
-  console.log(`👥 任务申请 API: http://localhost:${PORT}/task/:id/applications`);
+  console.log(`🚀 本地API服务器运行在 http://localhost:${PORT}`);
+  console.log(`📱 视频列表API: http://localhost:${PORT}/videos`);
+  console.log(`🎬 视频详情API: http://localhost:${PORT}/video-detail`);
+  console.log(`📊 任务列表API: http://localhost:${PORT}/tasks`);
+  console.log(`🏷️ 分类API: http://localhost:${PORT}/categories`);
+  console.log(`👥 达人列表API: http://localhost:${PORT}/influencers`);
+  console.log(`👤 达人详情API: http://localhost:${PORT}/influencer/:id`);
+  console.log(`📋 任务详情API: http://localhost:${PORT}/task/:id`);
+  console.log(`👥 任务申请API: http://localhost:${PORT}/task/:id/applications`);
   console.log(`💚 健康检查: http://localhost:${PORT}/health`);
-  console.log(`🔍 调试分类: http://localhost:${PORT}/debug/categories`);
   console.log(`🔗 Supabase 状态: ${supabase ? '✅ 已连接' : '❌ 未连接'}`);
-  console.log(`\n📝 缓存策略:`);
-  console.log(`   • 任务列表: 60秒`);
-  console.log(`   • 任务详情: 5分钟`);
-  console.log(`   • 任务申请: 1分钟`);
-  console.log(`   • 分类数据: 60秒`);
-  console.log(`   • 达人列表: 5分钟`);
-  console.log(`   • 达人详情: 5分钟`);
-});
-
-export default app; 
+}); 
