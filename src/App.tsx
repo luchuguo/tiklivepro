@@ -318,7 +318,7 @@ function App() {
       const fetchIndexVideos = async () => {
         try {
           setLoading(true)
-          const response = await fetch('/api/index-videos')
+          const response = await fetch('/api/indexvideos')
           if (response.ok) {
             const data = await response.json()
             setIndexVideos(data)
