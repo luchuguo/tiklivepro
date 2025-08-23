@@ -1,8 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
-import { kv } from '@vercel/kv'
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
+const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
 
 export default async function handler(req, res) {
   // 设置CORS头
@@ -33,22 +32,9 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: '缺少视频ID参数' })
     }
 
-    // 创建缓存键
+    // 创建缓存键（用于日志）
     const cacheKey = `video_detail_${id}`
-    
-    // 尝试从缓存获取数据（如果KV可用）
-    let cachedData = null;
-    try {
-      cachedData = await kv.get(cacheKey);
-      if (cachedData) {
-        console.log('✅ 从缓存返回视频详情数据')
-        res.setHeader('X-Cache-Status', 'hit')
-        res.setHeader('X-Cache-TTL', '600')
-        return res.json(cachedData)
-      }
-    } catch (kvError) {
-      console.warn('⚠️ KV缓存不可用，跳过缓存:', kvError.message);
-    }
+    console.log(`🔍 查询缓存键: ${cacheKey}`)
 
     // 创建 Supabase 客户端
     const supabase = createClient(supabaseUrl, supabaseKey)
@@ -127,13 +113,8 @@ export default async function handler(req, res) {
 
     console.log('✅ 成功获取视频详情')
 
-    // 存储到缓存（如果KV可用）
-    try {
-      await kv.setex(cacheKey, 600, result); // 缓存10分钟
-      console.log('💾 视频详情数据已缓存')
-    } catch (kvError) {
-      console.warn('⚠️ KV缓存不可用，跳过缓存存储:', kvError.message);
-    }
+    // 缓存策略：使用Vercel CDN缓存
+    console.log(`💾 视频详情数据将通过CDN缓存，TTL: 600秒`)
 
     // 设置缓存头
     res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate, public')
