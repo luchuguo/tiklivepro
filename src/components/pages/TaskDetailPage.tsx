@@ -403,7 +403,7 @@ export function TaskDetailPage({ taskId, onBack }: TaskDetailPageProps) {
               )}
             </div>
             <div className="text-lg font-bold text-pink-600">
-              ¥{application.proposed_rate?.toLocaleString()}
+                              ${application.proposed_rate?.toLocaleString()}
             </div>
           </div>
           <div className="text-sm text-gray-600 mb-3">
@@ -653,7 +653,7 @@ export function TaskDetailPage({ taskId, onBack }: TaskDetailPageProps) {
                 <div className="flex items-center space-x-1 text-gray-900">
                   <DollarSign className="w-5 h-5 text-green-600" />
                   <span className="text-xl font-bold">
-                    ¥{task.budget_min.toLocaleString()} - ¥{task.budget_max.toLocaleString()}
+                    ${task.budget_min.toLocaleString()} - ${task.budget_max.toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -664,7 +664,7 @@ export function TaskDetailPage({ taskId, onBack }: TaskDetailPageProps) {
                 {task.is_advance_paid ? (
                   <div className="flex items-center space-x-1 text-gray-900">
                     <DollarSign className="w-5 h-5 text-emerald-600" />
-                    <span className="text-xl font-bold text-emerald-700">已预付 ¥{(task.paid_amount ?? 0).toLocaleString()}</span>
+                    <span className="text-xl font-bold text-emerald-700">已预付 ${(task.paid_amount ?? 0).toLocaleString()}</span>
                   </div>
                 ) : (
                   <div className="text-gray-500 text-sm">未预付</div>
@@ -906,7 +906,7 @@ export function TaskDetailPage({ taskId, onBack }: TaskDetailPageProps) {
                       {new Date(similarTask.live_date).toLocaleDateString()}
                     </div>
                     <div className="text-sm font-medium text-pink-600">
-                      ¥{similarTask.budget_min.toLocaleString()} - {similarTask.budget_max.toLocaleString()}
+                      ${similarTask.budget_min.toLocaleString()} - {similarTask.budget_max.toLocaleString()}
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">

@@ -444,7 +444,7 @@ export function CompanyDetailPage({ companyId, onBack }: CompanyDetailPageProps)
                                 </td>
                                 <td className="py-4 px-4">
                                   <div className="font-medium text-gray-900">
-                                    ¥{task.budget_min.toLocaleString()} - ¥{task.budget_max.toLocaleString()}
+                                    ${task.budget_min.toLocaleString()} - ${task.budget_max.toLocaleString()}
                                   </div>
                                 </td>
                                 <td className="py-4 px-4">

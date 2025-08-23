@@ -114,7 +114,7 @@ export function InfluencerTasksPage() {
                   <p className="text-sm text-gray-500 mt-1">申请状态：{applicationStatusMap[app.status]}</p>
                 </div>
                 {app.proposed_rate !== null && (
-                  <div className="text-sm text-gray-500">报价：¥{app.proposed_rate?.toLocaleString()}</div>
+                  <div className="text-sm text-gray-500">报价：${app.proposed_rate?.toLocaleString()}</div>
                 )}
               </div>
             ))}

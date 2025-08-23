@@ -203,21 +203,21 @@ export function AdminPanel() {
                       <div className="font-medium">新品口红直播推广</div>
                       <span className="bg-green-600 text-white px-2 py-1 rounded-full text-xs">进行中</span>
                     </div>
-                    <div className="text-sm text-gray-400">预算: ¥5,000 - ¥8,000 • 2个申请</div>
+                    <div className="text-sm text-gray-400">预算: $5,000 - $8,000 • 2个申请</div>
                   </div>
                   <div className="bg-gray-800 rounded-lg p-3">
                     <div className="flex items-center justify-between mb-2">
                       <div className="font-medium">夏季新款连衣裙直播</div>
                       <span className="bg-blue-600 text-white px-2 py-1 rounded-full text-xs">已完成</span>
                     </div>
-                    <div className="text-sm text-gray-400">预算: ¥6,000 - ¥10,000 • 3个申请</div>
+                    <div className="text-sm text-gray-400">预算: $6,000 - $10,000 • 3个申请</div>
                   </div>
                   <div className="bg-gray-800 rounded-lg p-3">
                     <div className="flex items-center justify-between mb-2">
                       <div className="font-medium">智能手表新品发布</div>
                       <span className="bg-yellow-600 text-white px-2 py-1 rounded-full text-xs">待开始</span>
                     </div>
-                    <div className="text-sm text-gray-400">预算: ¥10,000 - ¥15,000 • 1个申请</div>
+                    <div className="text-sm text-gray-400">预算: $10,000 - $15,000 • 1个申请</div>
                   </div>
                 </div>
               </div>

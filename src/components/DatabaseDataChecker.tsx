@@ -330,7 +330,7 @@ export function DatabaseDataChecker() {
                             }`}>
                               {task.status}
                             </span>
-                            <span className="text-gray-500">¥{task.budget_min}-{task.budget_max}</span>
+                            <span className="text-gray-500">${task.budget_min}-{task.budget_max}</span>
                           </div>
                         </div>
                       ))}

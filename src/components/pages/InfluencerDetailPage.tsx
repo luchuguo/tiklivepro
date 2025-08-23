@@ -609,7 +609,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                       <DollarSign className="w-5 h-5 text-pink-600" />
                       <div>
                         <div className="text-sm text-gray-500">小时收费</div>
-                        <div className="font-medium">¥{influencer.hourly_rate?.toLocaleString() || 0}</div>
+                        <div className="font-medium">${influencer.hourly_rate?.toLocaleString() || 0}</div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
@@ -790,7 +790,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-600">{similarInfluencer.followers_count?.toLocaleString() || 0} 粉丝</span>
-                    <span className="font-medium text-pink-600">¥{similarInfluencer.hourly_rate}/小时</span>
+                    <span className="font-medium text-pink-600">${similarInfluencer.hourly_rate}/小时</span>
                   </div>
                 </div>
               ))}

@@ -704,7 +704,7 @@ export function AdminDashboard() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div><span className="font-medium text-gray-700">TikTok账号：</span>{selectedProfile.detail.tiktok_account || '未设置'}</div>
                           <div><span className="font-medium text-gray-700">位置：</span>{selectedProfile.detail.location || '未设置'}</div>
-                          <div><span className="font-medium text-gray-700">时薪：</span>{selectedProfile.detail.hourly_rate ? `¥${selectedProfile.detail.hourly_rate}/小时` : '未设置'}</div>
+                          <div><span className="font-medium text-gray-700">时薪：</span>{selectedProfile.detail.hourly_rate ? `$${selectedProfile.detail.hourly_rate}/小时` : '未设置'}</div>
                           <div><span className="font-medium text-gray-700">经验年限：</span>{selectedProfile.detail.experience_years ? `${selectedProfile.detail.experience_years}年` : '未设置'}</div>
                           <div><span className="font-medium text-gray-700">平均观看：</span>{selectedProfile.detail.avg_views?.toLocaleString() || '0'}</div>
                           <div><span className="font-medium text-gray-700">创建时间：</span>{selectedProfile.detail.created_at ? new Date(selectedProfile.detail.created_at).toLocaleString() : '未知'}</div>
@@ -912,7 +912,7 @@ export function AdminDashboard() {
                 <p>中标达人：{task.selected_influencer ? task.selected_influencer.nickname : '—'}</p>
                 <p>预付：{task.is_advance_paid ? '是' : '否'}</p>
                 <p>已结算：{task.is_settled ? '是' : '否'}</p>
-                {task.is_settled && <p>结算金额：¥{task.settlement_amount?.toLocaleString()}</p>}
+                {task.is_settled && <p>结算金额：${task.settlement_amount?.toLocaleString()}</p>}
               </div>
 
               <div>
@@ -1010,7 +1010,7 @@ export function AdminDashboard() {
                     <td className="px-4 py-2 text-gray-600">{t.selected_influencer?.nickname || '—'}</td>
                     <td className="px-4 py-2 text-gray-600">{t.is_advance_paid ? '是' : '否'}</td>
                     <td className="px-4 py-2 text-gray-600">{t.is_settled ? '是' : '否'}</td>
-                    <td className="px-4 py-2 text-gray-600">{t.settlement_amount ? `¥${t.settlement_amount.toLocaleString()}` : '—'}</td>
+                    <td className="px-4 py-2 text-gray-600">{t.settlement_amount ? `$${t.settlement_amount.toLocaleString()}` : '—'}</td>
                     <td className="px-4 py-2 space-x-2">
                       <button
                         onClick={(e) => {

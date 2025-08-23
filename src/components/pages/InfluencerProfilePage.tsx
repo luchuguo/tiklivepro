@@ -768,7 +768,7 @@ export function InfluencerProfilePage() {
                       <DollarSign className="w-5 h-5 text-gray-400" />
                       <div>
                         <div className="text-sm text-gray-500">小时收费</div>
-                        <div className="font-medium">¥{influencer?.hourly_rate?.toLocaleString() || '未设置'}</div>
+                        <div className="font-medium">${influencer?.hourly_rate?.toLocaleString() || '未设置'}</div>
                       </div>
                     </div>
                     

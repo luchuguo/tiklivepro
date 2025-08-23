@@ -31,11 +31,11 @@ export function TasksPage() {
 
   const budgetRanges = [
     { id: 'all', name: '全部预算' },
-    { id: '0-1000', name: '¥1000以下' },
-    { id: '1000-5000', name: '¥1000-5000' },
-    { id: '5000-10000', name: '¥5000-10000' },
-    { id: '10000-50000', name: '¥10000-50000' },
-    { id: '50000+', name: '¥50000以上' }
+          { id: '0-1000', name: '$1000以下' },
+      { id: '1000-5000', name: '$1000-5000' },
+      { id: '5000-10000', name: '$5000-10000' },
+      { id: '10000-50000', name: '$10000-50000' },
+      { id: '50000+', name: '$50000以上' }
   ]
 
   useEffect(() => {
@@ -195,7 +195,7 @@ export function TasksPage() {
               {/* 预付标记 */}
               {task.is_advance_paid ? (
                 <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs">
-                  已预付 ¥{(task.paid_amount ?? 0).toLocaleString()}
+                  已预付 ${(task.paid_amount ?? 0).toLocaleString()}
                 </span>
               ) : (
                 <span className="bg-gray-100 text-gray-500 px-2 py-1 rounded-full text-xs">
@@ -224,7 +224,7 @@ export function TasksPage() {
         <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
           <div className="flex items-center space-x-2 text-gray-600">
             <DollarSign className="w-4 h-4" />
-            <span>¥{task.budget_min.toLocaleString()} - ¥{task.budget_max.toLocaleString()}</span>
+                            <span>${task.budget_min.toLocaleString()} - ${task.budget_max.toLocaleString()}</span>
           </div>
           <div className="flex items-center space-x-2 text-gray-600">
             <Clock className="w-4 h-4" />
