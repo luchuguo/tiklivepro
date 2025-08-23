@@ -412,7 +412,7 @@ function App() {
             console.log('✅ 本地开发环境，模拟数据加载成功:', mockVideos.length, '个')
           } else {
             console.log('🌐 生产环境，调用API接口')
-            const response = await fetch('/api/indexvideos')
+            const response = await fetch('/api/index-videos')
             if (response.ok) {
               const data = await response.json()
               setIndexVideos(data)
