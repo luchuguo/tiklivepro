@@ -816,7 +816,7 @@ app.get('/task/:id/applications', async (req, res) => {
 });
 
 // 首页视频展示API
-app.get('/index-videos', async (req, res) => {
+app.get('/indexvideos', async (req, res) => {
   try {
     console.log('🏠 开始获取首页视频展示数据...');
     
@@ -956,7 +956,7 @@ app.get('/health', (req, res) => {
 // 启动服务器
 app.listen(PORT, () => {
   console.log(`🚀 本地API服务器运行在 http://localhost:${PORT}`);
-  console.log(`🏠 首页视频API: http://localhost:${PORT}/index-videos`);
+      console.log(`🏠 首页视频API: http://localhost:${PORT}/indexvideos`);
   console.log(`📱 视频列表API: http://localhost:${PORT}/videos`);
   console.log(`🎬 视频详情API: http://localhost:${PORT}/video-detail`);
   console.log(`📊 任务列表API: http://localhost:${PORT}/tasks`);
