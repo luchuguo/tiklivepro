@@ -8,8 +8,8 @@ interface AdminLoginProps {
 }
 
 export function AdminLogin({ onLoginSuccess, onBack }: AdminLoginProps) {
-  const [email, setEmail] = useState('admin@tiklive.pro')
-  const [password, setPassword] = useState('admin888')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -69,8 +69,8 @@ export function AdminLogin({ onLoginSuccess, onBack }: AdminLoginProps) {
     setStep('idle')
 
     // 验证输入
-    if (email !== 'admin@tiklive.pro') {
-      setError('只有管理员邮箱 admin@tiklive.pro 可以登录后台')
+    if (!email || !email.includes('@')) {
+      setError('请输入有效的管理员邮箱')
       setLoading(false)
       return
     }
@@ -485,7 +485,7 @@ export function AdminLogin({ onLoginSuccess, onBack }: AdminLoginProps) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50"
-                  placeholder="admin@tiklive.pro"
+                  placeholder="请输入管理员邮箱"
                   required
                   disabled={loading}
                 />
@@ -620,21 +620,11 @@ export function AdminLogin({ onLoginSuccess, onBack }: AdminLoginProps) {
                 <button
                   type="button"
                   onClick={() => {
-                    setEmail('admin@tiklive.pro')
-                    setPassword('admin888')
-                  }}
-                  className="flex-1 text-xs bg-gray-100 text-gray-600 py-2 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                  填入默认账号
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
                     setError('')
                     setDebugInfo([])
                     setConnectionStatus('unknown')
                   }}
-                  className="flex-1 text-xs bg-gray-100 text-gray-600 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="w-full text-xs bg-gray-100 text-gray-600 py-2 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   清除信息
                 </button>
@@ -671,18 +661,7 @@ export function AdminLogin({ onLoginSuccess, onBack }: AdminLoginProps) {
             </div>
           )}
 
-          {/* Info */}
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <h4 className="font-medium text-blue-900 mb-2 flex items-center space-x-2">
-              <CheckCircle className="w-4 h-4" />
-              <span>默认管理员账号</span>
-            </h4>
-            <div className="text-sm text-blue-700 space-y-1">
-              <p><strong>邮箱：</strong> admin@tiklive.pro</p>
-              <p><strong>密码：</strong> admin888</p>
-              <p><strong>权限：</strong> 系统管理员</p>
-            </div>
-          </div>
+
 
           {/* Security Notice */}
           <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">

@@ -53,7 +53,7 @@ export function AdminSetup() {
       if (response.success) {
         setResult({
           success: true,
-          message: '管理员账号创建成功！您现在可以使用 admin@tiklive.pro / admin888 登录了。'
+          message: '管理员账号创建成功！您现在可以使用管理员账号登录了。'
         })
         setAdminExists(true)
       } else {
@@ -113,8 +113,6 @@ export function AdminSetup() {
           </p>
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
             <p className="text-sm text-gray-700">
-              <strong>邮箱：</strong> admin@tiklive.pro<br />
-              <strong>密码：</strong> admin888<br />
               <strong>类型：</strong> 系统管理员
             </p>
           </div>
@@ -181,8 +179,6 @@ export function AdminSetup() {
         <div className="bg-blue-50 rounded-lg p-4 mb-6">
           <h3 className="font-semibold text-blue-900 mb-2">管理员账号信息</h3>
           <p className="text-sm text-blue-700">
-            <strong>邮箱：</strong> admin@tiklive.pro<br />
-            <strong>密码：</strong> admin888<br />
             <strong>权限：</strong> 系统管理员
           </p>
         </div>
@@ -224,7 +220,7 @@ export function AdminSetup() {
         </div>
 
         <p className="text-xs text-gray-500 text-center mt-4">
-          创建后您可以使用上述账号信息登录管理后台
+          创建后您可以使用管理员账号登录管理后台
         </p>
       </div>
     </div>
