@@ -1,9 +1,9 @@
-import express from 'express';
-import cors from 'cors';
-import { createClient } from '@supabase/supabase-js';
-import dotenv from 'dotenv';
+const express = require('express');
+const cors = require('cors');
+const { createClient } = require('@supabase/supabase-js');
+require('dotenv').config();
 
-dotenv.config();
+
 
 const app = express();
 const PORT = 3001;
@@ -813,6 +813,135 @@ app.get('/task/:id/applications', async (req, res) => {
   }
 });
 
+// 首页视频展示API
+app.get('/index-videos', async (req, res) => {
+  try {
+    console.log('🏠 开始获取首页视频展示数据...');
+    
+    // 如果没有 Supabase 连接，返回模拟数据
+    if (!supabase) {
+      console.log('⚠️ 使用模拟首页视频数据（Supabase 未连接）');
+      const mockIndexVideos = [
+        {
+          id: '1',
+          title: '美妆产品直播带货',
+          description: '专业美妆达人直播带货，展示产品效果，互动性强，转化率高。',
+          video_url: 'https://v45.tiktokcdn-eu.com/a9e24ff1f75ad64fa0ead5942e50f4f0/68a98175/video/tos/alisg/tos-alisg-pve-0037c001/ocTRGvfQLiAnJVANRet6J8AfpAQDNFMHhAiGfW/?a=1233&bti=OUBzOTg7QGo6OjZAL3AjLTAzYCMxNDNg&ch=0&cr=13&dr=0&er=0&lr=all&net=0&cd=0|0|0|&cv=1&br=2990&bt=1495&cs=2&ds=4&ft=XsFb8q4fmbdPD12-cv-T3wULqi~AMeF~O5&mime_type=video_mp4&qs=15&rc=NTZoNjxkOzo7ZmQ3Ozc5OUBpajxrdGo5cmVzNDMzODczNEAwMl8zMzMxNWMxNDReMl41YSMzMWFgMmRzc2thLS1kMTFzcw==&vvpl=1&l=202508220852540B89F9C1380A9E19F763&btag=e000bd000',
+          poster_url: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400',
+          views_count: '15.2万',
+          likes_count: '2.8万',
+          comments_count: '1.2万',
+          shares_count: '5.6千',
+          duration: '2:35',
+          category: { name: '美妆', description: '美妆护肤相关' },
+          influencer_name: '张小美',
+          influencer_avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150',
+          influencer_followers: '125万',
+          influencer_rating: 4.8,
+          tags: ['美妆', '直播带货', '产品展示', '互动性强'],
+          created_at: '2024-01-15',
+          is_featured: true,
+          is_active: true
+        },
+        {
+          id: '2',
+          title: '时尚服装展示',
+          description: '时尚达人展示最新服装搭配，引领潮流趋势，提升品牌影响力。',
+          video_url: 'https://v45.tiktokcdn-eu.com/a9e24ff1f75ad64fa0ead5942e50f4f0/68a98175/video/tos/alisg/tos-alisg-pve-0037c001/ocTRGvfQLiAnJVANRet6J8AfpAQDNFMHhAiGfW/?a=1233&bti=OUBzOTg7QGo6OjZAL3AjLTAzYCMxNDNg&ch=0&cr=13&dr=0&er=0&lr=all&net=0&cd=0|0|0|&cv=1&br=2990&bt=1495&cs=2&ds=4&ft=XsFb8q4fmbdPD12-cv-T3wULqi~AMeF~O5&mime_type=video_mp4&qs=15&rc=NTZoNjxkOzo7ZmQ3Ozc5OUBpajxrdGo5cmVzNDMzODczNEAwMl8zMzMxNWMxNDReMl41YSMzMWFgMmRzc2thLS1kMTFzcw==&vvpl=1&l=202508220852540B89F9C1380A9E19F763&btag=e000bd000',
+          poster_url: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400',
+          views_count: '12.8万',
+          likes_count: '2.1万',
+          comments_count: '8.5千',
+          shares_count: '4.2千',
+          duration: '3:12',
+          category: { name: '时尚', description: '时尚穿搭相关' },
+          influencer_name: '李时尚',
+          influencer_avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150',
+          influencer_followers: '98万',
+          influencer_rating: 4.6,
+          tags: ['时尚', '服装搭配', '潮流趋势', '品牌展示'],
+          created_at: '2024-01-14',
+          is_featured: true,
+          is_active: true
+        },
+        {
+          id: '3',
+          title: '数码产品测评',
+          description: '专业数码达人深度测评最新产品，客观分析优缺点，帮助用户做出购买决策。',
+          video_url: 'https://v45.tiktokcdn-eu.com/a9e24ff1f75ad64fa0ead5942e50f4f0/68a98175/video/tos/alisg/tos-alisg-pve-0037c001/ocTRGvfQLiAnJVANRet6J8AfpAQDNFMHhAiGfW/?a=1233&bti=OUBzOTg7QGo6OjZAL3AjLTAzYCMxNDNg&ch=0&cr=13&dr=0&er=0&lr=all&net=0&cd=0|0|0|&cv=1&br=2990&bt=1495&cs=2&ds=4&ft=XsFb8q4fmbdPD12-cv-T3wULqi~AMeF~O5&mime_type=video_mp4&qs=15&rc=NTZoNjxkOzo7ZmQ3Ozc5OUBpajxrdGo5cmVzNDMzODczNEAwMl8zMzMxNWMxNDReMl41YSMzMWFgMmRzc2thLS1kMTFzcw==&vvpl=1&l=202508220852540B89F9C1380A9E19F763&btag=e000bd000',
+          poster_url: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400',
+          views_count: '18.5万',
+          likes_count: '3.2万',
+          comments_count: '1.8万',
+          shares_count: '7.1千',
+          duration: '4:28',
+          category: { name: '数码', description: '数码科技相关' },
+          influencer_name: '王数码',
+          influencer_avatar: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150',
+          influencer_followers: '156万',
+          influencer_rating: 4.9,
+          tags: ['数码', '产品测评', '技术分析', '购买指南'],
+          created_at: '2024-01-13',
+          is_featured: true,
+          is_active: true
+        },
+        {
+          id: '4',
+          title: '美食制作教程',
+          description: '美食达人分享简单易学的家常菜制作方法，让每个人都能成为厨房高手。',
+          video_url: 'https://v45.tiktokcdn-eu.com/a9e24ff1f75ad64fa0ead5942e50f4f0/68a98175/video/tos/alisg/tos-alisg-pve-0037c001/ocTRGvfQLiAnJVANRet6J8AfpAQDNFMHhAiGfW/?a=1233&bti=OUBzOTg7QGo6OjZAL3AjLTAzYCMxNDNg&ch=0&cr=13&dr=0&er=0&lr=all&net=0&cd=0|0|0|&cv=1&br=2990&bt=1495&cs=2&ds=4&ft=XsFb8q4fmbdPD12-cv-T3wULqi~AMeF~O5&mime_type=video_mp4&qs=15&rc=NTZoNjxkOzo7ZmQ3Ozc5OUBpajxrdGo5cmVzNDMzODczNEAwMl8zMzMxNWMxNDReMl41YSMzMWFgMmRzc2thLS1kMTFzcw==&vvpl=1&l=202508220852540B89F9C1380A9E19F763&btag=e000bd000',
+          poster_url: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=400',
+          views_count: '22.3万',
+          likes_count: '4.1万',
+          comments_count: '2.3万',
+          shares_count: '8.9千',
+          duration: '5:42',
+          category: { name: '美食', description: '美食制作相关' },
+          influencer_name: '刘美食',
+          influencer_avatar: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=150',
+          influencer_followers: '189万',
+          influencer_rating: 4.9,
+          tags: ['美食', '制作教程', '家常菜', '厨房技巧'],
+          created_at: '2024-01-11',
+          is_featured: true,
+          is_active: true
+        }
+      ];
+      
+      return res.json(mockIndexVideos);
+    }
+
+    console.log('🔗 从 Supabase 获取首页视频数据...');
+    
+    // 从 Supabase 获取特色视频（用于首页展示）
+    const { data: videos, error } = await supabase
+      .from('videos')
+      .select(`
+        *,
+        category:video_categories(name, description)
+      `)
+      .eq('is_active', true)
+      .eq('is_featured', true)
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: false })
+      .limit(4);
+
+    if (error) {
+      console.error('❌ 获取首页视频数据失败:', error);
+      throw error;
+    }
+
+    console.log(`✅ 成功获取首页视频数据: ${videos?.length || 0} 个`);
+    res.json(videos || []);
+  } catch (error) {
+    console.error('❌ 首页视频API错误:', error);
+    res.status(500).json({ 
+      error: '获取首页视频数据失败',
+      details: error.message 
+    });
+  }
+});
+
 // 健康检查
 app.get('/health', (req, res) => {
   res.status(200).json({ 
@@ -825,6 +954,7 @@ app.get('/health', (req, res) => {
 // 启动服务器
 app.listen(PORT, () => {
   console.log(`🚀 本地API服务器运行在 http://localhost:${PORT}`);
+  console.log(`🏠 首页视频API: http://localhost:${PORT}/index-videos`);
   console.log(`📱 视频列表API: http://localhost:${PORT}/videos`);
   console.log(`🎬 视频详情API: http://localhost:${PORT}/video-detail`);
   console.log(`📊 任务列表API: http://localhost:${PORT}/tasks`);

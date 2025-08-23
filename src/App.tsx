@@ -310,6 +310,32 @@ function App() {
   }
 
   function HomePage() {
+    const [indexVideos, setIndexVideos] = useState<any[]>([])
+    const [loading, setLoading] = useState(true)
+    
+    // 获取首页视频数据
+    useEffect(() => {
+      const fetchIndexVideos = async () => {
+        try {
+          setLoading(true)
+          const response = await fetch('/api/index-videos')
+          if (response.ok) {
+            const data = await response.json()
+            setIndexVideos(data)
+            console.log('✅ 首页视频数据获取成功:', data.length, '个')
+          } else {
+            console.error('❌ 获取首页视频数据失败:', response.status)
+          }
+        } catch (error) {
+          console.error('❌ 获取首页视频数据出错:', error)
+        } finally {
+          setLoading(false)
+        }
+      }
+      
+      fetchIndexVideos()
+    }, [])
+
     const stats = [
       { label: '注册用户', value: '50,000+', icon: Users },
       { label: '合作品牌', value: '1,200+', icon: Building2 },
@@ -532,201 +558,77 @@ function App() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* 视频1 */}
-              <div 
-                className="bg-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => navigate('/video/1', { 
-                  state: { 
-                    videoInfo: {
-                      id: '1',
-                      title: '美妆产品直播带货',
-                      description: '专业美妆达人直播带货，展示产品效果，互动性强，转化率高。',
-                      videoUrl: 'https://v45.tiktokcdn-eu.com/a9e24ff1f75ad64fa0ead5942e50f4f0/68a98175/video/tos/alisg/tos-alisg-pve-0037c001/ocTRGvfQLiAnJVANRet6J8AfpAQDNFMHhAiGfW/?a=1233&bti=OUBzOTg7QGo6OjZAL3AjLTAzYCMxNDNg&ch=0&cr=13&dr=0&er=0&lr=all&net=0&cd=0|0|0|&cv=1&br=2990&bt=1495&cs=2&ds=4&ft=XsFb8q4fmbdPD12-cv-T3wULqi~AMeF~O5&mime_type=video_mp4&qs=15&rc=NTZoNjxkOzo7ZmQ3Ozc5OUBpajxrdGo5cmVzNDMzODczNEAwMl8zMzMxNWMxNDReMl41YSMzMWFgMmRzc2thLS1kMTFzcw==&vvpl=1&l=202508220852540B89F9C1380A9E19F763&btag=e000bd000',
-                      poster: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400',
-                      views: '15.2万',
-                      likes: '2.8万',
-                      comments: '1.2万',
-                      shares: '5.6千',
-                      duration: '2:35',
-                      category: '美妆',
-                      influencer: {
-                        name: '张小美',
-                        avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150',
-                        followers: '125万',
-                        rating: 4.8
-                      },
-                      tags: ['美妆', '直播带货', '产品展示', '互动性强']
-                    }
-                  }
-                })}
-              >
-                <div className="relative aspect-video">
-                  <video
-                    className="w-full h-full object-cover"
-                    preload="metadata"
-                    poster="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400"
-                  >
-                    <source src="https://v45.tiktokcdn-eu.com/a9e24ff1f75ad64fa0ead5942e50f4f0/68a98175/video/tos/alisg/tos-alisg-pve-0037c001/ocTRGvfQLiAnJVANRet6J8AfpAQDNFMHhAiGfW/?a=1233&bti=OUBzOTg7QGo6OjZAL3AjLTAzYCMxNDNg&ch=0&cr=13&dr=0&er=0&lr=all&net=0&cd=0|0|0|&cv=1&br=2990&bt=1495&cs=2&ds=4&ft=XsFb8q4fmbdPD12-cv-T3wULqi~AMeF~O5&mime_type=video_mp4&qs=15&rc=NTZoNjxkOzo7ZmQ3Ozc5OUBpajxrdGo5cmVzNDMzODczNEAwMl8zMzMxNWMxNDReMl41YSMzMWFgMmRzc2thLS1kMTFzcw==&vvpl=1&l=202508220852540B89F9C1380A9E19F763&btag=e000bd000" type="video/mp4" />
-                    您的浏览器不支持视频播放
-                  </video>
-                  <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
-                    <div className="w-16 h-16 bg-white bg-opacity-90 rounded-full flex items-center justify-center">
-                      <Play className="w-8 h-8 text-gray-800 ml-1" />
+              {loading ? (
+                // 加载状态
+                Array.from({ length: 4 }).map((_, index) => (
+                  <div key={index} className="bg-gray-100 rounded-xl overflow-hidden shadow-sm animate-pulse">
+                    <div className="aspect-video bg-gray-200"></div>
+                    <div className="p-4">
+                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-2/3"></div>
                     </div>
                   </div>
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 mb-2">美妆产品直播带货</h3>
-                  <p className="text-sm text-gray-600">观看次数: 15.2万</p>
-                </div>
-              </div>
-
-              {/* 视频2 */}
-              <div 
-                className="bg-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => navigate('/video/2', { 
-                  state: { 
-                    videoInfo: {
-                      id: '2',
-                      title: '时尚服装展示',
-                      description: '时尚达人展示最新服装搭配，引领潮流趋势，提升品牌影响力。',
-                      videoUrl: 'https://v45.tiktokcdn-eu.com/a9e24ff1f75ad64fa0ead5942e50f4f0/68a98175/video/tos/alisg/tos-alisg-pve-0037c001/ocTRGvfQLiAnJVANRet6J8AfpAQDNFMHhAiGfW/?a=1233&bti=OUBzOTg7QGo6OjZAL3AjLTAzYCMxNDNg&ch=0&cr=13&dr=0&er=0&lr=all&net=0&cd=0|0|0|&cv=1&br=2990&bt=1495&cs=2&ds=4&ft=XsFb8q4fmbdPD12-cv-T3wULqi~AMeF~O5&mime_type=video_mp4&qs=15&rc=NTZoNjxkOzo7ZmQ3Ozc5OUBpajxrdGo5cmVzNDMzODczNEAwMl8zMzMxNWMxNDReMl41YSMzMWFgMmRzc2thLS1kMTFzcw==&vvpl=1&l=202508220852540B89F9C1380A9E19F763&btag=e000bd000',
-                      poster: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400',
-                      views: '12.8万',
-                      likes: '2.1万',
-                      comments: '8.5千',
-                      shares: '4.2千',
-                      duration: '3:12',
-                      category: '时尚',
-                      influencer: {
-                        name: '李时尚',
-                        avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150',
-                        followers: '98万',
-                        rating: 4.6
-                      },
-                      tags: ['时尚', '服装搭配', '潮流趋势', '品牌展示']
-                    }
-                  }
-                })}
-              >
-                <div className="relative aspect-video">
-                  <video
-                    className="w-full h-full object-cover"
-                    preload="metadata"
-                    poster="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400"
+                ))
+              ) : indexVideos.length > 0 ? (
+                // 动态视频数据
+                indexVideos.map((video) => (
+                  <div 
+                    key={video.id}
+                    className="bg-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => navigate(`/video/${video.id}`, { 
+                      state: { 
+                        videoInfo: {
+                          id: video.id,
+                          title: video.title,
+                          description: video.description,
+                          video_url: video.video_url,
+                          poster_url: video.poster_url,
+                          views_count: video.views_count,
+                          likes_count: video.likes_count,
+                          comments_count: video.comments_count,
+                          shares_count: video.shares_count,
+                          duration: video.duration,
+                          category: video.category?.name || '未分类',
+                          influencer: {
+                            name: video.influencer_name,
+                            avatar: video.influencer_avatar,
+                            followers: video.influencer_followers || '0',
+                            rating: video.influencer_rating || 0
+                          },
+                          tags: video.tags || []
+                        }
+                      }
+                    })}
                   >
-                    <source src="https://v45.tiktokcdn-eu.com/a9e24ff1f75ad64fa0ead5942e50f4f0/68a98175/video/tos/alisg/tos-alisg-pve-0037c001/ocTRGvfQLiAnJVANRet6J8AfpAQDNFMHhAiGfW/?a=1233&bti=OUBzOTg7QGo6OjZAL3AjLTAzYCMxNDNg&ch=0&cr=13&dr=0&er=0&lr=all&net=0&cd=0|0|0|&cv=1&br=2990&bt=1495&cs=2&ds=4&ft=XsFb8q4fmbdPD12-cv-T3wULqi~AMeF~O5&mime_type=video_mp4&qs=15&rc=NTZoNjxkOzo7ZmQ3Ozc5OUBpajxrdGo5cmVzNDMzODczNEAwMl8zMzMxNWMxNDReMl41YSMzMWFgMmRzc2thLS1kMTFzcw==&vvpl=1&l=202508220852540B89F9C1380A9E19F763&btag=e000bd000" type="video/mp4" />
-                    您的浏览器不支持视频播放
-                  </video>
-                  <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
-                    <div className="w-16 h-16 bg-white bg-opacity-90 rounded-full flex items-center justify-center">
-                      <Play className="w-8 h-8 text-gray-800 ml-1" />
+                    <div className="relative aspect-video">
+                      <video
+                        className="w-full h-full object-cover"
+                        preload="metadata"
+                        poster={video.poster_url}
+                      >
+                        <source src={video.video_url} type="video/mp4" />
+                        您的浏览器不支持视频播放
+                      </video>
+                      <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
+                        <div className="w-16 h-16 bg-white bg-opacity-90 rounded-full flex items-center justify-center">
+                          <Play className="w-8 h-8 text-gray-800 ml-1" />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-semibold text-gray-900 mb-2">{video.title}</h3>
+                      <p className="text-sm text-gray-600">观看次数: {video.views_count}</p>
                     </div>
                   </div>
+                ))
+              ) : (
+                // 无数据状态
+                <div className="col-span-full text-center py-16">
+                  <div className="text-gray-400 text-6xl mb-4">📹</div>
+                  <h3 className="text-xl font-medium text-gray-900 mb-2">暂无视频</h3>
+                  <p className="text-gray-600">请稍后再试</p>
                 </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 mb-2">时尚服装展示</h3>
-                  <p className="text-sm text-gray-600">观看次数: 12.8万</p>
-                </div>
-              </div>
-
-              {/* 视频3 */}
-              <div 
-                className="bg-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => navigate('/video/3', { 
-                  state: { 
-                    videoInfo: {
-                      id: '3',
-                      title: '数码产品测评',
-                      description: '专业数码达人深度测评最新产品，客观分析优缺点，帮助用户做出购买决策。',
-                      videoUrl: 'https://v45.tiktokcdn-eu.com/a9e24ff1f75ad64fa0ead5942e50f4f0/68a98175/video/tos/alisg/tos-alisg-pve-0037c001/ocTRGvfQLiAnJVANRet6J8AfpAQDNFMHhAiGfW/?a=1233&bti=OUBzOTg7QGo6OjZAL3AjLTAzYCMxNDNg&ch=0&cr=13&dr=0&er=0&lr=all&net=0&cd=0|0|0|&cv=1&br=2990&bt=1495&cs=2&ds=4&ft=XsFb8q4fmbdPD12-cv-T3wULqi~AMeF~O5&mime_type=video_mp4&qs=15&rc=NTZoNjxkOzo7ZmQ3Ozc5OUBpajxrdGo5cmVzNDMzODczNEAwMl8zMzMxNWMxNDReMl41YSMzMWFgMmRzc2thLS1kMTFzcw==&vvpl=1&l=202508220852540B89F9C1380A9E19F763&btag=e000bd000',
-                      poster: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400',
-                      views: '18.5万',
-                      likes: '3.2万',
-                      comments: '1.8万',
-                      shares: '7.1千',
-                      duration: '4:28',
-                      category: '数码',
-                      influencer: {
-                        name: '王数码',
-                        avatar: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150',
-                        followers: '156万',
-                        rating: 4.9
-                      },
-                      tags: ['数码', '产品测评', '技术分析', '购买指南']
-                    }
-                  }
-                })}
-              >
-                <div className="relative aspect-video">
-                  <video
-                    className="w-full h-full object-cover"
-                    preload="metadata"
-                    poster="https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400"
-                  >
-                    <source src="https://v45.tiktokcdn-eu.com/a9e24ff1f75ad64fa0ead5942e50f4f0/68a98175/video/tos/alisg/tos-alisg-pve-0037c001/ocTRGvfQLiAnJVANRet6J8AfpAQDNFMHhAiGfW/?a=1233&bti=OUBzOTg7QGo6OjZAL3AjLTAzYCMxNDNg&ch=0&cr=13&dr=0&er=0&lr=all&net=0&cd=0|0|0|&cv=1&br=2990&bt=1495&cs=2&ds=4&ft=XsFb8q4fmbdPD12-cv-T3wULqi~AMeF~O5&mime_type=video_mp4&qs=15&rc=NTZoNjxkOzo7ZmQ3Ozc5OUBpajxrdGo5cmVzNDMzODczNEAwMl8zMzMxNWMxNDReMl41YSMzMWFgMmRzc2thLS1kMTFzcw==&vvpl=1&l=202508220852540B89F9C1380A9E19F763&btag=e000bd000" type="video/mp4" />
-                    您的浏览器不支持视频播放
-                  </video>
-                  <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
-                    <div className="w-16 h-16 bg-white bg-opacity-90 rounded-full flex items-center justify-center">
-                      <Play className="w-8 h-8 text-gray-800 ml-1" />
-                    </div>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 mb-2">数码产品测评</h3>
-                  <p className="text-sm text-gray-600">观看次数: 18.5万</p>
-                </div>
-              </div>
-
-              {/* 视频4 */}
-              <div 
-                className="bg-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => navigate('/video/4', { 
-                  state: { 
-                    videoInfo: {
-                      id: '4',
-                      title: '生活用品推荐',
-                      description: '生活达人分享实用好物，提升生活品质，让每一天都更加美好。',
-                      videoUrl: 'https://v45.tiktokcdn-eu.com/a9e24ff1f75ad64fa0ead5942e50f4f0/68a98175/video/tos/alisg/tos-alisg-pve-0037c001/ocTRGvfQLiAnJVANRet6J8AfpAQDNFMHhAiGfW/?a=1233&bti=OUBzOTg7QGo6OjZAL3AjLTAzYCMxNDNg&ch=0&cr=13&dr=0&er=0&lr=all&net=0&cd=0|0|0|&cv=1&br=2990&bt=1495&cs=2&ds=4&ft=XsFb8q4fmbdPD12-cv-T3wULqi~AMeF~O5&mime_type=video_mp4&qs=15&rc=NTZoNjxkOzo7ZmQ3Ozc5OUBpajxrdGo5cmVzNDMzODczNEAwMl8zMzMxNWMxNDReMl41YSMzMWFgMmRzc2thLS1kMTFzcw==&vvpl=1&btag=e000bd000',
-                      poster: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400',
-                      views: '9.7万',
-                      likes: '1.5万',
-                      comments: '6.8千',
-                      shares: '3.2千',
-                      duration: '2:15',
-                      category: '生活',
-                      influencer: {
-                        name: '陈生活',
-                        avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150',
-                        followers: '78万',
-                        rating: 4.7
-                      },
-                      tags: ['生活', '好物推荐', '品质提升', '实用分享']
-                    }
-                  }
-                })}
-              >
-                <div className="relative aspect-video">
-                  <video
-                    className="w-full h-full object-cover"
-                    preload="metadata"
-                    poster="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400"
-                  >
-                    <source src="https://v45.tiktokcdn-eu.com/a9e24ff1f75ad64fa0ead5942e50f4f0/68a98175/video/tos/alisg/tos-alisg-pve-0037c001/ocTRGvfQLiAnJVANRet6J8AfpAQDNFMHhAiGfW/?a=1233&bti=OUBzOTg7QGo6OjZAL3AjLTAzYCMxNDNg&ch=0&cr=13&dr=0&er=0&lr=all&net=0&cd=0|0|0|&cv=1&br=2990&bt=1495&cs=2&ds=4&ft=XsFb8q4fmbdPD12-cv-T3wULqi~AMeF~O5&mime_type=video_mp4&qs=15&rc=NTZoNjxkOzo7ZmQ3Ozc5OUBpajxrdGo5cmVzNDMzODczNEAwMl8zMzMxNWMxNDReMl41YSMzMWFgMmRzc2thLS1kMTFzcw==&vvpl=1&btag=e000bd000" type="video/mp4" />
-                    您的浏览器不支持视频播放
-                  </video>
-                  <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
-                    <div className="w-16 h-16 bg-white bg-opacity-90 rounded-full flex items-center justify-center">
-                      <Play className="w-8 h-8 text-gray-800 ml-1" />
-                    </div>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 mb-2">生活用品推荐</h3>
-                  <p className="text-sm text-gray-600">观看次数: 9.7万</p>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </section>

@@ -15,6 +15,7 @@ import {
   RefreshCw
 } from 'lucide-react'
 import { Influencer } from '../../lib/supabase'
+import { supabase } from '../../lib/supabase'
 
 export function InfluencersPage() {
   const [influencers, setInfluencers] = useState<Influencer[]>([])
@@ -41,38 +42,80 @@ export function InfluencersPage() {
     fetchInfluencers()
   }, []) // 移除依赖，只在组件挂载时获取一次
 
-  const fetchInfluencers = async () => {
+    const fetchInfluencers = async () => {
     try {
       setLoading(true)
       setError(null)
       setCacheStatus('loading')
 
-      console.log('开始从服务器缓存获取达人数据...')
+      // 环境自适应数据获取
+      const isProduction = import.meta.env.PROD;
+      let data;
+      
+      if (isProduction) {
+        // 生产环境：使用API（带缓存）
+        console.log('🌐 生产环境：从API获取达人数据...')
+        
+        const response = await fetch('/api/influencers', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
 
-      // 从本地 API 服务器获取达人数据（带缓存）
-      const response = await fetch('/api/influencers', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
+        data = await response.json()
 
-      const data = await response.json()
+        // 检查缓存状态
+        const cacheControl = response.headers.get('Cache-Control')
+        const age = response.headers.get('Age')
 
-      // 检查缓存状态
-      const cacheControl = response.headers.get('Cache-Control')
-      const age = response.headers.get('Age')
-
-      if (cacheControl && cacheControl.includes('s-maxage')) {
-        setCacheStatus('cached')
-        console.log('✅ 数据来自服务器缓存')
+        if (cacheControl && cacheControl.includes('s-maxage')) {
+          setCacheStatus('cached')
+          console.log('✅ 数据来自服务器缓存')
+        } else {
+          setCacheStatus('fresh')
+          console.log('🔄 数据来自数据库')
+        }
       } else {
-        setCacheStatus('fresh')
-        console.log('🔄 数据来自数据库')
+        // 本地开发环境：直接使用Supabase
+        console.log('🏠 本地开发环境：直接从Supabase获取达人数据...')
+        
+        const { data: supabaseData, error } = await supabase
+          .from('influencers')
+          .select(`
+            id,
+            nickname,
+            real_name,
+            avatar_url,
+            rating,
+            total_reviews,
+            hourly_rate,
+            followers_count,
+            bio,
+            is_verified,
+            is_approved,
+            location,
+            categories,
+            experience_years,
+            created_at,
+            updated_at
+          `)
+          .eq('is_approved', true)
+          .eq('is_verified', true)
+          .order('rating', { ascending: false })
+          .limit(100);
+
+        if (error) {
+          throw error;
+        }
+
+        data = supabaseData || [];
+        setCacheStatus('fresh');
+        console.log('🔄 本地环境：数据来自Supabase数据库');
       }
 
       // 应用客户端筛选和排序
