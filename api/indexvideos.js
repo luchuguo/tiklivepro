@@ -1,8 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
-import { kv } from '@vercel/kv'
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
+const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
 
 export default async function handler(req, res) {
   try {
@@ -12,15 +11,9 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Supabase 配置错误' })
     }
 
-    // 创建缓存键 - 首页视频展示数据
+    // 创建缓存键（用于日志）
     const cacheKey = 'index_videos_featured'
-    
-    // 尝试从缓存获取数据
-    const cachedData = await kv.get(cacheKey)
-    if (cachedData) {
-      console.log('✅ 从缓存返回首页视频展示数据')
-      return res.json(cachedData)
-    }
+    console.log(`🔍 查询缓存键: ${cacheKey}`)
 
     // 创建 Supabase 客户端
     const supabase = createClient(supabaseUrl, supabaseKey)
@@ -56,9 +49,15 @@ export default async function handler(req, res) {
 
     console.log(`✅ 成功获取首页视频数据: ${processedVideos.length} 个`)
 
-    // 存储到缓存 - 首页数据缓存时间更长
-    await kv.setex(cacheKey, 600, processedVideos) // 缓存10分钟
-    console.log('💾 首页视频数据已缓存')
+    // 缓存策略：使用Vercel CDN缓存
+    console.log(`💾 首页视频数据将通过CDN缓存，TTL: 600秒`)
+
+    // 设置缓存头
+    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate, public')
+    res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=600')
+    res.setHeader('CDN-Cache-Control', 's-maxage=600')
+    res.setHeader('X-Cache-Status', 'miss')
+    res.setHeader('X-Cache-TTL', '600')
 
     res.json(processedVideos)
   } catch (error) {
