@@ -780,12 +780,7 @@ function App() {
               >
                 视频展示
               </button>
-              <button 
-                onClick={() => handlePageChange('help')}
-                className={`text-gray-700 hover:text-pink-600 transition-colors ${location.pathname === '/help' ? 'text-pink-600 font-medium' : ''}`}
-              >
-                帮助中心
-              </button>
+
             </div>
 
             {/* User Menu / Auth Buttons */}
@@ -955,12 +950,7 @@ function App() {
                 >
                   视频展示
                 </button>
-                <button 
-                  onClick={() => handlePageChange('help')}
-                  className={`block w-full text-left py-2 px-4 rounded-lg transition-colors ${location.pathname === '/help' ? 'bg-pink-50 text-pink-600' : 'text-gray-700 hover:bg-gray-50'}`}
-                >
-                  帮助中心
-                </button>
+
                 
                 {/* 管理员后台入口 */}
                 <button 
