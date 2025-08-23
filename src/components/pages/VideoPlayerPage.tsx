@@ -17,6 +17,7 @@ import {
   Download
 } from 'lucide-react'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
+import { supabase } from '../../lib/supabase'
 
 interface Video {
   id: string
@@ -112,7 +113,7 @@ export function VideoPlayerPage() {
 
   const videoRef = React.useRef<HTMLVideoElement>(null)
 
-  // 从本地API获取视频详情数据
+  // 环境自适应数据获取
   const fetchVideoDetail = async () => {
     if (!videoId) return
     
@@ -120,16 +121,99 @@ export function VideoPlayerPage() {
       setLoading(true)
       setError(null)
       
-      const response = await fetch(`/api/video-detail?id=${videoId}`)
+      const isProduction = import.meta.env.PROD;
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+      if (isProduction) {
+        // 生产环境：使用API
+        console.log('🌐 生产环境：从API获取视频详情...')
+        
+        const response = await fetch(`/api/video-detail?id=${videoId}`)
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        
+        const data: VideoDetailResponse = await response.json()
+        setVideoData(data)
+        
+        console.log('✅ 成功获取视频详情:', data)
+      } else {
+        // 本地开发环境：直接使用Supabase
+        console.log('🏠 本地开发环境：直接从Supabase获取视频详情...')
+        
+        // 获取视频详情
+        const { data: video, error: videoError } = await supabase
+          .from('videos')
+          .select(`
+            *,
+            category:video_categories(name, description)
+          `)
+          .eq('id', videoId)
+          .eq('is_active', true)
+          .single();
+
+        if (videoError || !video) {
+          throw new Error('视频不存在或已禁用');
+        }
+
+        // 获取相关视频推荐
+        const { data: relatedVideos, error: relatedError } = await supabase
+          .from('videos')
+          .select(`
+            id,
+            title,
+            poster_url,
+            duration,
+            views_count,
+            likes_count,
+            influencer_name,
+            influencer_avatar,
+            category:video_categories(name)
+          `)
+          .eq('is_active', true)
+          .neq('id', videoId)
+          .eq('category_id', video.category_id)
+          .order('views_count', { ascending: false })
+          .limit(6);
+
+        if (relatedError) {
+          console.error('⚠️ 获取相关视频失败:', relatedError);
+        }
+
+        // 获取视频分类信息
+        const { data: categories, error: categoriesError } = await supabase
+          .from('video_categories')
+          .select('*')
+          .eq('is_active', true)
+          .order('sort_order', { ascending: true });
+
+        if (categoriesError) {
+          console.error('⚠️ 获取分类信息失败:', categoriesError);
+        }
+
+        // 构建响应数据
+        const data: VideoDetailResponse = {
+          video: {
+            ...video,
+            views_count: video.views_count || '0',
+            likes_count: video.likes_count || '0',
+            comments_count: video.comments_count || '0',
+            shares_count: video.shares_count || '0',
+            tags: video.tags || []
+          },
+          relatedVideos: relatedVideos || [],
+          categories: categories || [],
+          meta: {
+            title: video.title,
+            description: video.description,
+            image: video.poster_url,
+            type: 'video'
+          }
+        };
+
+        setVideoData(data);
+        console.log('✅ 本地环境：成功获取视频详情');
       }
-      
-      const data: VideoDetailResponse = await response.json()
-      setVideoData(data)
-      
-      console.log('✅ 成功获取视频详情:', data)
     } catch (error) {
       console.error('❌ 获取视频详情失败:', error)
       setError(error instanceof Error ? error.message : '获取数据失败')

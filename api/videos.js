@@ -15,27 +15,10 @@ export default async function handler(req, res) {
     return res.status(200).end()
   }
 
-  // 检查请求方法和路径
-  const { method, url } = req
-  
-  // 处理视频分类相关的请求
-  if (url.includes('/categories')) {
-    return await handleVideoCategories(req, res)
-  }
-  
-  // 处理视频相关的请求
-  if (method === 'GET') {
-    return await handleGetVideos(req, res)
-  } else if (method === 'POST') {
-    return await handleCreateVideo(req, res)
-  } else if (method === 'PUT') {
-    return await handleUpdateVideo(req, res)
-  } else if (method === 'DELETE') {
-    return await handleDeleteVideo(req, res)
-  } else {
+  // 只允许 GET 请求
+  if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
-}
 
   try {
     // 检查环境变量

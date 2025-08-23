@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Play, Heart, MessageCircle, Share2, Eye, Clock, Star, Search, Grid3X3, List } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { supabase } from '../../lib/supabase'
 
 interface Video {
   id: string
@@ -34,31 +35,98 @@ export function VideosPage() {
   
   const navigate = useNavigate()
 
-  // 从本地API获取视频数据
+  // 环境自适应数据获取
   const fetchVideos = async () => {
     try {
       setLoading(true)
       setError(null)
       
-      const params = new URLSearchParams({
-        page: '1',
-        limit: '50',
-        category: selectedCategory === 'all' ? 'all' : selectedCategory,
-        search: searchQuery,
-        featured: 'all',
-        sort: sortBy === 'trending' ? 'popular' : sortBy
-      })
+      const isProduction = import.meta.env.PROD;
+      
+      if (isProduction) {
+        // 生产环境：使用API
+        console.log('🌐 生产环境：从API获取视频数据...')
+        
+        const params = new URLSearchParams({
+          page: '1',
+          limit: '50',
+          category: selectedCategory === 'all' ? 'all' : selectedCategory,
+          search: searchQuery,
+          featured: 'all',
+          sort: sortBy === 'trending' ? 'popular' : sortBy
+        })
 
-      const response = await fetch(`/api/videos?${params}`)
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        const response = await fetch(`/api/videos?${params}`)
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        
+        const data = await response.json()
+        setVideos(data.videos || [])
+        
+        console.log('✅ 成功获取视频数据:', data.videos?.length || 0, '个')
+      } else {
+        // 本地开发环境：直接使用Supabase
+        console.log('🏠 本地开发环境：直接从Supabase获取视频数据...')
+        
+        let query = supabase
+          .from('videos')
+          .select(`
+            *,
+            category:video_categories(name, description)
+          `)
+          .eq('is_active', true)
+
+        // 应用筛选条件
+        if (selectedCategory !== 'all') {
+          query = query.eq('category_id', selectedCategory)
+        }
+        
+        if (searchQuery) {
+          query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,influencer_name.ilike.%${searchQuery}%`)
+        }
+
+        // 应用排序
+        switch (sortBy) {
+          case 'latest':
+            query = query.order('created_at', { ascending: false })
+            break
+          case 'oldest':
+            query = query.order('created_at', { ascending: true })
+            break
+          case 'popular':
+            query = query.order('views_count', { ascending: false })
+            break
+          case 'rating':
+            query = query.order('influencer_rating', { ascending: false })
+            break
+          case 'trending':
+            query = query.order('views_count', { ascending: false })
+            break
+          default:
+            query = query.order('created_at', { ascending: false })
+        }
+
+        const { data: videos, error } = await query.limit(50)
+
+        if (error) {
+          throw error
+        }
+
+        // 处理数据
+        const processedVideos = (videos || []).map(video => ({
+          ...video,
+          views_count: video.views_count || '0',
+          likes_count: video.likes_count || '0',
+          comments_count: video.comments_count || '0',
+          shares_count: video.shares_count || '0',
+          tags: video.tags || []
+        }))
+
+        setVideos(processedVideos)
+        console.log('✅ 本地环境：成功获取视频数据:', processedVideos.length, '个')
       }
-      
-      const data = await response.json()
-      setVideos(data.videos || [])
-      
-      console.log('✅ 成功获取视频数据:', data.videos?.length || 0, '个')
     } catch (error) {
       console.error('❌ 获取视频数据失败:', error)
       setError(error instanceof Error ? error.message : '获取数据失败')
