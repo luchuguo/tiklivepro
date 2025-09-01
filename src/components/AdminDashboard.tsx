@@ -1199,7 +1199,7 @@ export function AdminDashboard() {
               <Shield className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-gray-900">tkgo.vip 管理后台</h1>
+                              <h1 className="text-lg font-bold text-gray-900">tkgogogo.com 管理后台</h1>
               <p className="text-xs text-gray-500">超级管理员控制台</p>
             </div>
           </div>
@@ -1299,7 +1299,7 @@ export function AdminDashboard() {
         {/* 管理后台专用底部 */}
         <div className="bg-white border-t border-gray-200 px-6 py-4 text-center">
           <div className="text-sm text-gray-500">
-            <span className="font-medium">tkgo.vip</span> 管理后台 | 
+                            <span className="font-medium">tkgogogo.com</span> 管理后台 | 
             版本 1.0.0 | 
             最后更新: {new Date().toLocaleString()} | 
             <span className="text-green-600 ml-2">● 系统运行正常</span>

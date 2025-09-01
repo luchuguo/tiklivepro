@@ -307,6 +307,168 @@ export function useAuth() {
     }
   }
 
+  // 扩展的注册函数，包含所有用户信息
+  const signUpWithDetails = async (
+    email: string, 
+    password: string, 
+    userType: 'influencer' | 'company', 
+    userData: {
+      // 基础信息
+      firstName: string
+      lastName: string
+      phoneNumber: string
+      
+      // 达人主播特有信息
+      nickname?: string
+      tiktokAccount?: string
+      location?: string
+      categories?: string[]
+      tags?: string[]
+      hourlyRate?: string
+      experienceYears?: string
+      bio?: string
+      
+      // 新增达人主播字段
+      idType?: string
+      idNumber?: string
+      idImageUrl?: string
+      tiktokProfileUrl?: string
+      tiktokFollowersCount?: string
+      avgPlayCount?: string
+      avgEngagementRate?: string
+      hasTiktokShop?: boolean
+      liveVenue?: string
+      weeklySchedule?: any
+      bilingualLive?: boolean
+      languages?: string[]
+      
+      // 企业用户特有信息
+      companyName?: string
+      contactPerson?: string
+      businessLicense?: string
+      industry?: string
+      companySize?: string
+      website?: string
+      description?: string
+    }
+  ) => {
+    try {
+      console.log('开始完整注册:', email, userType, userData)
+      setLoading(true)
+      
+      // 1. 创建用户账户
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password.trim(),
+      })
+
+      if (error) {
+        console.error('注册失败:', error)
+        return { data: null, error }
+      }
+
+      console.log('用户账户创建成功:', data.user?.email)
+
+      if (data.user) {
+        // 2. 创建基础用户资料
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .insert({
+            user_id: data.user.id,
+            user_type: userType,
+            phone: userData.phoneNumber,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+
+        if (profileError) {
+          console.error('创建用户资料失败:', profileError)
+          return { data: null, error: profileError }
+        }
+
+        console.log('基础用户资料创建成功')
+
+        // 3. 根据用户类型创建详细资料
+        if (userType === 'influencer') {
+          const { error: influencerError } = await supabase
+            .from('influencers')
+            .insert({
+              user_id: data.user.id,
+              nickname: userData.nickname || '',
+              real_name: `${userData.lastName}${userData.firstName}`,
+              tiktok_account: userData.tiktokAccount || null,
+              bio: userData.bio || null,
+              location: userData.location || null,
+              categories: userData.categories || [],
+              tags: userData.tags || [],
+              hourly_rate: userData.hourlyRate ? parseInt(userData.hourlyRate) : 0,
+              experience_years: userData.experienceYears ? parseInt(userData.experienceYears) : 0,
+              // 新增字段
+              id_type: userData.idType || null,
+              id_number: userData.idNumber || null,
+              id_image_url: userData.idImageUrl || null,
+              tiktok_profile_url: userData.tiktokProfileUrl || null,
+              tiktok_followers_count: userData.tiktokFollowersCount ? parseInt(userData.tiktokFollowersCount) : 0,
+              avg_play_count: userData.avgPlayCount ? parseInt(userData.avgPlayCount) : 0,
+              avg_engagement_rate: userData.avgEngagementRate ? parseFloat(userData.avgEngagementRate) : 0.00,
+              has_tiktok_shop: userData.hasTiktokShop || false,
+              live_venue: userData.liveVenue || null,
+              weekly_schedule: userData.weeklySchedule || null,
+              bilingual_live: userData.bilingualLive || false,
+              languages: userData.languages || [],
+              followers_count: 0,
+              is_verified: false,
+              is_approved: false,
+              rating: 0,
+              total_reviews: 0,
+              total_live_count: 0,
+              avg_views: 0,
+              status: 'active',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+
+          if (influencerError) {
+            console.error('创建达人资料失败:', influencerError)
+            return { data: null, error: influencerError }
+          }
+
+          console.log('达人资料创建成功')
+        } else if (userType === 'company') {
+          const { error: companyError } = await supabase
+            .from('companies')
+            .insert({
+              user_id: data.user.id,
+              company_name: userData.companyName || '',
+              contact_person: userData.contactPerson || null,
+              business_license: userData.businessLicense || null,
+              industry: userData.industry || null,
+              company_size: userData.companySize || null,
+              website: userData.website || null,
+              description: userData.description || null,
+              is_verified: false,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+
+          if (companyError) {
+            console.error('创建企业资料失败:', companyError)
+            return { data: null, error: companyError }
+          }
+
+          console.log('企业资料创建成功')
+        }
+      }
+
+      return { data, error: null }
+    } catch (error) {
+      console.error('完整注册过程中发生错误:', error)
+      return { data: null, error }
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const signIn = async (email: string, password: string) => {
     try {
       console.log('开始登录:', email)
@@ -423,6 +585,7 @@ export function useAuth() {
     profile,
     loading,
     signUp,
+    signUpWithDetails,
     signIn,
     signOut,
     updateProfile,

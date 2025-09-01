@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react'
 import { X, Mail, Lock, User, Building2, Eye, EyeOff, Loader, Phone, Send, MessageSquare, XCircle, CheckCircle } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
+import { useNavigate } from 'react-router-dom'
 import MD5 from 'crypto-js/md5'
 
 interface AuthModalProps {
@@ -15,6 +16,8 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
   if (!isOpen) {
     return null;
   }
+
+  const navigate = useNavigate()
 
   const [mode, setMode] = useState<'signin' | 'signup'>(defaultMode)
   const [userType, setUserType] = useState<'influencer' | 'company'>(defaultUserType)
@@ -555,13 +558,26 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               {mode === 'signin' ? '还没有账号？' : '已有账号？'}
-              <button
-                onClick={() => switchMode(mode === 'signin' ? 'signup' : 'signin')}
-                className="ml-1 text-pink-600 hover:text-pink-700 font-medium"
-                disabled={loading}
-              >
-                {mode === 'signin' ? '立即注册' : '立即登录'}
-              </button>
+              {mode === 'signin' ? (
+                <button
+                  onClick={() => {
+                    onClose()
+                    navigate('/signup')
+                  }}
+                  className="ml-1 text-pink-600 hover:text-pink-700 font-medium"
+                  disabled={loading}
+                >
+                  立即注册
+                </button>
+              ) : (
+                <button
+                  onClick={() => switchMode('signin')}
+                  className="ml-1 text-pink-600 hover:text-pink-700 font-medium"
+                  disabled={loading}
+                >
+                  立即登录
+                </button>
+              )}
             </p>
           </div>
         </div>

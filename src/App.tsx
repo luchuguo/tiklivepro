@@ -52,6 +52,7 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { EmailVerificationTest } from './components/pages/EmailVerificationTest'
 import { ImageUploadTest } from './components/pages/ImageUploadTest'
 import LoginTestPage from './components/pages/LoginTestPage'
+import { SignupPage } from './components/pages/SignupPage'
 import LanguageSwitcher from './components/LanguageSwitcher'
 import { EnvironmentChecker } from './components/EnvironmentChecker'
 import { ProductionDebugger } from './components/ProductionDebugger'
@@ -466,7 +467,7 @@ function App() {
         name: '张小美',
         role: '美妆达人',
         avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150',
-        content: '通过tkgo.vip，我找到了很多优质的品牌合作机会，平台的服务很专业，结算也很及时。',
+                        content: '通过tkgogogo.com，我找到了很多优质的品牌合作机会，平台的服务很专业，结算也很及时。',
         rating: 5
       },
       {
@@ -510,14 +511,14 @@ function App() {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                   <button 
-                    onClick={() => openAuthModal('signup', 'influencer')}
+                    onClick={() => navigate('/signup')}
                     className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg transform hover:scale-105"
                   >
                     <Users className="w-5 h-5" />
                     <span>达人入驻</span>
                   </button>
                   <button 
-                    onClick={() => openAuthModal('signup', 'company')}
+                    onClick={() => navigate('/signup')}
                     className="border-2 border-gray-300 text-gray-600 px-8 py-4 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200 flex items-center justify-center space-x-2 opacity-75"
                   >
                     <Building2 className="w-5 h-5" />
@@ -573,7 +574,7 @@ function App() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                为什么选择tkgo.vip
+                为什么选择tkgogogo.com
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
                 平台聚焦“人货匹配”与“高效协作”，通过任务发布、达人接单、沟通协作、结算保障、争议处理五大核心功能，帮助商家高效拓展海外市场。
@@ -773,11 +774,11 @@ function App() {
               准备开始您的TikTok直播带货之旅？
             </h2>
             <p className="text-xl text-pink-100 mb-8">
-              加入tkgo.vip，与优质合作伙伴一起创造更大价值
+              加入tkgogogo.com，与优质合作伙伴一起创造更大价值
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button 
-                onClick={() => openAuthModal('signup', 'influencer')}
+                onClick={() => navigate('/signup')}
                 className="bg-white text-pink-600 px-8 py-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg transform hover:scale-105"
               >
                 <Users className="w-5 h-5" />
@@ -785,7 +786,7 @@ function App() {
                 <ArrowRight className="w-5 h-5" />
               </button>
               <button 
-                onClick={() => openAuthModal('signup', 'company')}
+                onClick={() => navigate('/signup')}
                 className="border-2 border-white text-white px-8 py-4 rounded-xl font-medium hover:bg-white hover:text-pink-600 transition-all duration-200 flex items-center justify-center space-x-2 opacity-75"
               >
                 <Building2 className="w-5 h-5" />
@@ -836,11 +837,13 @@ function App() {
               onClick={() => handlePageChange('home')}
               className="flex items-center space-x-2"
             >
-              <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <Video className="w-5 h-5 text-white" />
-              </div>
+              <img 
+                src="/logo.png" 
+                alt="tkgogogo.com Logo" 
+                className="w-8 h-8"
+              />
               <span className="text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-                tkgo.vip
+                tkgogogo.com
               </span>
             </button>
 
@@ -988,7 +991,7 @@ function App() {
                     登录
                   </button>
                   <button
-                    onClick={() => openAuthModal('signup')}
+                    onClick={() => navigate('/signup')}
                     className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:shadow-lg transition-all duration-200"
                   >
                     注册
@@ -1132,8 +1135,8 @@ function App() {
                       登录
                     </button>
                     <button
-                      onClick={() => openAuthModal('signup')}
-                      className="block w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 px-4 rounded-lg font-semibold text-center"
+                      onClick={() => navigate('/signup')}
+                      className="block w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 px-4 rounded-lg font-semibold text-center hover:shadow-lg transition-all duration-200"
                     >
                       注册
                     </button>
@@ -1176,6 +1179,7 @@ function App() {
             <Route path="/email-test" element={<EmailVerificationTest />} />
             <Route path="/image-upload-test" element={<ImageUploadTest />} />
             <Route path="/login-test" element={<LoginTestPage />} />
+            <Route path="/signup" element={<SignupPage />} />
           </Routes>
         </ErrorBoundary>
       </main>
