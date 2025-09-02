@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react'
+import { Plus, Trash2 } from 'lucide-react'
 import { Mail, Lock, User, Building2, Eye, EyeOff, Loader, Send, MessageSquare, XCircle, CheckCircle, ArrowLeft, Phone, ArrowRight, CheckCircle2, X, Video, Star, Shield, FileText, MapPin } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useNavigate, Link } from 'react-router-dom'
@@ -42,15 +43,27 @@ export function SignupPage() {
   const [avgEngagementRate, setAvgEngagementRate] = useState('')
   const [hasTiktokShop, setHasTiktokShop] = useState(false)
   const [liveVenue, setLiveVenue] = useState('')
-  const [weeklySchedule, setWeeklySchedule] = useState({
-    monday: { time: '', duration: '' },
-    tuesday: { time: '', duration: '' },
-    wednesday: { time: '', duration: '' },
-    thursday: { time: '', duration: '' },
-    friday: { time: '', duration: '' },
-    saturday: { time: '', duration: '' },
-    sunday: { time: '', duration: '' }
+  const [weeklySchedule, setWeeklySchedule] = useState('')
+  const [selectedDay, setSelectedDay] = useState('')
+const [timeSlot, setTimeSlot] = useState('')
+const [scheduleItems, setScheduleItems] = useState<string[]>([])
+const addScheduleItem = () => {
+  if (selectedDay && timeSlot) {
+    const newItem = `${selectedDay}，${timeSlot}`
+    setScheduleItems(prev => [...prev, newItem])
+    setWeeklySchedule(prev => prev ? `${prev}；${newItem}` : newItem)
+    setSelectedDay('')
+    setTimeSlot('')
+  }
+}
+
+const removeScheduleItem = (index: number) => {
+  setScheduleItems(prev => {
+    const newItems = prev.filter((_, i) => i !== index)
+    setWeeklySchedule(newItems.join('；'))
+    return newItems
   })
+}
   const [bilingualLive, setBilingualLive] = useState(false)
   const [languages, setLanguages] = useState<string[]>([])
   
@@ -1224,40 +1237,78 @@ export function SignupPage() {
                       </div>
                     </div>
                     
-                    <div className="mt-6">
+               
+                      
+                      <div className="mt-6">
                       <label className="block text-sm font-medium text-gray-700 mb-4">
                         每周直播档期和时长
                       </label>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {weekDays.map(({ key, label }) => (
-                          <div key={key} className="bg-white p-4 rounded-lg border border-gray-200">
-                            <h4 className="font-medium text-gray-900 mb-3">{label}</h4>
-                            <div className="space-y-3">
-                              <div>
-                                <label className="block text-xs text-gray-600 mb-1">时间段</label>
-                                <input
-                                  type="text"
-                                  value={weeklySchedule[key as keyof typeof weeklySchedule].time}
-                                  onChange={(e) => handleScheduleChange(key, 'time', e.target.value)}
-                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                                  placeholder="如：20:00-22:00"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-xs text-gray-600 mb-1">时长（分钟）</label>
-                                <input
-                                  type="number"
-                                  value={weeklySchedule[key as keyof typeof weeklySchedule].duration}
-                                  onChange={(e) => handleScheduleChange(key, 'duration', e.target.value)}
-                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                                  placeholder="如：120"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                      <div className="space-y-3">
+  <div className="flex items-center gap-3">
+    <select
+      value={selectedDay}
+      onChange={(e) => setSelectedDay(e.target.value)}
+      className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white"
+    >
+      <option value="">选择星期</option>
+      <option value="星期一">星期一</option>
+      <option value="星期二">星期二</option>
+      <option value="星期三">星期三</option>
+      <option value="星期四">星期四</option>
+      <option value="星期五">星期五</option>
+      <option value="星期六">星期六</option>
+      <option value="星期日">星期日</option>
+    </select>
+    
+    <input
+      type="text"
+      value={timeSlot}
+      onChange={(e) => setTimeSlot(e.target.value)}
+      placeholder="如：20:00-24:00"
+      className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+    />
+    
+    <button
+      type="button"
+      onClick={addScheduleItem}
+      className="px-4 py-2 bg-pink-500 text-white text-sm rounded-lg hover:bg-pink-600 transition-colors flex items-center gap-1"
+    >
+      <Plus className="w-4 h-4" />
+      添加
+    </button>
+  </div>
+  
+  {/* 已添加的档期列表 */}
+  {scheduleItems.length > 0 && (
+    <div className="space-y-2">
+      <p className="text-sm text-gray-600">已添加的直播档期：</p>
+      {scheduleItems.map((item, index) => (
+        <div key={index} className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded-lg">
+          <span className="text-sm text-gray-700">{item}</span>
+          <button
+            type="button"
+            onClick={() => removeScheduleItem(index)}
+            className="text-red-500 hover:text-red-700 p-1"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      ))}
+    </div>
+  )}
+  
+  {/* 隐藏的输入框，用于存储最终数据 */}
+  <input
+    type="hidden"
+    value={weeklySchedule}
+    onChange={() => {}} // 只读
+  />
+</div>
                     </div>
+
+
+
+                 
                     
                     <div className="mt-6">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
