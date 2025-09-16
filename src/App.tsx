@@ -163,19 +163,22 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <button 
-              onClick={() => handlePageChange("home")}
-              className="flex items-center space-x-2"
-            >
-              <img 
-                src="/logo.png" 
-                alt="TikLivePro Logo" 
-                className="w-8 h-8"
-              />
-              <span className="text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-                TikLivePro
-              </span>
-            </button>
+            <div className="flex items-center">
+              <button 
+                onClick={() => handlePageChange("home")}
+                className="flex items-center space-x-2"
+              >
+                <img 
+                  src="/logo.png" 
+                  alt="tkgogogo Logo" 
+                  className="w-8 h-8"
+                />
+                <span className="text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+                  tkgogogo
+                </span>
+              </button>
+              <LanguageSwitcher />
+            </div>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
