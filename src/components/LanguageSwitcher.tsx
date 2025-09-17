@@ -43,7 +43,7 @@ function LanguageSwitcher() {
             option.text = 'English';
           } else if (option.value === '') {
             option.text = '选择语言';
-          }
+        }
         });
 
         clearInterval(interval);

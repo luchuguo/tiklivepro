@@ -17,7 +17,7 @@ export function HomePage() {
         setError(null);
         
         try {
-          const response = await fetch("/api/indexvideos");
+          const response = await fetch("/api/videos?limit=4&sort=latest");
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
@@ -25,15 +25,10 @@ export function HomePage() {
           console.log("API返回数据:", result); // 调试日志
           
           // 检查返回的数据结构
-          if (result && Array.isArray(result)) {
-            // 直接是数组格式
-            setIndexVideos(result);
-            console.log("✅ 首页视频数据获取成功:", result.length, "个");
-          } else if (result && result.success && Array.isArray(result.data)) {
-            // 包装在 data 字段中
-            setIndexVideos(result.data);
-            console.log("✅ 首页视频数据获取成功:", result.data.length, "个");
-          } else {
+          if (result && result.videos && Array.isArray(result.videos)) {
+            setIndexVideos(result.videos);
+            console.log("✅ 首页视频数据获取成功:", result.videos.length, "个");
+        } else {
             throw new Error("返回的数据格式不正确");
           }
           return;

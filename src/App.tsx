@@ -156,27 +156,27 @@ function App() {
     setShowUserMenu(false);
   };
 
-  return (
-    <div className="min-h-screen bg-white">
+    return (
+      <div className="min-h-screen bg-white">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-40">
+        <nav className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center">
-              <button 
+            <button 
                 onClick={() => handlePageChange("home")}
-                className="flex items-center space-x-2"
-              >
-                <img 
-                  src="/logo.png" 
+              className="flex items-center space-x-2"
+            >
+              <img 
+                src="/logo.png" 
                   alt="tkgogogo Logo" 
-                  className="w-8 h-8"
-                />
-                <span className="text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+                className="w-8 h-8"
+              />
+              <span className="text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
                   tkgogogo
-                </span>
-              </button>
+              </span>
+            </button>
               <LanguageSwitcher />
             </div>
 
@@ -368,7 +368,7 @@ function App() {
                 >
                   视频展示
                 </button>
-
+                
                 {/* 用户菜单 */}
                 {user ? (
                   <div className="border-t border-gray-100 pt-2 space-y-2">
@@ -468,7 +468,7 @@ function App() {
             <Route path="/influencers" element={<InfluencersPage />} />
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/about" element={<AboutPage />} />
-            <Route path="/terms" element={<TermsPage />} />
+                        <Route path="/terms" element={<TermsPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/help" element={<HelpPage />} />
             <Route path="/contact" element={<ContactPage />} />
@@ -501,12 +501,12 @@ function App() {
 
       {/* Auth Modal */}
       {isAuthModalOpen && (
-        <AuthModal
-          isOpen={isAuthModalOpen}
-          onClose={() => setIsAuthModalOpen(false)}
-          defaultMode={authMode}
-          defaultUserType={authUserType}
-        />
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        defaultMode={authMode}
+        defaultUserType={authUserType}
+      />
       )}
 
       {/* Data Viewer */}

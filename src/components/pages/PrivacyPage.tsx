@@ -1,5 +1,5 @@
 import React from 'react'
-import { Shield, Lock, Eye, Database, UserCheck, AlertCircle } from 'lucide-react'
+import { Shield, Lock, Eye, Database, UserCheck, AlertCircle, Mail } from 'lucide-react'
 
 export function PrivacyPage() {
   const dataTypes = [
@@ -236,7 +236,10 @@ export function PrivacyPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
               <div className="bg-white rounded-lg p-4">
                 <strong className="text-gray-900">邮箱地址</strong>
-                <p className="text-gray-600">privacy@tiklive.pro</p>
+                <div className="flex items-center space-x-2">
+                  <Mail className="w-5 h-5 text-gray-400" />
+                  <p className="text-gray-600">privacy@tkgogogo.com</p>
+                </div>
               </div>
               <div className="bg-white rounded-lg p-4">
                 <strong className="text-gray-900">客服电话</strong>

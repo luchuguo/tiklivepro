@@ -34,10 +34,9 @@ export function ContactPage() {
     },
     {
       icon: Mail,
-      title: '邮箱地址',
-      content: 'contact@tiklive.pro',
-      description: '工作日24小时内回复',
-      color: 'from-green-500 to-blue-600'
+      title: "电子邮件",
+      content: "contact@tkgogogo.com",
+      description: "工作日24小时内回复"
     },
     {
       icon: MapPin,

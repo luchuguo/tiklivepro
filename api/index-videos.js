@@ -4,6 +4,21 @@ const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
 
 export default async function handler(req, res) {
+  // 设置CORS头
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+
+  // 处理OPTIONS请求
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
+  }
+
+  // 只允许 GET 请求
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' })
+  }
+
   try {
     // 检查环境变量
     if (!supabaseUrl || !supabaseKey) {
@@ -11,26 +26,20 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Supabase 配置错误' })
     }
 
-    // 创建缓存键（用于日志）
-    const cacheKey = 'index_videos_featured'
-    console.log(`🔍 查询缓存键: ${cacheKey}`)
-
     // 创建 Supabase 客户端
     const supabase = createClient(supabaseUrl, supabaseKey)
     console.log('🏠 开始获取首页视频展示数据...')
 
-    // 从 Supabase 获取特色视频（用于首页展示）
-    const { data: videos, error } = await supabase
+    // 构建查询
+    let query = supabase
       .from('videos')
-      .select(`
-        *,
-        category:video_categories(name, description)
-      `)
+      .select('*')
       .eq('is_active', true)
-      .eq('is_featured', true)
-      .order('sort_order', { ascending: true })
       .order('created_at', { ascending: false })
-      .limit(4) // 首页只显示4个特色视频
+      .limit(4)
+
+    // 执行查询
+    const { data: videos, error } = await query
 
     if (error) {
       console.error('❌ 获取首页视频数据失败:', error)
@@ -49,22 +58,23 @@ export default async function handler(req, res) {
 
     console.log(`✅ 成功获取首页视频数据: ${processedVideos.length} 个`)
 
-    // 缓存策略：使用Vercel CDN缓存
-    console.log(`💾 首页视频数据将通过CDN缓存，TTL: 600秒`)
-
     // 设置缓存头
-    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate, public')
-    res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=600')
-    res.setHeader('CDN-Cache-Control', 's-maxage=600')
+    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate, public')
+    res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=300')
+    res.setHeader('CDN-Cache-Control', 's-maxage=300')
     res.setHeader('X-Cache-Status', 'miss')
-    res.setHeader('X-Cache-TTL', '600')
+    res.setHeader('X-Cache-TTL', '300')
 
-    res.json(processedVideos)
+    res.json({
+      success: true,
+      data: processedVideos
+    })
   } catch (error) {
     console.error('❌ 首页视频API错误:', error)
     res.status(500).json({ 
-      error: '获取首页视频数据失败',
-      details: error.message 
+      success: false,
+      message: '获取首页视频数据失败',
+      error: error.message 
     })
   }
 } 
