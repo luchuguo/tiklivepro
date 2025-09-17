@@ -84,7 +84,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
   global: {
     headers: {
-      'X-Client-Info': 'tiklive-pro-web'
+      'X-Client-Info': 'tkgogogo-web'
     }
   },
   realtime: {
