@@ -49,10 +49,10 @@ export function HomePage() {
   }, []);
 
   const stats = [
-    { label: "注册用户", value: "50,000+", icon: Users },
-    { label: "合作品牌", value: "1,200+", icon: Building2 },
-    { label: "成功案例", value: "8,500+", icon: Star },
-    { label: "直播场次", value: "25,000+", icon: Play },
+    { label: "注册用户", icon: Users },
+    { label: "合作品牌", icon: Building2 },
+    { label: "成功案例", icon: Star },
+    { label: "直播场次", icon: Play },
   ];
 
   const features = [
@@ -153,7 +153,6 @@ export function HomePage() {
                 <div className="w-16 h-16 bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <stat.icon className="w-8 h-8 text-white" />
                 </div>
-                <div className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</div>
                 <div className="text-gray-600">{stat.label}</div>
               </div>
             ))}
@@ -247,10 +246,7 @@ export function HomePage() {
                   </div>
                   <div className="p-4">
                     <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{video.title}</h3>
-                    <div className="flex items-center justify-between text-sm text-gray-600">
-                      <span>观看: {video.views_count?.toLocaleString() || 0}</span>
-                      <span>点赞: {video.likes_count?.toLocaleString() || 0}</span>
-                    </div>
+                    <p className="text-sm text-gray-600 line-clamp-2">{video.description}</p>
                   </div>
                 </div>
               ))
