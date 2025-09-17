@@ -182,9 +182,9 @@ VITE_SUPABASE_ANON_KEY=${envValues.key || 'your-anon-key-here'}`
                         <li>点击 "Start your project" 或 "Sign up"</li>
                         <li>使用 GitHub 或邮箱注册账号</li>
                         <li>点击 "New project" 创建新项目</li>
-                        <li>选择组织，输入项目名称（如：tiklive-pro）</li>
-                        <li>设置数据库密码（请记住这个密码）</li>
-                        <li>选择地区（建议选择离您最近的地区）</li>
+                        <li>登录 <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:text-pink-700">Supabase</a></li>
+                        <li>选择组织，输入项目名称（如：tkgogogo）</li>
+                        <li>选择地区（建议选择距离用户较近的区域）</li>
                         <li>点击 "Create new project"</li>
                       </ol>
                     </div>

@@ -79,20 +79,10 @@ export function ProductionDebugger() {
     }
   }
 
-  const checkCacheStatus = async () => {
-    try {
-      // 检查localStorage缓存
-      const hasCache = localStorage.getItem('tiklive_cache') !== null
-      setDebugInfo(prev => ({
-        ...prev,
-        cacheStatus: hasCache ? 'available' : 'unavailable'
-      }))
-    } catch (error) {
-      setDebugInfo(prev => ({
-        ...prev,
-        cacheStatus: 'unavailable'
-      }))
-    }
+  // 检查缓存状态
+  const checkCacheStatus = () => {
+    const hasCache = localStorage.getItem('tkgogogo_cache') !== null
+    return hasCache ? '✅ 已启用' : '❌ 未启用'
   }
 
   const extractPathParams = () => {

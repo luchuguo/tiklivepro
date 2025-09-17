@@ -152,7 +152,7 @@ class CacheManager {
         })
         .map(([key, item]) => [key, item])
 
-      localStorage.setItem('tiklive_cache', JSON.stringify(cacheData))
+      localStorage.setItem('tkgogogo_cache', JSON.stringify(cacheData))
     } catch (error) {
       console.warn('缓存持久化失败:', error)
     }
@@ -161,7 +161,7 @@ class CacheManager {
   // 加载持久化缓存
   private loadPersistentCache(): void {
     try {
-      const cacheData = localStorage.getItem('tiklive_cache')
+      const cacheData = localStorage.getItem('tkgogogo_cache')
       if (cacheData) {
         const parsed = JSON.parse(cacheData)
         for (const [key, item] of parsed) {
@@ -174,7 +174,7 @@ class CacheManager {
     } catch (error) {
       console.warn('缓存加载失败:', error)
       // 清除损坏的缓存
-      localStorage.removeItem('tiklive_cache')
+      localStorage.removeItem('tkgogogo_cache')
     }
   }
 
