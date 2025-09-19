@@ -237,13 +237,13 @@ export function InfluencersPage() {
           <div>
             <span className="text-gray-500">粉丝数</span>
             <div className="font-semibold text-gray-900">
-              {(influencer.followers_count / 10000).toFixed(1)}万
+              ***
             </div>
           </div>
           <div>
             <span className="text-gray-500">时薪</span>
             <div className="font-semibold text-gray-900">
-                              ${influencer.hourly_rate?.toLocaleString() || '0'}
+              ***
             </div>
           </div>
         </div>

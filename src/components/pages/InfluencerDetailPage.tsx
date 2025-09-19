@@ -428,10 +428,6 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                     <Star className="w-4 h-4 text-yellow-400 fill-current" />
                     <span>{Number(influencer.rating).toFixed(1)} ({influencer.total_reviews})</span>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <Users className="w-4 h-4" />
-                    <span>{influencer.followers_count?.toLocaleString() || 0} 粉丝</span>
-                  </div>
                 </div>
               </div>
               
@@ -513,32 +509,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
               </div>
             )}
             
-            {/* 统计数据 */}
-            <div className="grid grid-cols-3 gap-6 mb-8">
-              <div className="bg-gray-50 rounded-lg p-4 text-center">
-                <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <Video className="w-5 h-5 text-pink-600" />
-                </div>
-                <div className="text-2xl font-bold text-gray-900">{influencer.total_live_count}</div>
-                <div className="text-sm text-gray-600">直播场次</div>
-              </div>
-              
-              <div className="bg-gray-50 rounded-lg p-4 text-center">
-                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <Eye className="w-5 h-5 text-purple-600" />
-                </div>
-                <div className="text-2xl font-bold text-gray-900">{influencer.avg_views?.toLocaleString() || 0}</div>
-                <div className="text-sm text-gray-600">平均观看量</div>
-              </div>
-              
-              <div className="bg-gray-50 rounded-lg p-4 text-center">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <Briefcase className="w-5 h-5 text-blue-600" />
-                </div>
-                <div className="text-2xl font-bold text-gray-900">{Number(influencer.experience_years).toFixed(1)}</div>
-                <div className="text-sm text-gray-600">从业年限</div>
-              </div>
-            </div>
+
             
             {/* 标签页导航 */}
             <div className="border-b border-gray-200 mb-6">
@@ -595,7 +566,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                       <Instagram className="w-5 h-5 text-pink-600" />
                       <div>
                         <div className="text-sm text-gray-500">TikTok账号</div>
-                        <div className="font-medium">{influencer.tiktok_account || '未设置'}</div>
+                        <div className="font-medium">***</div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
@@ -609,7 +580,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                       <DollarSign className="w-5 h-5 text-pink-600" />
                       <div>
                         <div className="text-sm text-gray-500">小时收费</div>
-                        <div className="font-medium">${influencer.hourly_rate?.toLocaleString() || 0}</div>
+                        <div className="font-medium">***</div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
@@ -798,51 +769,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
           </div>
         )}
 
-        {/* 数据统计 */}
-        <div className="bg-white rounded-xl shadow-sm p-8">
-          <h3 className="text-xl font-semibold text-gray-900 mb-6">数据统计</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                <Users className="w-8 h-8 text-white" />
-              </div>
-              <div className="text-2xl font-bold text-gray-900 mb-1">
-                {influencer.followers_count?.toLocaleString() || 0}
-              </div>
-              <div className="text-sm text-gray-600">粉丝数量</div>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                <Video className="w-8 h-8 text-white" />
-              </div>
-              <div className="text-2xl font-bold text-gray-900 mb-1">
-                {influencer.total_live_count || 0}
-              </div>
-              <div className="text-sm text-gray-600">直播场次</div>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                <TrendingUp className="w-8 h-8 text-white" />
-              </div>
-              <div className="text-2xl font-bold text-gray-900 mb-1">
-                {influencer.avg_views?.toLocaleString() || 0}
-              </div>
-              <div className="text-sm text-gray-600">平均观看量</div>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                <Award className="w-8 h-8 text-white" />
-              </div>
-              <div className="text-2xl font-bold text-gray-900 mb-1">
-                {Number(influencer.rating).toFixed(1) || '0.0'}
-              </div>
-              <div className="text-sm text-gray-600">平均评分</div>
-            </div>
-          </div>
-        </div>
+
       </div>
     </div>
   )

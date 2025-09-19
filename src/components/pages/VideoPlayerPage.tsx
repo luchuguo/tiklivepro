@@ -465,12 +465,8 @@ export function VideoPlayerPage() {
                 {currentVideo.description}
               </p>
 
-              {/* 统计信息 */}
+              {/* 分类和时长 */}
               <div className="flex items-center space-x-6 text-sm text-gray-500 mb-4">
-                <div className="flex items-center space-x-1">
-                  <Eye className="w-4 h-4" />
-                  <span>{currentVideo.views_count || currentVideo.views} 次观看</span>
-                </div>
                 <div className="flex items-center space-x-1">
                   <Clock className="w-4 h-4" />
                   <span>{currentVideo.duration}</span>
@@ -479,31 +475,6 @@ export function VideoPlayerPage() {
                   <Star className="w-4 h-4" />
                   <span>{currentVideo.category?.name || currentVideo.category}</span>
                 </div>
-              </div>
-
-              {/* 互动按钮 */}
-              <div className="flex items-center space-x-6">
-                <button
-                  onClick={() => setIsLiked(!isLiked)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                    isLiked 
-                      ? 'bg-red-100 text-red-600' 
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
-                  <span>{currentVideo.likes_count || currentVideo.likes}</span>
-                </button>
-                
-                <button className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
-                  <MessageCircle className="w-5 h-5" />
-                  <span>{currentVideo.comments_count || currentVideo.comments}</span>
-                </button>
-                
-                <button className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
-                  <Share2 className="w-5 h-5" />
-                  <span>{currentVideo.shares_count || currentVideo.shares}</span>
-                </button>
               </div>
 
               {/* 标签 */}
@@ -534,14 +505,9 @@ export function VideoPlayerPage() {
                   <h3 className="font-semibold text-gray-900">
                     {currentVideo.influencer_name || currentVideo.influencer?.name}
                   </h3>
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <Users className="w-4 h-4" />
-                    <span>{currentVideo.influencer_followers || currentVideo.influencer?.followers} 粉丝</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                    <span>{currentVideo.influencer_rating || currentVideo.influencer?.rating} 评分</span>
-                  </div>
+                  <p className="text-sm text-gray-600">
+                    {currentVideo.category?.name || currentVideo.category}
+                  </p>
                 </div>
               </div>
               
@@ -572,9 +538,6 @@ export function VideoPlayerPage() {
                         <h4 className="font-medium text-gray-900 text-sm line-clamp-2">
                           {video.title}
                         </h4>
-                        <p className="text-xs text-gray-500 mt-1">
-                          观看次数: {video.views_count}
-                        </p>
                         <p className="text-xs text-gray-500">
                           {video.influencer_name}
                         </p>

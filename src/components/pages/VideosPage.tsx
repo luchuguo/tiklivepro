@@ -338,30 +338,6 @@ export function VideosPage() {
                         <span className="text-sm text-gray-700 font-medium">
                           {video.influencer_name}
                         </span>
-                        <div className="flex items-center space-x-1">
-                          <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                          <span className="text-xs text-gray-600">{video.influencer_rating}</span>
-                        </div>
-                      </div>
-                      
-                      {/* 统计数据 */}
-                      <div className="flex items-center justify-between text-xs text-gray-500">
-                        <div className="flex items-center space-x-1">
-                          <Eye className="w-3 h-3" />
-                          <span>{video.views_count}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Heart className="w-3 h-3" />
-                          <span>{video.likes_count}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <MessageCircle className="w-3 h-3" />
-                          <span>{video.comments_count}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Share2 className="w-3 h-3" />
-                          <span>{video.shares_count}</span>
-                        </div>
                       </div>
                       
                       {/* 发布时间 */}
@@ -438,30 +414,6 @@ export function VideosPage() {
                           <span className="text-sm text-gray-700 font-medium">
                             {video.influencer_name}
                           </span>
-                          <div className="flex items-center space-x-1">
-                            <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                            <span className="text-xs text-gray-600">{video.influencer_rating}</span>
-                          </div>
-                        </div>
-                        
-                        {/* 统计数据 */}
-                        <div className="flex items-center justify-between text-xs text-gray-500">
-                          <div className="flex items-center space-x-1">
-                            <Eye className="w-3 h-3" />
-                            <span>{video.views_count}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <Heart className="w-3 h-3" />
-                            <span>{video.likes_count}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <MessageCircle className="w-3 h-3" />
-                            <span>{video.comments_count}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <Share2 className="w-3 h-3" />
-                            <span>{video.shares_count}</span>
-                          </div>
                         </div>
                         
                         {/* 发布时间 */}

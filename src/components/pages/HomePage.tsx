@@ -126,18 +126,6 @@ export function HomePage() {
                   alt="TikTok直播"
                   className="rounded-2xl shadow-2xl"
                 />
-                <div className="absolute -top-6 -left-6 bg-white p-4 rounded-xl shadow-lg">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-medium text-gray-700">正在直播</span>
-                  </div>
-                </div>
-                <div className="absolute -bottom-6 -right-6 bg-white p-4 rounded-xl shadow-lg">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-pink-600">98.5%</div>
-                    <div className="text-sm text-gray-600">满意度</div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>

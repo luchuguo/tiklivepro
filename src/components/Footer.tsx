@@ -74,7 +74,7 @@ export function Footer({ onPageChange }: FooterProps) {
         <div className="border-t border-gray-800 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-4 text-gray-400 text-sm">
-              <span>© 2024 tkgogogo.com. 保留所有权利.</span>
+              <span>© 2025 tkgogogo.com. 保留所有权利.</span>
               <div className="flex items-center space-x-1">
                 <MapPin className="w-4 h-4" />
                 <span>中国·江苏</span>
