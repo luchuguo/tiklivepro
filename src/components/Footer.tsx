@@ -31,11 +31,11 @@ export function Footer({ onPageChange }: FooterProps) {
             <div className="flex items-center space-x-2 mb-4">
               <img 
                 src="/logo.png" 
-                alt="tkgogogo.com Logo" 
+                alt="tkbubu.com Logo" 
                 className="w-8 h-8"
               />
               <span className="text-xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
-                tkgogogo.com
+                tkbubu.com
               </span>
             </div>
             <p className="text-gray-300 mb-6 max-w-md">
@@ -44,7 +44,7 @@ export function Footer({ onPageChange }: FooterProps) {
             <div className="flex space-x-4">
               <div className="flex items-center space-x-2 text-gray-300">
                 <Mail className="w-4 h-4" />
-                <span className="text-sm">contact@tkgogogo.com</span>
+                <span className="text-sm">contact@tkbubu.com</span>
               </div>
               <div className="flex items-center space-x-2 text-gray-300">
                 <Phone className="w-4 h-4" />
@@ -74,7 +74,7 @@ export function Footer({ onPageChange }: FooterProps) {
         <div className="border-t border-gray-800 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-4 text-gray-400 text-sm">
-              <span>© 2025 tkgogogo.com. 保留所有权利.</span>
+              <span>© 2025 tkbubu.com. 保留所有权利.</span>
               <div className="flex items-center space-x-1">
                 <MapPin className="w-4 h-4" />
                 <span>中国·江苏</span>

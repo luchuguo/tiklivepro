@@ -6,7 +6,7 @@ export function TermsPage() {
     {
       title: '1. 服务条款的接受',
       content: [
-        '欢迎使用tkgogogo.com平台。通过访问或使用我们的服务，您同意受本服务条款的约束。',
+        '欢迎使用tkbubu.com平台。通过访问或使用我们的服务，您同意受本服务条款的约束。',
         '如果您不同意这些条款，请不要使用我们的服务。',
         '我们保留随时修改这些条款的权利，修改后的条款将在网站上公布后生效。'
       ]
@@ -14,7 +14,7 @@ export function TermsPage() {
     {
       title: '2. 服务描述',
       content: [
-        'tkgogogo.com是一个连接品牌方与TikTok达人的专业直播带货平台。',
+        'tkbubu.com是一个连接品牌方与TikTok达人的专业直播带货平台。',
         '我们提供任务发布、达人匹配、直播管理、数据分析等服务。',
         '平台致力于为用户提供安全、高效、透明的交易环境。'
       ]
@@ -100,7 +100,7 @@ export function TermsPage() {
             </div>
             <h1 className="text-4xl font-bold text-gray-900 mb-4">服务条款</h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              请仔细阅读以下服务条款。使用tkgogogo.com平台即表示您同意遵守这些条款。
+              请仔细阅读以下服务条款。使用tkbubu.com平台即表示您同意遵守这些条款。
             </p>
             <div className="mt-6 flex items-center justify-center space-x-4 text-sm text-gray-500">
               <span>最后更新：2024年1月1日</span>
@@ -119,7 +119,7 @@ export function TermsPage() {
             <div>
               <h3 className="font-semibold text-amber-800 mb-2">重要提示</h3>
               <p className="text-amber-700">
-                本服务条款是您与tkgogogo.com之间的法律协议。请在使用我们的服务前仔细阅读并理解所有条款。
+                本服务条款是您与tkbubu.com之间的法律协议。请在使用我们的服务前仔细阅读并理解所有条款。
                 如果您对任何条款有疑问，请联系我们的客服团队。
               </p>
             </div>

@@ -283,7 +283,7 @@ export function HomePage() {
             准备开始您的TikTok直播带货之旅？
           </h2>
           <p className="text-xl text-pink-100 mb-8">
-            加入tkgogogo.com，与优质合作伙伴一起创造更大价值
+            加入tkbubu.com，与优质合作伙伴一起创造更大价值
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 

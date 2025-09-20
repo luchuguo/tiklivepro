@@ -3,10 +3,10 @@ import { Video, Users, Building2, Award, Target, Heart, ArrowRight, CheckCircle 
 
 export function AboutPage() {
   const stats = [
-    { label: '注册用户', value: '50,000+', icon: Users },
-    { label: '合作品牌', value: '1,200+', icon: Building2 },
-    { label: '成功案例', value: '8,500+', icon: Award },
-    { label: '直播场次', value: '25,000+', icon: Video },
+    { label: '注册用户', value: '持续增长', icon: Users },
+    { label: '合作品牌', value: '不断扩大', icon: Building2 },
+    { label: '成功案例', value: '快速积累', icon: Award },
+    { label: '直播场次', value: '稳步提升', icon: Video },
   ]
 
   const values = [
@@ -32,29 +32,6 @@ export function AboutPage() {
     }
   ]
 
-  const timeline = [
-    {
-      year: '2023',
-      title: '平台创立',
-              description: 'tkgogogo.com正式上线，开始为品牌和达人提供专业的直播带货服务'
-    },
-    {
-      year: '2023',
-      title: '快速发展',
-      description: '用户数量突破1万，成功举办超过1000场直播活动'
-    },
-    {
-      year: '2024',
-      title: '规模扩张',
-      description: '平台用户突破5万，合作品牌超过1000家，业务覆盖全国'
-    },
-    {
-      year: '2024',
-      title: '技术升级',
-      description: '推出AI智能匹配系统，大幅提升达人与品牌的匹配效率'
-    }
-  ]
-
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
@@ -64,7 +41,7 @@ export function AboutPage() {
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
               关于
               <span className="bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-                tkgogogo.com
+                tkbubu.com
               </span>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
@@ -157,38 +134,6 @@ export function AboutPage() {
                 <p className="text-gray-600">{value.description}</p>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Timeline Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">发展历程</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              从创立至今，我们始终专注于为用户创造价值
-            </p>
-          </div>
-          <div className="relative">
-            <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-pink-500 to-purple-600 rounded-full"></div>
-            <div className="space-y-12">
-              {timeline.map((item, index) => (
-                <div key={index} className={`flex items-center ${index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'}`}>
-                  <div className={`w-1/2 ${index % 2 === 0 ? 'pr-8 text-right' : 'pl-8 text-left'}`}>
-                    <div className="bg-white p-6 rounded-xl shadow-lg">
-                      <div className="text-2xl font-bold text-pink-600 mb-2">{item.year}</div>
-                      <h3 className="text-xl font-semibold text-gray-900 mb-3">{item.title}</h3>
-                      <p className="text-gray-600">{item.description}</p>
-                    </div>
-                  </div>
-                  <div className="relative z-10">
-                    <div className="w-4 h-4 bg-white border-4 border-pink-500 rounded-full"></div>
-                  </div>
-                  <div className="w-1/2"></div>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </section>

@@ -83,7 +83,7 @@ export function PrivacyPage() {
           <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-8 mb-12">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">隐私保护承诺</h2>
             <p className="text-gray-700 leading-relaxed">
-              tkgogogo.com致力于保护用户隐私，我们严格遵守相关法律法规，采用先进的技术手段和管理措施，
+              tkbubu.com致力于保护用户隐私，我们严格遵守相关法律法规，采用先进的技术手段和管理措施，
               确保您的个人信息安全。我们承诺不会出售、出租或以其他方式向第三方披露您的个人信息，
               除非获得您的明确同意或法律要求。
             </p>
@@ -238,7 +238,7 @@ export function PrivacyPage() {
                 <strong className="text-gray-900">邮箱地址</strong>
                 <div className="flex items-center space-x-2">
                   <Mail className="w-5 h-5 text-gray-400" />
-                  <p className="text-gray-600">privacy@tkgogogo.com</p>
+                  <p className="text-gray-600">privacy@tkbubu.com</p>
                 </div>
               </div>
               <div className="bg-white rounded-lg p-4">

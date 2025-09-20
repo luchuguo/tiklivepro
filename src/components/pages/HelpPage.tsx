@@ -91,7 +91,7 @@ export function HelpPage() {
     {
       icon: Mail,
       title: '邮件支持',
-              description: 'contact@tkgogogo.com',
+              description: 'contact@tkbubu.com',
       action: '发送邮件',
       color: 'from-pink-500 to-red-600'
     }

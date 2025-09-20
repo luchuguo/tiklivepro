@@ -35,7 +35,7 @@ export function ContactPage() {
     {
       icon: Mail,
       title: "电子邮件",
-      content: "contact@tkgogogo.com",
+      content: "contact@tkbubu.com",
       description: "工作日24小时内回复"
     },
     {
@@ -59,25 +59,25 @@ export function ContactPage() {
       icon: Users,
       title: '达人服务',
       description: '达人注册、认证、任务申请相关问题',
-      email: 'contact@tkgogogo.com'
+      email: 'contact@tkbubu.com'
     },
     {
       icon: Building2,
       title: '企业服务',
       description: '企业合作、任务发布、商务洽谈',
-      email: 'contact@tkgogogo.com'
+      email: 'contact@tkbubu.com'
     },
     {
       icon: Headphones,
       title: '技术支持',
       description: '平台使用、技术问题、功能建议',
-      email: 'contact@tkgogogo.com'
+      email: 'contact@tkbubu.com'
     },
     {
       icon: MessageCircle,
       title: '媒体合作',
       description: '媒体采访、品牌合作、公关事务',
-      email: 'contact@tkgogogo.com'
+      email: 'contact@tkbubu.com'
     }
   ]
 
