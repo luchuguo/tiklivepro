@@ -1,20 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import { 
   ArrowLeft, 
-  Play, 
-  Pause, 
-  Volume2, 
-  VolumeX, 
-  Maximize, 
-  Heart, 
   Share2, 
-  MessageCircle,
-  Users,
   Star,
   Clock,
+  Download,
+  Users,
+  Heart,
+  MessageCircle,
   Eye,
-  ThumbsUp,
-  Download
+  ThumbsUp
 } from 'lucide-react'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
@@ -23,7 +18,7 @@ interface Video {
   id: string
   title: string
   description: string
-  video_url: string
+  video_url: string  // 现在这个字段将存储 YouTube 视频 ID
   poster_url: string
   views_count: string
   likes_count: string
@@ -55,7 +50,7 @@ interface RelatedVideo {
   influencer_avatar: string
   category?: {
     name: string
-  }
+  } | null
 }
 
 interface VideoDetailResponse {
@@ -168,7 +163,7 @@ export function VideoPlayerPage() {
             likes_count,
             influencer_name,
             influencer_avatar,
-            category:video_categories(name)
+            category:video_categories!inner(name)
           `)
           .eq('is_active', true)
           .neq('id', videoId)
@@ -201,7 +196,17 @@ export function VideoPlayerPage() {
             shares_count: video.shares_count || '0',
             tags: video.tags || []
           },
-          relatedVideos: relatedVideos || [],
+          relatedVideos: relatedVideos ? relatedVideos.map(video => ({
+            id: video.id,
+            title: video.title,
+            poster_url: video.poster_url,
+            duration: video.duration,
+            views_count: video.views_count,
+            likes_count: video.likes_count,
+            influencer_name: video.influencer_name,
+            influencer_avatar: video.influencer_avatar,
+            category: video.category ? { name: String(video.category.name) } : null
+          })) : [],
           categories: categories || [],
           meta: {
             title: video.title,
@@ -369,89 +374,17 @@ export function VideoPlayerPage() {
             {/* 视频播放器 */}
             <div className="bg-black rounded-xl overflow-hidden shadow-lg">
               <div className="relative aspect-video">
-                <video
-                  ref={videoRef}
-                  className="w-full h-full"
-                  poster={currentVideo.poster_url}
-                  onClick={togglePlay}
-                >
-                  <source src={currentVideo.video_url} type="video/mp4" />
-                  您的浏览器不支持视频播放
-                </video>
-
-                {/* 播放控制覆盖层 */}
-                {showControls && (
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity">
-                    {/* 播放/暂停按钮 */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <button
-                        onClick={togglePlay}
-                        className="w-20 h-20 bg-white/90 rounded-full flex items-center justify-center hover:bg-white transition-colors"
-                      >
-                        {isPlaying ? (
-                          <Pause className="w-10 h-10 text-gray-800" />
-                        ) : (
-                          <Play className="w-10 h-10 text-gray-800 ml-1" />
-                        )}
-                      </button>
-                    </div>
-
-                    {/* 底部控制栏 */}
-                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                      {/* 进度条 */}
-                      <div className="mb-3">
-                        <input
-                          type="range"
-                          min="0"
-                          max={duration || 0}
-                          value={currentTime}
-                          onChange={handleSeek}
-                          className="w-full h-2 bg-white/30 rounded-lg appearance-none cursor-pointer slider"
-                        />
-                      </div>
-
-                      {/* 控制按钮 */}
-                      <div className="flex items-center justify-between text-white">
-                        <div className="flex items-center space-x-4">
-                          <button onClick={togglePlay}>
-                            {isPlaying ? (
-                              <Pause className="w-5 h-5" />
-                            ) : (
-                              <Play className="w-5 h-5" />
-                            )}
-                          </button>
-                          
-                          <div className="flex items-center space-x-2">
-                            <button onClick={toggleMute}>
-                              {isMuted ? (
-                                <VolumeX className="w-4 h-4" />
-                              ) : (
-                                <Volume2 className="w-4 h-4" />
-                              )}
-                            </button>
-                            <input
-                              type="range"
-                              min="0"
-                              max="1"
-                              step="0.1"
-                              value={volume}
-                              onChange={handleVolumeChange}
-                              className="w-16 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer"
-                            />
-                          </div>
-                          
-                          <span className="text-sm">
-                            {formatTime(currentTime)} / {formatTime(duration)}
-                          </span>
-                        </div>
-                        
-                        <button onClick={toggleFullscreen}>
-                          <Maximize className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src={`https://www.youtube.com/embed/${currentVideo.video_url}`}
+                  title={currentVideo.title}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                  className="absolute inset-0"
+                ></iframe>
               </div>
             </div>
 
@@ -571,7 +504,8 @@ export function VideoPlayerPage() {
       </div>
 
       {/* 自定义样式 */}
-      <style jsx>{`
+      <style>
+        {`
         .slider::-webkit-slider-thumb {
           appearance: none;
           height: 16px;
@@ -596,7 +530,8 @@ export function VideoPlayerPage() {
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
-      `}</style>
+        `}
+      </style>
     </div>
   )
 }

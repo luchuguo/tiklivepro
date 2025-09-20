@@ -301,17 +301,36 @@ export function VideoManagement() {
       setSaving(true)
       setError(null)
 
+      // 格式化数据
+      const formattedData = {
+        title: editingVideo.title || '',
+        description: editingVideo.description || '',
+        video_url: editingVideo.video_url || '',
+        poster_url: editingVideo.poster_url || '',
+        duration: editingVideo.duration || '',
+        category_id: editingVideo.category_id || null,
+        influencer_name: editingVideo.influencer_name || '',
+        influencer_avatar: editingVideo.influencer_avatar || '',
+        influencer_followers: editingVideo.influencer_followers || '',
+        influencer_rating: editingVideo.influencer_rating || 0,
+        views_count: editingVideo.views_count || '0',
+        likes_count: editingVideo.likes_count || '0',
+        comments_count: editingVideo.comments_count || '0',
+        shares_count: editingVideo.shares_count || '0',
+        tags: Array.isArray(editingVideo.tags) ? editingVideo.tags : [],
+        is_featured: Boolean(editingVideo.is_featured),
+        is_active: editingVideo.is_active === undefined ? true : Boolean(editingVideo.is_active),
+        sort_order: editingVideo.sort_order || 0,
+        updated_at: new Date().toISOString()
+      }
+
       if (isEdit && editingVideo.id) {
         console.log('执行更新操作，视频ID:', editingVideo.id)
-        const updateData = {
-          ...editingVideo,
-          updated_at: new Date().toISOString()
-        }
-        console.log('更新数据:', updateData)
+        console.log('更新数据:', formattedData)
         
         const { data, error } = await supabase
           .from('videos')
-          .update(updateData)
+          .update(formattedData)
           .eq('id', editingVideo.id)
           .select()
 
@@ -326,7 +345,7 @@ export function VideoManagement() {
         console.log('执行创建操作')
         const { data, error } = await supabase
           .from('videos')
-          .insert([editingVideo])
+          .insert([formattedData])
           .select()
 
         if (error) {
@@ -358,7 +377,7 @@ export function VideoManagement() {
     } catch (error) {
       console.error('保存视频失败:', error)
       setError(`保存视频失败: ${error instanceof Error ? error.message : '未知错误'}`)
-      // 即使保存失败，也要重置保存状态
+    } finally {
       setSaving(false)
     }
   }
