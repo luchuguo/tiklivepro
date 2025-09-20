@@ -81,7 +81,7 @@ export function ProductionDebugger() {
 
   // 检查缓存状态
   const checkCacheStatus = () => {
-    const hasCache = localStorage.getItem('tkgogogo_cache') !== null
+    const hasCache = localStorage.getItem('tkbubu_cache') !== null
     return hasCache ? '✅ 已启用' : '❌ 未启用'
   }
 

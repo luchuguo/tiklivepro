@@ -170,11 +170,11 @@ function App() {
             >
               <img 
                 src="/logo.png" 
-                  alt="tkgogogo Logo" 
-                className="w-8 h-8"
+                alt="tkbubu Logo"
+                className="w-8 h-8" 
               />
-              <span className="text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-                  tkgogogo
+              <span className="text-xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
+                tkbubu
               </span>
             </button>
               <LanguageSwitcher />

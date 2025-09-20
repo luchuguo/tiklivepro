@@ -84,7 +84,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
   global: {
     headers: {
-      'X-Client-Info': 'tkgogogo-web'
+      'X-Client-Info': 'tkbubu-web'
     }
   },
   realtime: {
