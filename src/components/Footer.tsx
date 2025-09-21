@@ -83,7 +83,7 @@ export function Footer({ onPageChange }: FooterProps) {
             <div className="flex items-center space-x-1 text-gray-400 text-sm mt-4 md:mt-0">
               <span>Made with</span>
               <Heart className="w-4 h-4 text-pink-500" />
-              <span>by tkgo Team</span>
+              <span>by Tkbubu Team</span>
             </div>
           </div>
         </div>
