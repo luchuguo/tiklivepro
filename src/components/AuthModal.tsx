@@ -271,12 +271,16 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
             sessionStorage.clear()
             if (userType === 'company') {
               alert('Registration successful! The influencer selection module is being updated, stay tuned!')
+              // 关闭模态框
+              onClose()
+              // 跳转到首页
+              window.location.href = '/'
             } else {
               alert('注册成功，请重新登录！')
+              // 切换到登录模式
+              setMode('signin')
+              resetForm()
             }
-            // 切换到登录模式
-            setMode('signin')
-            resetForm()
           }
         } catch (signUpError) {
           console.error('注册API调用失败:', signUpError)

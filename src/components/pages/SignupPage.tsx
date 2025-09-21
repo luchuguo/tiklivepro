@@ -361,12 +361,16 @@ export function SignupPage() {
           // 显示成功提示
           if (userType === 'company') {
             alert('Registration successful! The influencer selection module is being updated, stay tuned!')
+            // 企业用户跳转到首页
+            navigate('/')
           } else {
             alert('注册成功！请登录后完善资料。')
+            // 达人用户跳转到登录测试页面
+            navigate('/login-test')
           }
           
           // 跳转到登录页面
-          navigate('/login-test')
+          // navigate('/login-test') // This line is now handled by the if/else block above
         }
       } catch (signUpError) {
         console.error('注册API调用失败:', signUpError)
