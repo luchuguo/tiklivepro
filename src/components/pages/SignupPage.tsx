@@ -359,7 +359,11 @@ export function SignupPage() {
           }
           
           // 显示成功提示
-          alert('注册成功！请登录后完善资料。')
+          if (userType === 'company') {
+            alert('Registration successful! The influencer selection module is being updated, stay tuned!')
+          } else {
+            alert('注册成功！请登录后完善资料。')
+          }
           
           // 跳转到登录页面
           navigate('/login-test')

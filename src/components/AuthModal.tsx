@@ -269,7 +269,11 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
             // 注册成功后清空缓存并显示提示
             localStorage.clear()
             sessionStorage.clear()
-            alert('注册成功，请重新登录！')
+            if (userType === 'company') {
+              alert('Registration successful! The influencer selection module is being updated, stay tuned!')
+            } else {
+              alert('注册成功，请重新登录！')
+            }
             // 切换到登录模式
             setMode('signin')
             resetForm()
