@@ -114,7 +114,7 @@ export function HomePage() {
                   className="border-2 border-gray-300 text-gray-600 px-8 py-4 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200 flex items-center justify-center space-x-2 opacity-75"
                 >
                   <Building2 className="w-5 h-5" />
-                  <span>品牌入驻</span>
+                  <span>商家入驻</span>
                 </Link>
               </div>
             </div>
