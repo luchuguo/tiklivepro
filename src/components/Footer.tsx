@@ -11,7 +11,8 @@ export function Footer({ onPageChange }: FooterProps) {
     { name: '服务条款', page: 'terms' },
     { name: '隐私政策', page: 'privacy' },
     { name: '帮助中心', page: 'help' },
-    { name: '联系我们', page: 'contact' }
+    { name: '联系我们', page: 'contact' },
+    { name: '网站地图', page: 'sitemap', href: '/sitemap.xml' } // 添加网站地图链接
   ]
 
   const services = [
@@ -59,12 +60,23 @@ export function Footer({ onPageChange }: FooterProps) {
             <ul className="space-y-2">
               {quickLinks.map((link) => (
                 <li key={link.page}>
-                  <button
-                    onClick={() => onPageChange(link.page)}
-                    className="text-gray-300 hover:text-pink-400 transition-colors text-left"
-                  >
-                    {link.name}
-                  </button>
+                  {link.href ? (
+                    <a
+                      href={link.href}
+                      className="text-gray-300 hover:text-pink-400 transition-colors"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {link.name}
+                    </a>
+                  ) : (
+                    <button
+                      onClick={() => onPageChange(link.page)}
+                      className="text-gray-300 hover:text-pink-400 transition-colors text-left"
+                    >
+                      {link.name}
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
