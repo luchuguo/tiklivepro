@@ -2,6 +2,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Users, Building2, TrendingUp, Star, Play, ArrowRight } from "lucide-react";
 import { supabase } from "../../lib/supabase";
+import { Helmet } from 'react-helmet-async';
 
 export function HomePage() {
   const [indexVideos, setIndexVideos] = useState<any[]>([]);
@@ -80,6 +81,11 @@ export function HomePage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <Helmet>
+        <title>Tkbubu | TikTok代播平台 · TikTok Livestream Agency</title>
+        <meta name="keywords" content="TikTok代播、TikTok直播代播,TikTok代运营、TikTok视频剪辑、TikTok海外推广,TikTok代播平台、TikTok直播代运营公司、TikTok代播机构推荐" />
+        <meta name="description" content="Tkbubu 是一个专业的 TikTok代播平台，提供TikTok直播代播、账号运营、视频剪辑服务，帮助商家拓展海外市场。" />
+      </Helmet>
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 pt-20 pb-32 overflow-hidden">
         <div className="absolute inset-0 opacity-40">
