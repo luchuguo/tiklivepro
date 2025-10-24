@@ -7,27 +7,27 @@ interface FooterProps {
 
 export function Footer({ onPageChange }: FooterProps) {
     const quickLinks = [
-    { name: '关于我们', page: 'about' },
-    { name: '服务条款', page: 'terms' },
-    { name: '隐私政策', page: 'privacy' },
-    { name: '帮助中心', page: 'help' },
-    { name: '联系我们', page: 'contact' },
-    { name: '网站地图', page: 'sitemap', href: '/sitemap.xml' } // 添加网站地图链接
+    { name: 'About Us', page: 'about' },
+    { name: 'Terms of Service', page: 'terms' },
+    { name: 'Privacy Policy', page: 'privacy' },
+    { name: 'Help Center', page: 'help' },
+    { name: 'Contact Us', page: 'contact' },
+    { name: 'Sitemap', page: 'sitemap', href: '/sitemap.xml' } // Add sitemap link
   ]
 
   const services = [
-    { name: '达人服务', href: '#' },
-    { name: '企业服务', href: '#' },
-    { name: '直播管理', href: '#' },
-    { name: '数据分析', href: '#' },
-    { name: 'API接口', href: '#' }
+    { name: 'Influencer Services', href: '#' },
+    { name: 'Company Services', href: '#' },
+    { name: 'Live Management', href: '#' },
+    { name: 'Data Analytics', href: '#' },
+    { name: 'API Interface', href: '#' }
   ]
 
   return (
     <footer className="bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* 品牌信息 */}
+          {/* Brand Information */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
               <img 
@@ -40,7 +40,7 @@ export function Footer({ onPageChange }: FooterProps) {
               </span>
             </div>
             <p className="text-gray-300 mb-6 max-w-md">
-              专业的TikTok代播平台，连接优质品牌与专业主播，提供高效的直播带货解决方案。
+            A professional TikTok partner platform that connects brands with vetted creators and provides efficient live-selling solutions.
             </p>
             <div className="flex space-x-4">
               <div className="flex items-center space-x-2 text-gray-300">
@@ -49,14 +49,14 @@ export function Footer({ onPageChange }: FooterProps) {
               </div>
               <div className="flex items-center space-x-2 text-gray-300">
                 <Phone className="w-4 h-4" />
-                <span className="text-sm">中国025-84799999 美国610-8577777</span>
+                <span className="text-sm">China 025-84799999 USA 610-8577777</span>
               </div>
             </div>
           </div>
 
-          {/* 快速链接 */}
+          {/* Quick Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">快速链接</h3>
+            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               {quickLinks.map((link) => (
                 <li key={link.page}>
@@ -86,10 +86,10 @@ export function Footer({ onPageChange }: FooterProps) {
         <div className="border-t border-gray-800 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-4 text-gray-400 text-sm">
-              <span>© 2025 Tkbubu. 保留所有权利.</span>
+              <span>© 2025 Tkbubu. All rights reserved.</span>
               <div className="flex items-center space-x-1">
                 <MapPin className="w-4 h-4" />
-                <span>中国·江苏</span>
+                <span>China·Jiangsu</span>
               </div>
             </div>
             <div className="flex items-center space-x-1 text-gray-400 text-sm mt-4 md:mt-0">

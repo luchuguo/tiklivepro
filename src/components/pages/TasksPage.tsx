@@ -30,12 +30,12 @@ export function TasksPage() {
   const [cacheStatus, setCacheStatus] = useState<'fresh' | 'cached' | 'loading'>('loading')
 
   const budgetRanges = [
-    { id: 'all', name: '全部预算' },
-          { id: '0-1000', name: '$1000以下' },
+    { id: 'all', name: 'All Budgets' },
+          { id: '0-1000', name: 'Under $1000' },
       { id: '1000-5000', name: '$1000-5000' },
       { id: '5000-10000', name: '$5000-10000' },
       { id: '10000-50000', name: '$10000-50000' },
-      { id: '50000+', name: '$50000以上' }
+      { id: '50000+', name: 'Over $50000' }
   ]
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export function TasksPage() {
 
   const fetchCategories = async () => {
     try {
-      // 从本地 API 服务器获取分类数据
+      // Fetch category data from local API server
       const response = await fetch('/api/categories', {
         method: 'GET',
         headers: {
@@ -59,7 +59,7 @@ export function TasksPage() {
 
       const data = await response.json()
       setCategories(data || [])
-      console.log('任务分类:', data)
+      console.log('Task categories:', data)
     } catch (error) {
       console.error('Error fetching categories:', error)
     }
@@ -71,9 +71,9 @@ export function TasksPage() {
       setError(null)
       setCacheStatus('loading')
       
-      console.log('开始从服务器缓存获取任务数据...')
+      console.log('Starting to fetch task data from server cache...')
       
-      // 构建查询参数
+      // Build query parameters
       const params = new URLSearchParams()
       if (selectedCategory !== 'all') {
         params.append('category', selectedCategory)
@@ -85,7 +85,7 @@ export function TasksPage() {
         params.append('sort', sortBy)
       }
 
-      // 从本地 API 服务器获取任务数据（带缓存）
+      // Fetch task data from local API server (with cache)
       const apiUrl = `/api/tasks${params.toString() ? `?${params.toString()}` : ''}`
       console.log('API URL:', apiUrl)
 
@@ -102,22 +102,22 @@ export function TasksPage() {
 
       const data = await response.json()
       
-      // 检查缓存状态
+      // Check cache status
       const cacheControl = response.headers.get('Cache-Control')
       const age = response.headers.get('Age')
       
       if (cacheControl && cacheControl.includes('s-maxage')) {
         setCacheStatus('cached')
-        console.log('✅ 数据来自服务器缓存')
+        console.log('✅ Data from server cache')
       } else {
         setCacheStatus('fresh')
-        console.log('🔄 数据来自数据库')
+        console.log('🔄 Data from database')
       }
 
-      // 应用客户端筛选和排序
+      // Apply client-side filtering and sorting
       let filteredTasks = data || []
 
-      // 预算筛选
+      // Budget filtering
       if (budgetRange !== 'all') {
         const [min, max] = budgetRange.split('-').map(Number)
         if (max) {
@@ -129,7 +129,7 @@ export function TasksPage() {
         }
       }
 
-      // 排序
+      // Sorting
       switch (sortBy) {
         case 'budget_desc':
           filteredTasks.sort((a: Task, b: Task) => b.budget_max - a.budget_max)
@@ -148,10 +148,10 @@ export function TasksPage() {
       }
       
       setTasks(filteredTasks)
-      console.log(`成功获取 ${filteredTasks.length} 个任务`)
+      console.log(`Successfully fetched ${filteredTasks.length} tasks`)
     } catch (error) {
       console.error('Error fetching tasks:', error)
-      setError('获取任务数据时发生错误')
+      setError('Error occurred while fetching task data')
     } finally {
       setLoading(false)
     }
@@ -175,7 +175,7 @@ export function TasksPage() {
               {task.is_urgent && (
                 <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs flex items-center space-x-1">
                   <AlertCircle className="w-3 h-3" />
-                  <span>紧急</span>
+                  <span>Urgent</span>
                 </span>
               )}
               {task.category && (
@@ -185,21 +185,21 @@ export function TasksPage() {
               )}
               <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs">
                 {{
-                  open: '招募中',
-                  in_progress: '进行中',
-                  completed: '已完成',
-                  cancelled: '已取消',
+                  open: 'Recruiting',
+                  in_progress: 'In Progress',
+                  completed: 'Completed',
+                  cancelled: 'Cancelled',
                 }[task.status]}
               </span>
 
-              {/* 预付标记 */}
+              {/* Prepayment Badge */}
               {task.is_advance_paid ? (
                 <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs">
-                  已预付 ${(task.paid_amount ?? 0).toLocaleString()}
+                  Prepaid ${(task.paid_amount ?? 0).toLocaleString()}
                 </span>
               ) : (
                 <span className="bg-gray-100 text-gray-500 px-2 py-1 rounded-full text-xs">
-                  未预付
+                  Not Prepaid
                 </span>
               )}
             </div>
@@ -216,7 +216,7 @@ export function TasksPage() {
           <div className="bg-gray-50 rounded-lg p-3 mb-4">
             <div className="flex items-center space-x-2">
               <Tag className="w-4 h-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-700">产品：{task.product_name}</span>
+              <span className="text-sm font-medium text-gray-700">Product: {task.product_name}</span>
             </div>
           </div>
         )}
@@ -228,7 +228,7 @@ export function TasksPage() {
           </div>
           <div className="flex items-center space-x-2 text-gray-600">
             <Clock className="w-4 h-4" />
-            <span>{Number(task.duration_hours)}小时</span>
+            <span>{Number(task.duration_hours)} hours</span>
           </div>
           <div className="flex items-center space-x-2 text-gray-600">
             <Calendar className="w-4 h-4" />
@@ -236,13 +236,13 @@ export function TasksPage() {
           </div>
           <div className="flex items-center space-x-2 text-gray-600">
             <MapPin className="w-4 h-4" />
-            <span>{task.location || '线上'}</span>
+            <span>{task.location || 'Online'}</span>
           </div>
         </div>
 
         {task.requirements && task.requirements.length > 0 && (
           <div className="mb-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-2">要求：</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-2">Requirements:</h4>
             <div className="flex flex-wrap gap-1">
               {task.requirements.slice(0, 3).map((req, index) => (
                 <span key={index} className="bg-pink-100 text-pink-700 px-2 py-1 rounded-full text-xs">
@@ -250,7 +250,7 @@ export function TasksPage() {
                 </span>
               ))}
               {task.requirements.length > 3 && (
-                <span className="text-xs text-gray-500">+{task.requirements.length - 3}个</span>
+                <span className="text-xs text-gray-500">+{task.requirements.length - 3} more</span>
               )}
             </div>
           </div>
@@ -260,7 +260,7 @@ export function TasksPage() {
           <div className="flex items-center space-x-4 text-sm text-gray-500">
             <div className="flex items-center space-x-1">
               <Building2 className="w-4 h-4" />
-              <span>{task.company?.company_name || '未知公司'}</span>
+              <span>{task.company?.company_name || 'Unknown Company'}</span>
             </div>
             <div className="flex items-center space-x-1">
               <Users className="w-4 h-4" />
@@ -272,7 +272,7 @@ export function TasksPage() {
             </div>
           </div>
           <button className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg transition-all duration-200">
-            立即申请
+            Apply Now
           </button>
         </div>
       </div>
@@ -288,30 +288,30 @@ export function TasksPage() {
             <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
               <Calendar className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">任务大厅</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">Task Center</h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              发现优质直播带货任务，开启您的变现之旅
+              Discover top live streaming sales opportunities and start earning today
             </p>
             
-            {/* 缓存状态指示器 - 生产环境隐藏 */}
+            {/* Cache status indicator - Hidden in production */}
             {!import.meta.env.PROD && (
               <div className="mt-4 flex items-center justify-center space-x-2">
                 {cacheStatus === 'cached' && (
                   <div className="flex items-center space-x-2 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
                     <CheckCircle className="w-4 h-4" />
-                    <span>服务器缓存</span>
+                    <span>Server Cache</span>
                   </div>
                 )}
                 {cacheStatus === 'fresh' && (
                   <div className="flex items-center space-x-2 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
                     <RefreshCw className="w-4 h-4" />
-                    <span>实时数据</span>
+                    <span>Real-time Data</span>
                   </div>
                 )}
                 {cacheStatus === 'loading' && (
                   <div className="flex items-center space-x-2 bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm">
                     <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                    <span>加载中</span>
+                    <span>Loading</span>
                   </div>
                 )}
               </div>
@@ -329,7 +329,7 @@ export function TasksPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="搜索任务标题或产品..."
+                placeholder="Search task title or product..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -343,7 +343,7 @@ export function TasksPage() {
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="all">全部分类</option>
+                <option value="all">All Categories</option>
                 {categories.map(category => (
                   <option key={category.id} value={category.id}>
                     {category.name}
@@ -368,11 +368,11 @@ export function TasksPage() {
                 onChange={(e) => setSortBy(e.target.value)}
                 className="border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="created_at">最新发布</option>
-                <option value="budget_desc">预算从高到低</option>
-                <option value="budget_asc">预算从低到高</option>
-                <option value="live_date">直播时间</option>
-                <option value="urgent">紧急任务优先</option>
+                <option value="created_at">Latest Posted</option>
+                <option value="budget_desc">Highest Budget</option>
+                <option value="budget_asc">Lowest Budget</option>
+                <option value="live_date">Live Date</option>
+                <option value="urgent">Urgent First</option>
               </select>
               
               <button
@@ -380,16 +380,16 @@ export function TasksPage() {
                 className="bg-blue-500 text-white px-4 py-3 rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
               >
                 <RefreshCw className="w-4 h-4" />
-                <span>刷新</span>
+                <span>Refresh</span>
               </button>
             </div>
           </div>
           
           {/* Debug Info */}
           <div className="mt-4 text-sm text-gray-600">
-            <p>总任务数: {tasks.length} | 筛选后: {filteredTasks.length} | 分类数: {categories.length}</p>
+            <p>Total Tasks: {tasks.length} | Filtered: {filteredTasks.length} | Categories: {categories.length}</p>
             {error && (
-              <p className="text-red-600 mt-2">错误: {error}</p>
+              <p className="text-red-600 mt-2">Error: {error}</p>
             )}
           </div>
         </div>
@@ -416,13 +416,13 @@ export function TasksPage() {
           ) : error ? (
             <div className="text-center py-12">
               <Calendar className="w-16 h-16 text-red-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-red-600 mb-2">加载失败</h3>
+              <h3 className="text-xl font-semibold text-red-600 mb-2">Loading Failed</h3>
               <p className="text-red-500 mb-4">{error}</p>
               <button
                 onClick={fetchTasks}
                 className="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition-colors"
               >
-                重试
+                Retry
               </button>
             </div>
           ) : filteredTasks.length > 0 ? (
@@ -434,15 +434,15 @@ export function TasksPage() {
           ) : (
             <div className="text-center py-12">
               <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">暂无任务</h3>
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">No Tasks Available</h3>
               <p className="text-gray-500 mb-4">
-                {searchQuery ? '没有找到匹配的任务，请尝试其他关键词' : '当前筛选条件下暂无任务，请调整筛选条件'}
+                {searchQuery ? 'No matching tasks found, please try other keywords' : 'No tasks under current filter conditions, please adjust filters'}
               </p>
               <button
                 onClick={fetchTasks}
                 className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors"
               >
-                重新加载
+                Reload
               </button>
             </div>
           )}

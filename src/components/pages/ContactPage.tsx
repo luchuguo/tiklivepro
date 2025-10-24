@@ -27,29 +27,30 @@ export function ContactPage() {
   const contactInfo = [
     {
       icon: Phone,
-      title: '客服热线',
-      content: '中国025-84799999\n美国610-8577777',
-      description: '7×24小时专业客服',
+      title: 'Customer Hotline',
+      content: 'China 025-84799999\nUSA 610-8577777',
+      description: '7×24 hours professional service',
       color: 'from-blue-500 to-purple-600'
     },
     {
       icon: Mail,
-      title: "电子邮件",
-      content: "contact@tkbubu.com",
-      description: "工作日24小时内回复"
+      title: 'Email',
+      content: 'contact@tkbubu.com',
+      description: 'Reply within 24 hours on business days',
+      color: 'from-green-500 to-blue-600'
     },
     {
       icon: MapPin,
-      title: '公司地址',
-      content: '中国·江苏',
-      description: '欢迎预约实地拜访',
+      title: 'Company Address',
+      content: 'Jiangsu, China',
+      description: 'Welcome to schedule on-site visits',
       color: 'from-pink-500 to-red-600'
     },
     {
       icon: Clock,
-      title: '工作时间',
-      content: '周一至周五 9:00-18:00',
-      description: '节假日客服在线',
+      title: 'Business Hours',
+      content: 'Monday to Friday 9:00-18:00',
+      description: 'Customer service online on holidays',
       color: 'from-purple-500 to-pink-600'
     }
   ]
@@ -57,26 +58,26 @@ export function ContactPage() {
   const departments = [
     {
       icon: Users,
-      title: '达人服务',
-      description: '达人注册、认证、任务申请相关问题',
+      title: 'Influencer Services',
+      description: 'Influencer registration, certification, task application related questions',
       email: 'contact@tkbubu.com'
     },
     {
       icon: Building2,
-      title: '企业服务',
-      description: '企业合作、任务发布、商务洽谈',
+      title: 'Enterprise Services',
+      description: 'Enterprise cooperation, task publishing, business negotiations',
       email: 'contact@tkbubu.com'
     },
     {
       icon: Headphones,
-      title: '技术支持',
-      description: '平台使用、技术问题、功能建议',
+      title: 'Technical Support',
+      description: 'Platform usage, technical issues, feature suggestions',
       email: 'contact@tkbubu.com'
     },
     {
       icon: MessageCircle,
-      title: '媒体合作',
-      description: '媒体采访、品牌合作、公关事务',
+      title: 'Media Cooperation',
+      description: 'Media interviews, brand cooperation, PR affairs',
       email: 'contact@tkbubu.com'
     }
   ]
@@ -92,13 +93,13 @@ export function ContactPage() {
     e.preventDefault()
     setIsSubmitting(true)
     
-    // 模拟提交过程
+    // Simulate submission process
     await new Promise(resolve => setTimeout(resolve, 2000))
     
     setIsSubmitting(false)
     setIsSubmitted(true)
     
-    // 重置表单
+    // Reset form
     setTimeout(() => {
       setIsSubmitted(false)
       setFormData({
@@ -121,9 +122,9 @@ export function ContactPage() {
             <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
               <MessageCircle className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">联系我们</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              我们重视每一位用户的声音，无论您有任何问题、建议或合作意向，都欢迎与我们联系。
+              We value every user's voice. Whether you have questions, suggestions, or cooperation intentions, feel free to contact us.
             </p>
           </div>
         </div>
@@ -153,20 +154,20 @@ export function ContactPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Contact Form */}
             <div className="bg-white rounded-2xl p-8 shadow-lg">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">发送消息</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Send Message</h2>
               
               {isSubmitted ? (
                 <div className="text-center py-8">
                   <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">消息发送成功！</h3>
-                  <p className="text-gray-600">我们会在24小时内回复您的消息</p>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Message sent successfully!</h3>
+                  <p className="text-gray-600">We will reply to your message within 24 hours</p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        姓名 *
+                        Name *
                       </label>
                       <input
                         type="text"
@@ -175,12 +176,12 @@ export function ContactPage() {
                         onChange={handleInputChange}
                         required
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="请输入您的姓名"
+                        placeholder="Enter your name"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        邮箱 *
+                        Email *
                       </label>
                       <input
                         type="email"
@@ -189,7 +190,7 @@ export function ContactPage() {
                         onChange={handleInputChange}
                         required
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="请输入邮箱地址"
+                        placeholder="Enter your email address"
                       />
                     </div>
                   </div>
@@ -197,7 +198,7 @@ export function ContactPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        手机号码
+                        Phone Number
                       </label>
                       <input
                         type="tel"
@@ -205,12 +206,12 @@ export function ContactPage() {
                         value={formData.phone}
                         onChange={handleInputChange}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="请输入手机号码"
+                        placeholder="Enter your phone number"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        用户类型
+                        User Type
                       </label>
                       <select
                         name="userType"
@@ -218,17 +219,17 @@ export function ContactPage() {
                         onChange={handleInputChange}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
-                        <option value="general">一般咨询</option>
-                        <option value="influencer">达人主播</option>
-                        <option value="company">企业用户</option>
-                        <option value="media">媒体合作</option>
+                        <option value="general">General Inquiry</option>
+                        <option value="influencer">Influencer</option>
+                        <option value="company">Enterprise User</option>
+                        <option value="media">Media Cooperation</option>
                       </select>
                     </div>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      主题 *
+                      Subject *
                     </label>
                     <input
                       type="text"
@@ -237,13 +238,13 @@ export function ContactPage() {
                       onChange={handleInputChange}
                       required
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="请简要描述您的问题"
+                      placeholder="Briefly describe your question"
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      详细描述 *
+                      Detailed Description *
                     </label>
                     <textarea
                       name="message"
@@ -252,7 +253,7 @@ export function ContactPage() {
                       required
                       rows={5}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                      placeholder="请详细描述您的问题或需求..."
+                      placeholder="Please describe your question or needs in detail..."
                     />
                   </div>
 
@@ -264,12 +265,12 @@ export function ContactPage() {
                     {isSubmitting ? (
                       <>
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        <span>发送中...</span>
+                        <span>Sending...</span>
                       </>
                     ) : (
                       <>
                         <Send className="w-5 h-5" />
-                        <span>发送消息</span>
+                        <span>Send Message</span>
                       </>
                     )}
                   </button>
@@ -279,7 +280,7 @@ export function ContactPage() {
 
             {/* Departments */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">专业部门</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Departments</h2>
               <div className="space-y-4">
                 {departments.map((dept, index) => (
                   <div key={index} className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
@@ -304,19 +305,19 @@ export function ContactPage() {
 
               {/* Office Hours */}
               <div className="mt-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">办公时间</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Office Hours</h3>
                 <div className="space-y-2 text-gray-700">
                   <div className="flex justify-between">
-                    <span>周一至周五</span>
+                    <span>Monday to Friday</span>
                     <span>9:00 - 18:00</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>周六</span>
+                    <span>Saturday</span>
                     <span>10:00 - 16:00</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>周日及节假日</span>
-                    <span>在线客服</span>
+                    <span>Sunday & Holidays</span>
+                    <span>Online Support</span>
                   </div>
                 </div>
               </div>

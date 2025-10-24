@@ -9,7 +9,7 @@ interface TalentTypeFormProps {
 export function TalentTypeForm({ selectedTypes, onSelect }: TalentTypeFormProps) {
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">选择达人类型（可多选）</h2>
+      <h2 className="text-xl font-semibold text-gray-900 mb-6">Select Talent Types (Multiple Selection Allowed)</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {(Object.entries(talentTypeConfig) as [TalentType, typeof talentTypeConfig[TalentType]][]).map(([type, config]) => (

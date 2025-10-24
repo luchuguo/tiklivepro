@@ -27,20 +27,20 @@ export function InfluencersPage() {
   const [cacheStatus, setCacheStatus] = useState<'loading' | 'cached' | 'fresh'>('loading')
 
   const categories = [
-    { id: 'all', name: '全部分类' },
-    { id: '美妆护肤', name: '美妆护肤' },
-    { id: '时尚穿搭', name: '时尚穿搭' },
-    { id: '美食生活', name: '美食生活' },
-    { id: '数码科技', name: '数码科技' },
-    { id: '健身运动', name: '健身运动' },
-    { id: '母婴用品', name: '母婴用品' },
-    { id: '家居家装', name: '家居家装' },
-    { id: '图书教育', name: '图书教育' }
+    { id: 'all', name: 'All Categories' },
+    { id: '美妆护肤', name: 'Beauty & Skincare' },
+    { id: '时尚穿搭', name: 'Fashion & Apparel' },
+    { id: '美食生活', name: 'Food & Lifestyle' },
+    { id: '数码科技', name: 'Digital & Tech' },
+    { id: '健身运动', name: 'Fitness & Sports' },
+    { id: '母婴用品', name: 'Maternal & Baby' },
+    { id: '家居家装', name: 'Home & Decor' },
+    { id: '图书教育', name: 'Books & Education' }
   ]
 
   useEffect(() => {
     fetchInfluencers()
-  }, []) // 移除依赖，只在组件挂载时获取一次
+  }, []) // Remove dependencies, fetch only once on component mount
 
     const fetchInfluencers = async () => {
     try {
@@ -48,13 +48,13 @@ export function InfluencersPage() {
       setError(null)
       setCacheStatus('loading')
 
-      // 环境自适应数据获取
+      // Environment-adaptive data fetching
       const isProduction = import.meta.env.PROD;
       let data;
       
       if (isProduction) {
-        // 生产环境：使用API（带缓存）
-        console.log('🌐 生产环境：从API获取达人数据...')
+        // Production: Use API (with cache)
+        console.log('🌐 Production: Fetching influencer data from API...')
         
         const response = await fetch('/api/influencers', {
           method: 'GET',
@@ -69,20 +69,20 @@ export function InfluencersPage() {
 
         data = await response.json()
 
-        // 检查缓存状态
+        // Check cache status
         const cacheControl = response.headers.get('Cache-Control')
         const age = response.headers.get('Age')
 
         if (cacheControl && cacheControl.includes('s-maxage')) {
           setCacheStatus('cached')
-          console.log('✅ 数据来自服务器缓存')
+          console.log('✅ Data from server cache')
         } else {
           setCacheStatus('fresh')
-          console.log('🔄 数据来自数据库')
+          console.log('🔄 Data from database')
         }
       } else {
-        // 本地开发环境：直接使用Supabase
-        console.log('🏠 本地开发环境：直接从Supabase获取达人数据...')
+        // Local development: Use Supabase directly
+        console.log('🏠 Local development: Fetching influencer data from Supabase...')
         
         const { data: supabaseData, error } = await supabase
           .from('influencers')
@@ -115,20 +115,20 @@ export function InfluencersPage() {
 
         data = supabaseData || [];
         setCacheStatus('fresh');
-        console.log('🔄 本地环境：数据来自Supabase数据库');
+        console.log('🔄 Local environment: Data from Supabase database');
       }
 
-      // 应用客户端筛选和排序
+      // Apply client-side filtering and sorting
       let filteredInfluencers = data || []
 
-      // 分类筛选
+      // Category filtering
       if (selectedCategory !== 'all') {
         filteredInfluencers = filteredInfluencers.filter((influencer: Influencer) =>
           influencer.categories?.some(cat => cat.toLowerCase().includes(selectedCategory.toLowerCase()))
         )
       }
 
-      // 排序
+      // Sorting
       filteredInfluencers.sort((a: Influencer, b: Influencer) => {
         switch (sortBy) {
           case 'rating':
@@ -145,28 +145,28 @@ export function InfluencersPage() {
       })
 
       setInfluencers(filteredInfluencers)
-      console.log(`成功获取 ${filteredInfluencers.length} 个达人`)
+      console.log(`Successfully fetched ${filteredInfluencers.length} influencers`)
     } catch (error) {
       console.error('Error fetching influencers:', error)
-      setError('获取达人数据时发生错误')
+      setError('Error occurred while fetching influencer data')
     } finally {
       setLoading(false)
     }
   }
 
-  // 当筛选或排序条件改变时，重新应用筛选和排序
+  // Reapply filtering and sorting when filter or sort conditions change
   useEffect(() => {
     if (influencers.length > 0) {
       let filteredInfluencers = [...influencers]
 
-      // 分类筛选
+      // Category filtering
       if (selectedCategory !== 'all') {
         filteredInfluencers = filteredInfluencers.filter((influencer: Influencer) =>
           influencer.categories?.some(cat => cat.toLowerCase().includes(selectedCategory.toLowerCase()))
         )
       }
 
-      // 排序
+      // Sorting
       filteredInfluencers.sort((a: Influencer, b: Influencer) => {
         switch (sortBy) {
           case 'rating':
@@ -186,7 +186,7 @@ export function InfluencersPage() {
     }
   }, [selectedCategory, sortBy])
 
-  // 筛选达人
+  // Filter influencers
   const filteredInfluencers = influencers.filter(influencer => {
     const matchesSearch = influencer.nickname?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          influencer.bio?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -220,7 +220,7 @@ export function InfluencersPage() {
             </h3>
             <p className="text-sm text-gray-600 flex items-center">
               <MapPin className="w-4 h-4 mr-1" />
-              {influencer.location || '未知地区'}
+              {influencer.location || 'Unknown Location'}
             </p>
           </div>
           <div className="flex items-center space-x-1">
@@ -230,18 +230,18 @@ export function InfluencersPage() {
         </div>
         
         <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-          {influencer.bio || '暂无描述'}
+          {influencer.bio || 'No description available'}
         </p>
         
         <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
           <div>
-            <span className="text-gray-500">粉丝数</span>
+            <span className="text-gray-500">Followers</span>
             <div className="font-semibold text-gray-900">
               ***
             </div>
           </div>
           <div>
-            <span className="text-gray-500">时薪</span>
+            <span className="text-gray-500">Hourly Rate</span>
             <div className="font-semibold text-gray-900">
               ***
             </div>
@@ -265,7 +265,7 @@ export function InfluencersPage() {
             className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 px-4 rounded-lg hover:shadow-lg transition-all duration-200 flex items-center justify-center space-x-2"
           >
             <Eye className="w-4 h-4" />
-            <span>查看详情</span>
+            <span>View Details</span>
           </button>
         </div>
       </div>
@@ -292,27 +292,27 @@ export function InfluencersPage() {
               <Users className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              达人
+              Creator
               <span className="bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-                列表
+                List
               </span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto mb-8 leading-relaxed">
-              发现优质TikTok达人，为您的品牌找到最合适的合作伙伴
+              Explore verified TikTok experts and connect with the right partners for your brand
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <div className="flex items-center space-x-6 text-sm text-gray-600">
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span>在线达人</span>
+                  <span>Online</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span>认证达人</span>
+                  <span>Verified</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                  <span>高评分</span>
+                  <span>High Rating</span>
                 </div>
               </div>
             </div>
@@ -329,7 +329,7 @@ export function InfluencersPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="搜索达人昵称、描述或分类..."
+                placeholder="Search by name, description, or category..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
@@ -360,10 +360,10 @@ export function InfluencersPage() {
                 onChange={(e) => setSortBy(e.target.value)}
                 className="border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
               >
-                <option value="rating">按评分排序</option>
-                <option value="followers">按粉丝数排序</option>
-                <option value="price">按价格排序</option>
-                <option value="experience">按经验排序</option>
+                <option value="rating">Sort by Rating</option>
+                <option value="followers">Sort by Followers</option>
+                <option value="price">Sort by Price</option>
+                <option value="experience">Sort by Experience</option>
               </select>
             </div>
 
@@ -374,39 +374,39 @@ export function InfluencersPage() {
               className="bg-gray-100 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-200 transition-colors flex items-center space-x-2 disabled:opacity-50"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              <span>刷新</span>
+              <span>Refresh</span>
             </button>
           </div>
           
           {/* Status Info */}
           <div className="mt-4 flex items-center justify-between">
             <div className="text-sm text-gray-600 flex items-center space-x-4">
-              <span>总达人数: {influencers.length}</span>
-              <span>筛选后: {filteredInfluencers.length}</span>
+              <span>Total: {influencers.length}</span>
+              <span>Filtered: {filteredInfluencers.length}</span>
               {error && (
-                <span className="text-red-600">错误: {error}</span>
+                <span className="text-red-600">Error: {error}</span>
               )}
             </div>
             
-            {/* Cache Status - 生产环境隐藏 */}
+            {/* Cache Status - Hidden in production */}
             {!import.meta.env.PROD && (
               <div className="flex items-center space-x-2">
                 {cacheStatus === 'loading' && (
                   <div className="flex items-center space-x-2 text-blue-600">
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span className="text-xs">加载中...</span>
+                    <span className="text-xs">Loading...</span>
                   </div>
                 )}
                 {cacheStatus === 'cached' && (
                   <div className="flex items-center space-x-2 text-green-600">
                     <CheckCircle className="w-4 h-4" />
-                    <span className="text-xs">服务器缓存</span>
+                    <span className="text-xs">Server Cache</span>
                   </div>
                 )}
                 {cacheStatus === 'fresh' && (
                   <div className="flex items-center space-x-2 text-orange-600">
                     <Clock className="w-4 h-4" />
-                    <span className="text-xs">实时数据</span>
+                    <span className="text-xs">Real-time Data</span>
                   </div>
                 )}
               </div>
@@ -421,7 +421,7 @@ export function InfluencersPage() {
           {loading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
-              <p className="text-gray-600">加载达人数据中...</p>
+              <p className="text-gray-600">Loading influencer data...</p>
             </div>
           ) : filteredInfluencers.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -433,14 +433,14 @@ export function InfluencersPage() {
             <div className="text-center py-12">
               <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-600 mb-2">
-                {influencers.length === 0 ? '暂无达人数据' : '没有找到匹配的达人'}
+                {influencers.length === 0 ? 'No Influencer Data' : 'No Matching Influencers Found'}
               </h3>
               <p className="text-gray-500 mb-4">
                 {influencers.length === 0 
-                  ? '数据库中暂无达人记录'
+                  ? 'No influencer records in the database'
                   : searchQuery 
-                    ? '没有找到匹配的达人，请尝试其他关键词' 
-                    : '当前分类下暂无达人，请选择其他分类'
+                    ? 'No matching influencers found, please try other keywords' 
+                    : 'No influencers in this category, please select another category'
                 }
               </p>
               <button
@@ -448,7 +448,7 @@ export function InfluencersPage() {
                 className="bg-pink-500 text-white px-6 py-3 rounded-lg hover:bg-pink-600 transition-colors flex items-center space-x-2 mx-auto"
               >
                 <RefreshCw className="w-4 h-4" />
-                <span>重新加载</span>
+                <span>Reload</span>
               </button>
             </div>
           )}

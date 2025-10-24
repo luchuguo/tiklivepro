@@ -12,7 +12,7 @@ interface AuthModalProps {
 }
 
 export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUserType = 'influencer' }: AuthModalProps) {
-  // 如果模态框未打开，不渲染任何内容
+  // If modal is not open, don't render anything
   if (!isOpen) {
     return null;
   }
@@ -28,7 +28,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   
-  // 短信验证相关状态
+  // SMS verification related states
   const [phoneNumber, setPhoneNumber] = useState('')
   const [verificationCode, setVerificationCode] = useState('')
   const [inputCode, setInputCode] = useState('')
@@ -37,8 +37,8 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
   const [smsError, setSmsError] = useState('')
   const [smsSuccess, setSmsSuccess] = useState('')
 
-  // -------------- 新增：邮箱验证码状态 & API 配置 --------------
-  // 邮箱验证码相关状态
+  // -------------- Added: Email verification code states & API config --------------
+  // Email verification code related states
   const [emailCodeSent, setEmailCodeSent] = useState('')
   const [emailInputCode, setEmailInputCode] = useState('')
   const [sendingEmail, setSendingEmail] = useState(false)
@@ -46,15 +46,15 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
   const [emailError, setEmailError] = useState('')
   const [emailSuccess, setEmailSuccess] = useState('')
 
-  // AOKSend 邮件接口配置
+  // AOKSend email API configuration
   const EMAIL_API_URL = 'https://www.aoksend.com/index/api/send_email'
   const EMAIL_API_KEY = import.meta.env.VITE_AOKSEND_API_KEY as string
   const EMAIL_TEMPLATE_ID = 'E_125139060306'
 
-  // 发送邮箱验证码函数
+  // Send email verification code function
   const sendEmailCode = async () => {
     if (!email) {
-      setEmailError('请输入邮箱地址')
+      setEmailError('Please enter email address')
       return
     }
     const code = Math.floor(100000 + Math.random() * 900000).toString()
@@ -73,48 +73,48 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
       const res = await fetch(EMAIL_API_URL, { method: 'POST', body: formData })
       const data = await res.json()
       
-      // 添加调试信息
-      console.log('邮件API响应:', data)
+      // Add debug info
+      console.log('Email API response:', data)
       
-      // 改进成功状态判断
+      // Improved success state judgment
       const isSuccess = data.code === 0 || data.success === true || data.status === 'success' || 
                        (data.message && data.message.includes('成功'))
       
       if (isSuccess) {
-        // 无论API返回什么消息，成功时都显示绿色提示
-        setEmailSuccess('验证码已发送，请检查邮箱')
-        setEmailError('') // 确保清除任何错误状态
+        // Show green prompt regardless of API message when successful
+        setEmailSuccess('Verification code sent, please check your email')
+        setEmailError('') // Ensure any error state is cleared
       } else {
-        setEmailError(data.message || '发送失败')
-        setEmailSuccess('') // 确保清除任何成功状态
+        setEmailError(data.message || 'Send failed')
+        setEmailSuccess('') // Ensure any success state is cleared
       }
     } catch (e: any) {
-      setEmailError('发送失败: ' + e.message)
-      setEmailSuccess('') // 确保清除任何成功状态
+      setEmailError('Send failed: ' + e.message)
+      setEmailSuccess('') // Ensure any success state is cleared
     } finally {
       setSendingEmail(false)
     }
   }
 
-  // 验证邮箱验证码
+  // Verify email verification code
   const verifyEmailCode = (currentValue: string) => {
     const valueToVerify = currentValue || emailInputCode;
-    console.log('验证值比对', {
-      实际输入: valueToVerify,
-      服务器验证码: emailCodeSent
+    console.log('Verification value comparison', {
+      actualInput: valueToVerify,
+      serverCode: emailCodeSent
     });
 
-    // 严格比较（参考/email-test）
+    // Strict comparison (refer to /email-test)
     if (valueToVerify.trim() === emailCodeSent?.trim()) {
       setEmailVerified(true);
-      setEmailSuccess('验证成功！');
+      setEmailSuccess('Verification successful!');
       setEmailError('');
     } else {
-      setEmailError('验证码错误，请重试');
+      setEmailError('Incorrect verification code, please try again');
       setEmailSuccess('');
     }
   }
-  // -------------- 新增结束 --------------
+  // -------------- End of addition --------------
 
   // 短信宝API配置
   const SMS_USERNAME = 'luchuguo'

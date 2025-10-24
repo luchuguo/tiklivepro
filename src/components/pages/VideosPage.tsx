@@ -35,7 +35,7 @@ export function VideosPage() {
   
   const navigate = useNavigate()
 
-  // 环境自适应数据获取
+  // Environment-adaptive data fetching
   const fetchVideos = async () => {
     try {
       setLoading(true)
@@ -44,8 +44,8 @@ export function VideosPage() {
       const isProduction = import.meta.env.PROD;
       
       if (isProduction) {
-        // 生产环境：使用API
-        console.log('🌐 生产环境：从API获取视频数据...')
+        // Production: Use API
+        console.log('🌐 Production: Fetching video data from API...')
         
         const params = new URLSearchParams({
           page: '1',
@@ -65,10 +65,10 @@ export function VideosPage() {
         const data = await response.json()
         setVideos(data.videos || [])
         
-        console.log('✅ 成功获取视频数据:', data.videos?.length || 0, '个')
+        console.log('✅ Successfully fetched video data:', data.videos?.length || 0, 'videos')
       } else {
-        // 本地开发环境：直接使用Supabase
-        console.log('🏠 本地开发环境：直接从Supabase获取视频数据...')
+        // Local development: Use Supabase directly
+        console.log('🏠 Local development: Fetching video data from Supabase...')
         
         let query = supabase
           .from('videos')
@@ -78,7 +78,7 @@ export function VideosPage() {
           `)
           .eq('is_active', true)
 
-        // 应用筛选条件
+        // Apply filter conditions
         if (selectedCategory !== 'all') {
           query = query.eq('category_id', selectedCategory)
         }
@@ -87,7 +87,7 @@ export function VideosPage() {
           query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,influencer_name.ilike.%${searchQuery}%`)
         }
 
-        // 应用排序
+        // Apply sorting
         switch (sortBy) {
           case 'latest':
             query = query.order('created_at', { ascending: false })
@@ -114,7 +114,7 @@ export function VideosPage() {
           throw error
         }
 
-        // 处理数据
+        // Process data
         const processedVideos = (videos || []).map(video => ({
           ...video,
           views_count: video.views_count || '0',
@@ -125,11 +125,11 @@ export function VideosPage() {
         }))
 
         setVideos(processedVideos)
-        console.log('✅ 本地环境：成功获取视频数据:', processedVideos.length, '个')
+        console.log('✅ Local environment: Successfully fetched video data:', processedVideos.length, 'videos')
       }
     } catch (error) {
-      console.error('❌ 获取视频数据失败:', error)
-      setError(error instanceof Error ? error.message : '获取数据失败')
+      console.error('❌ Failed to fetch video data:', error)
+      setError(error instanceof Error ? error.message : 'Failed to fetch data')
       setVideos([])
     } finally {
       setLoading(false)
@@ -159,12 +159,12 @@ export function VideosPage() {
     const diffTime = Math.abs(now.getTime() - date.getTime())
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
     
-    if (diffDays === 1) return '今天'
-    if (diffDays === 2) return '昨天'
-    if (diffDays <= 7) return `${diffDays}天前`
-    if (diffDays <= 30) return `${Math.ceil(diffDays / 7)}周前`
-    if (diffDays <= 365) return `${Math.ceil(diffDays / 30)}个月前`
-    return `${Math.ceil(diffDays / 365)}年前`
+    if (diffDays === 1) return 'Today'
+    if (diffDays === 2) return 'Yesterday'
+    if (diffDays <= 7) return `${diffDays} days ago`
+    if (diffDays <= 30) return `${Math.ceil(diffDays / 7)} weeks ago`
+    if (diffDays <= 365) return `${Math.ceil(diffDays / 30)} months ago`
+    return `${Math.ceil(diffDays / 365)} years ago`
   }
 
   if (loading) {
@@ -172,7 +172,7 @@ export function VideosPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">加载中...</p>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     )
@@ -182,10 +182,10 @@ export function VideosPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-red-500 text-xl mb-4">❌ 加载失败</div>
+          <div className="text-red-500 text-xl mb-4">❌ Load Failed</div>
           <p className="text-gray-600 mb-4">{error}</p>
           <button onClick={fetchVideos} className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
-            重试
+            Retry
           </button>
         </div>
       </div>
@@ -201,9 +201,9 @@ export function VideosPage() {
             <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
               <Play className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">精彩视频展示</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">Featured Video Showcase</h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              发现优质内容，观看精彩直播带货案例，了解最新产品动态
+              Discover quality content, watch amazing live streaming sales cases, and learn about the latest product trends
             </p>
           </div>
         </div>
@@ -218,7 +218,7 @@ export function VideosPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="搜索视频、达人、标签..."
+                placeholder="Search videos, influencers, tags..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -233,13 +233,13 @@ export function VideosPage() {
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="all">全部分类</option>
-                <option value="1">美妆</option>
-                <option value="2">时尚</option>
-                <option value="3">数码</option>
-                <option value="4">生活</option>
-                <option value="5">美食</option>
-                <option value="6">旅游</option>
+                <option value="all">All Categories</option>
+                <option value="1">Beauty</option>
+                <option value="2">Fashion</option>
+                <option value="3">Digital</option>
+                <option value="4">Lifestyle</option>
+                <option value="5">Food</option>
+                <option value="6">Travel</option>
               </select>
 
               {/* 排序选项 */}
@@ -248,11 +248,11 @@ export function VideosPage() {
                 onChange={(e) => setSortBy(e.target.value)}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="latest">最新发布</option>
-                <option value="popular">最受欢迎</option>
-                <option value="trending">热门趋势</option>
-                <option value="rating">评分最高</option>
-                <option value="sort_order">推荐排序</option>
+                <option value="latest">Latest</option>
+                <option value="popular">Most Popular</option>
+                <option value="trending">Trending</option>
+                <option value="rating">Highest Rated</option>
+                <option value="sort_order">Recommended</option>
               </select>
 
               {/* 视图切换 */}
@@ -278,8 +278,8 @@ export function VideosPage() {
         {videos.length === 0 ? (
           <div className="text-center py-16">
             <div className="text-gray-400 text-6xl mb-4">📹</div>
-            <h3 className="text-xl font-medium text-gray-900 mb-2">暂无视频</h3>
-            <p className="text-gray-600">请尝试调整筛选条件或搜索关键词</p>
+            <h3 className="text-xl font-medium text-gray-900 mb-2">No Videos Available</h3>
+            <p className="text-gray-600">Please try adjusting filters or search keywords</p>
           </div>
         ) : (
           <>
@@ -316,7 +316,7 @@ export function VideosPage() {
                       {/* 特色标签 */}
                       {video.is_featured && (
                         <div className="absolute top-2 left-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs px-2 py-1 rounded-full">
-                          特色
+                          Featured
                         </div>
                       )}
                     </div>
@@ -387,7 +387,7 @@ export function VideosPage() {
                         {/* 特色标签 */}
                         {video.is_featured && (
                           <div className="absolute top-2 left-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs px-2 py-1 rounded-full">
-                            特色
+                            Featured
                           </div>
                         )}
                       </div>

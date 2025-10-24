@@ -16,26 +16,26 @@ export function TalentQuestionForm({ talentType, formData, onChange }: TalentQue
 
     const selectedFiles = Array.from(files);
     const validFiles = selectedFiles.filter(file => {
-      // 检查文件类型
+      // Check file type
       if (!file.type.match(/(image|video)\//)) {
-        alert('只能上传图片或视频文件');
+        alert('Only image or video files are allowed');
         return false;
       }
-      // 检查文件大小
+      // Check file size
       if (file.size > question.maxSize * 1024 * 1024) {
-        alert(`文件大小不能超过 ${question.maxSize}MB`);
+        alert(`File size cannot exceed ${question.maxSize}MB`);
         return false;
       }
       return true;
     });
 
-    // 检查文件数量
+    // Check file count
     if (validFiles.length > question.maxFiles) {
-      alert(`最多只能上传 ${question.maxFiles} 个文件`);
+      alert(`Maximum ${question.maxFiles} files allowed`);
       return;
     }
 
-    // 更新表单数据
+    // Update form data
     onChange({
       ...formData,
       [question.key]: validFiles
@@ -56,7 +56,7 @@ export function TalentQuestionForm({ talentType, formData, onChange }: TalentQue
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold text-gray-900 mb-6">
-        {config.label}相关问题
+        {config.label} Related Questions
       </h2>
       
       {config.questions.map((question) => (
@@ -71,7 +71,7 @@ export function TalentQuestionForm({ talentType, formData, onChange }: TalentQue
               onChange={(e) => onChange({ ...formData, [question.key]: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
             >
-              <option value="">请选择</option>
+              <option value="">Please select</option>
               {question.options.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -116,7 +116,7 @@ export function TalentQuestionForm({ talentType, formData, onChange }: TalentQue
             <div className="space-y-4">
               <p className="text-sm text-gray-500">{question.description}</p>
               
-              {/* 文件上传区域 */}
+              {/* File upload area */}
               <div className="relative border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-pink-500 transition-colors">
                 <input
                   type="file"
@@ -128,12 +128,12 @@ export function TalentQuestionForm({ talentType, formData, onChange }: TalentQue
                 <div className="text-center">
                   <Upload className="mx-auto h-12 w-12 text-gray-400" />
                   <p className="mt-2 text-sm text-gray-600">
-                    点击或拖放文件到此处上传
+                    Click or drag files here to upload
                   </p>
                 </div>
               </div>
 
-              {/* 已上传文件列表 */}
+              {/* Uploaded files list */}
               {formData[question.key] && formData[question.key].length > 0 && (
                 <div className="space-y-2">
                   {formData[question.key].map((file: File, index: number) => (
@@ -146,7 +146,7 @@ export function TalentQuestionForm({ talentType, formData, onChange }: TalentQue
                           {file.type.startsWith('image/') ? (
                             <img
                               src={URL.createObjectURL(file)}
-                              alt="预览"
+                              alt="Preview"
                               className="h-10 w-10 object-cover rounded"
                             />
                           ) : (

@@ -3,32 +3,32 @@ import { Video, Users, Building2, Award, Target, Heart, ArrowRight, CheckCircle 
 
 export function AboutPage() {
   const stats = [
-    { label: '注册用户', value: '持续增长', icon: Users },
-    { label: '合作品牌', value: '不断扩大', icon: Building2 },
-    { label: '成功案例', value: '快速积累', icon: Award },
-    { label: '直播场次', value: '稳步提升', icon: Video },
+    { label: 'Registered Users', value: 'Continuous Growth', icon: Users },
+    { label: 'Partner Brands', value: 'Expanding', icon: Building2 },
+    { label: 'Success Cases', value: 'Rapidly Growing', icon: Award },
+    { label: 'Live Sessions', value: 'Steadily Increasing', icon: Video },
   ]
 
   const values = [
     {
       icon: Target,
-      title: '专业专注',
-      description: '专注TikTok直播带货领域，提供最专业的服务和解决方案'
+      title: 'Professional Focus',
+      description: 'Focused on TikTok live streaming e-commerce, providing the most professional services and solutions'
     },
     {
       icon: Heart,
-      title: '用户至上',
-      description: '始终将用户体验放在首位，持续优化产品和服务质量'
+      title: 'User First',
+      description: 'Always putting user experience first, continuously optimizing products and service quality'
     },
     {
       icon: CheckCircle,
-      title: '诚信可靠',
-      description: '建立透明、公正的平台机制，保障各方权益和交易安全'
+      title: 'Integrity & Reliability',
+      description: 'Establishing transparent and fair platform mechanisms to protect the rights and transaction security of all parties'
     },
     {
       icon: Award,
-      title: '追求卓越',
-      description: '不断创新技术和服务模式，引领行业发展趋势'
+      title: 'Pursuit of Excellence',
+      description: 'Continuously innovating technology and service models, leading industry development trends'
     }
   ]
 
@@ -39,18 +39,18 @@ export function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              关于
+              About
               <span className="bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
                 tkbubu.com
               </span>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-              我们致力于打造最专业的TikTok直播带货平台，连接优质品牌与专业达人，
-              为商家提供高效的营销解决方案，为达人创造更多变现机会。
+              We are committed to building the most professional TikTok live streaming e-commerce platform, connecting quality brands with professional influencers,
+              providing efficient marketing solutions for merchants and creating more monetization opportunities for influencers.
             </p>
             <div className="flex justify-center">
               <button className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 flex items-center space-x-2">
-                <span>了解更多</span>
+                <span>Learn More</span>
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>
@@ -80,35 +80,35 @@ export function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">服务对象</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Services</h2>
               <ul className="list-disc pl-6 text-lg text-gray-600 mb-8 space-y-2">
-                <li>中国商家 / 工厂 / 品牌方：希望在TikTok国际市场拓展销量。</li>
-                <li>海外TikTok达人 / 华人主播 / 工作室：具备带货能力、希望接单变现。</li>
+                <li>Chinese Merchants / Factories / Brands: Looking to expand sales in TikTok international markets.</li>
+                <li>Overseas TikTok Influencers / Chinese Streamers / Studios: With sales capabilities, seeking monetization opportunities.</li>
               </ul>
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <CheckCircle className="w-6 h-6 text-green-500" />
-                  <span className="text-gray-700">专业的达人筛选和认证体系</span>
+                  <span className="text-gray-700">Professional influencer screening and certification system</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <CheckCircle className="w-6 h-6 text-green-500" />
-                  <span className="text-gray-700">智能化的匹配推荐算法</span>
+                  <span className="text-gray-700">Intelligent matching recommendation algorithm</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <CheckCircle className="w-6 h-6 text-green-500" />
-                  <span className="text-gray-700">完善的交易保障机制</span>
+                  <span className="text-gray-700">Comprehensive transaction guarantee mechanism</span>
                 </div>
               </div>
             </div>
             <div className="relative">
               <img
                 src="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=800"
-                alt="团队协作"
+                alt="Team Collaboration"
                 className="rounded-2xl shadow-2xl"
               />
               <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-xl shadow-lg">
                 <div className="text-2xl font-bold text-pink-600">99.8%</div>
-                <div className="text-gray-600">客户满意度</div>
+                <div className="text-gray-600">Customer Satisfaction</div>
               </div>
             </div>
           </div>
@@ -119,9 +119,9 @@ export function AboutPage() {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">我们的价值观</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Values</h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              这些核心价值观指导着我们的每一个决策，塑造着我们的企业文化
+              These core values guide every decision we make and shape our corporate culture
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">

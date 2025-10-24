@@ -37,27 +37,10 @@ import { ImageUploadTest } from "./components/pages/ImageUploadTest";
 import LoginTestPage from "./components/pages/LoginTestPage";
 import { SignupPage } from "./components/pages/SignupPage";
 import { MaterialsPage } from "./components/pages/MaterialsPage";
-import LanguageSwitcher from "./components/LanguageSwitcher";
 import { EnvironmentChecker } from "./components/EnvironmentChecker";
 import { ProductionDebugger } from "./components/ProductionDebugger";
 import { HomePage } from "./components/pages/HomePage";
 
-// Google 翻译类型声明
-declare global {
-  interface Window {
-    translatePage?: (fromLang: string, toLang: string) => void;
-    google?: {
-      translate: {
-        TranslateElement: {
-          new(config: any, elementId: string): any;
-          InlineLayout: {
-            SIMPLE: any;
-          };
-        };
-      };
-    };
-  }
-}
 
 function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -72,37 +55,37 @@ function App() {
   const location = useLocation();
   const { user, profile, loading, signOut, isAdmin } = useAuthContext();
 
-  // 公司详情页面包装组件
+  // Company detail page wrapper component
   function CompanyDetailWrapper() {
     const { id } = useParams();
     const navigate = useNavigate();
     
     if (!id) {
-      return <div>公司ID不存在</div>;
+      return <div>Company ID does not exist</div>;
     }
     
     return <CompanyDetailPage companyId={id} onBack={() => navigate(-1)} />;
   }
 
-  // 达人详情页面包装组件
+  // Influencer detail page wrapper component
   function InfluencerDetailWrapper() {
     const { id } = useParams();
     const navigate = useNavigate();
     
     if (!id) {
-      return <div>达人ID不存在</div>;
+      return <div>Influencer ID does not exist</div>;
     }
     
     return <InfluencerDetailPage influencerId={id} onBack={() => navigate(-1)} />;
   }
 
-  // 任务详情页面包装组件
+  // Task detail page wrapper component
   function TaskDetailWrapper() {
     const { id } = useParams();
     const navigate = useNavigate();
     
     if (!id) {
-      return <div>任务ID不存在</div>;
+      return <div>Task ID does not exist</div>;
     }
     
     return <TaskDetailPage taskId={id} onBack={() => navigate(-1)} />;
@@ -118,7 +101,7 @@ function App() {
       const { error } = await signOut();
       
       if (error) {
-        console.error("退出登录失败:", error);
+        console.error("Logout failed:", error);
       }
       
       navigate("/");
@@ -126,7 +109,7 @@ function App() {
       setIsAuthModalOpen(false);
       
     } catch (error) {
-      console.error("退出登录时发生错误:", error);
+      console.error("Error occurred during logout:", error);
     } finally {
       setTimeout(() => {
         setIsLoggingOut(false);
@@ -177,7 +160,6 @@ function App() {
                 Tkbubu
               </span>
             </button>
-              <LanguageSwitcher />
             </div>
 
             {/* Desktop Navigation */}
@@ -186,25 +168,25 @@ function App() {
                 onClick={() => handlePageChange("home")}
                 className={`text-gray-700 hover:text-pink-600 transition-colors ${location.pathname === "/" ? "text-pink-600 font-medium" : ""}`}
               >
-                首页
+                Home
               </button>
               <button 
                 onClick={() => handlePageChange("influencers")}
                 className={`text-gray-700 hover:text-pink-600 transition-colors ${location.pathname === "/influencers" ? "text-pink-600 font-medium" : ""}`}
               >
-                达人列表
+                Creator List
               </button>
               <button 
                 onClick={() => handlePageChange("tasks")}
                 className={`text-gray-700 hover:text-pink-600 transition-colors ${location.pathname === "/tasks" ? "text-pink-600 font-medium" : ""}`}
               >
-                任务大厅
+                Task Center
               </button>
               <button 
                 onClick={() => handlePageChange("videos")}
                 className={`text-gray-700 hover:text-pink-600 transition-colors ${location.pathname === "/videos" ? "text-pink-600 font-medium" : ""}`}
               >
-                视频展示
+                Video Showcase
               </button>
             </div>
 
@@ -219,14 +201,14 @@ function App() {
                   >
                     <User className="w-5 h-5" />
                     <span>
-                      {isLoggingOut ? "退出中..." : (
+                      {isLoggingOut ? "Exiting..." : (
                         profile?.user_type === "admin"
-                          ? "超级管理员"
+                          ? "Super Admin"
                           : profile?.user_type === "company"
-                          ? "企业用户"
+                          ? "Company User"
                           : profile?.user_type === "influencer"
-                          ? "达人用户"
-                          : "用户中心"
+                          ? "Influencer User"
+                          : "User Center"
                       )}
                     </span>
                   </button>
@@ -303,7 +285,7 @@ function App() {
                         className="flex items-center w-full text-left py-2 px-4 text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <LogOut className="w-4 h-4 mr-3" />
-                        {isLoggingOut ? "退出中..." : "退出登录"}
+                        {isLoggingOut ? "Exiting..." : "Logout"}
                       </button>
                     </div>
                   )}
@@ -317,13 +299,13 @@ function App() {
                     }}
                     className="text-gray-700 hover:text-pink-600 transition-colors"
                   >
-                    登录
+                    Login
                   </button>
                   <button
                     onClick={() => navigate("/signup")}
                     className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:shadow-lg transition-all duration-200"
                   >
-                    注册
+                    Register
                   </button>
                 </div>
               )}
@@ -348,25 +330,25 @@ function App() {
                   onClick={() => handlePageChange("home")}
                   className={`block w-full text-left py-2 px-4 rounded-lg transition-colors ${location.pathname === "/" ? "bg-pink-50 text-pink-600" : "text-gray-700 hover:bg-gray-50"}`}
                 >
-                  首页
+                  Home
                 </button>
                 <button 
                   onClick={() => handlePageChange("influencers")}
                   className={`block w-full text-left py-2 px-4 rounded-lg transition-colors ${location.pathname === "/influencers" ? "bg-pink-50 text-pink-600" : "text-gray-700 hover:bg-gray-50"}`}
                 >
-                  达人列表
+                  Creator List
                 </button>
                 <button 
                   onClick={() => handlePageChange("tasks")}
                   className={`block w-full text-left py-2 px-4 rounded-lg transition-colors ${location.pathname === "/tasks" ? "bg-pink-50 text-pink-600" : "text-gray-700 hover:bg-gray-50"}`}
                 >
-                  任务大厅
+                  Task Center
                 </button>
                 <button 
                   onClick={() => handlePageChange("videos")}
                   className={`block w-full text-left py-2 px-4 rounded-lg transition-colors ${location.pathname === "/videos" ? "bg-pink-50 text-pink-600" : "text-gray-700 hover:bg-gray-50"}`}
                 >
-                  视频展示
+                  Video Showcase
                 </button>
                 
                 {/* 用户菜单 */}
@@ -433,7 +415,7 @@ function App() {
                       disabled={isLoggingOut}
                       className="block w-full text-left py-2 px-4 text-red-600 hover:text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isLoggingOut ? "退出中..." : "退出登录"}
+                      {isLoggingOut ? "Exiting..." : "Logout"}
                     </button>
                   </div>
                 ) : (
@@ -445,13 +427,13 @@ function App() {
                       }}
                       className="block w-full text-left py-2 px-4 text-gray-700 hover:text-pink-600 transition-colors"
                     >
-                      登录
+                      Login
                     </button>
                     <button
                       onClick={() => navigate("/signup")}
                       className="block w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 px-4 rounded-lg font-semibold text-center hover:shadow-lg transition-all duration-200"
                     >
-                      注册
+                      Register
                     </button>
                   </div>
                 )}

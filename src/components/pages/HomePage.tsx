@@ -10,7 +10,7 @@ export function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  // 获取首页视频数据
+  // Fetch homepage video data
   useEffect(() => {
     const fetchIndexVideos = async () => {
       try {
@@ -23,24 +23,24 @@ export function HomePage() {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
           const result = await response.json();
-          console.log("API返回数据:", result); // 调试日志
+          console.log("API returned data:", result); // Debug log
           
-          // 检查返回的数据结构
+          // Check returned data structure
           if (result && result.videos && Array.isArray(result.videos)) {
             setIndexVideos(result.videos);
-            console.log("✅ 首页视频数据获取成功:", result.videos.length, "个");
+            console.log("✅ Homepage video data fetched successfully:", result.videos.length, "videos");
         } else {
-            throw new Error("返回的数据格式不正确");
+            throw new Error("Incorrect data format returned");
           }
           return;
         } catch (apiError) {
-          console.error("API调用失败:", apiError);
+          console.error("API call failed:", apiError);
           throw apiError;
         }
 
       } catch (error) {
-        console.error("❌ 获取首页视频数据出错:", error);
-        setError("获取视频数据失败，请稍后重试");
+        console.error("❌ Error fetching homepage video data:", error);
+        setError("Failed to fetch video data, please try again later");
       } finally {
         setLoading(false);
       }
@@ -50,32 +50,32 @@ export function HomePage() {
   }, []);
 
   const stats = [
-    { label: "注册用户", icon: Users },
-    { label: "合作品牌", icon: Building2 },
-    { label: "成功案例", icon: Star },
-    { label: "直播场次", icon: Play },
+    { label: "Registered Users", icon: Users },
+    { label: "Partner Brands", icon: Building2 },
+    { label: "Success Cases", icon: Star },
+    { label: "Live Sessions", icon: Play },
   ];
 
   const features = [
     {
       icon: Users,
-      title: "专业达人",
-      description: "严格筛选的优质TikTok达人，覆盖各个垂直领域，确保内容质量和带货效果"
+      title: "Professional Creators",
+      description: "Strictly vetted TikTok creators across key verticals to ensure content quality and performance."
     },
     {
       icon: Building2,
-      title: "品牌保障",
-      description: "为品牌方提供全方位服务保障，从达人匹配到效果追踪，一站式解决方案"
+      title: "Brand Protection",
+      description: "End-to-end safeguards from creator matching to performance tracking in one solution."
     },
     {
       icon: TrendingUp,
-      title: "数据驱动",
-      description: "基于大数据分析的智能匹配系统，提升合作成功率和ROI表现"
+      title: "Data-Driven",
+      description: "Intelligent, data-based matching that lifts success rate and ROI."
     },
     {
       icon: Star,
-      title: "品质保证",
-      description: "完善的评价体系和质量监控，确保每一次合作都能达到预期效果"
+      title: "Quality Assurance",
+      description: "Robust evaluation and QA to deliver the expected outcome on every collaboration."
     }
   ];
 
@@ -98,14 +98,14 @@ export function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="text-center lg:text-left">
               <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                一站式
+                One-Stop
                 <span className="bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
                   TikTok
                 </span>
-                海外代播平台
+                Live Commerce Platform
               </h1>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                集达人带货、短视频剪辑、账号托管于一体，助力中国商家轻松出海
+                Empowering brands to expand globally with ease
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link 
@@ -113,14 +113,14 @@ export function HomePage() {
                   className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg transform hover:scale-105"
                 >
                   <Users className="w-5 h-5" />
-                  <span>达人入驻</span>
+                  <span>Join as Creator</span>
                 </Link>
                 <Link 
                   to="/signup"
                   className="border-2 border-gray-300 text-gray-600 px-8 py-4 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200 flex items-center justify-center space-x-2 opacity-75"
                 >
                   <Building2 className="w-5 h-5" />
-                  <span>商家入驻</span>
+                  <span>Join as Brand</span>
                 </Link>
               </div>
             </div>
@@ -129,7 +129,7 @@ export function HomePage() {
               <div className="relative z-10">
                 <img
                   src="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=800"
-                  alt="TikTok直播"
+                  alt="TikTok Live Streaming"
                   className="rounded-2xl shadow-2xl"
                 />
               </div>
@@ -159,16 +159,16 @@ export function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              精彩视频展示
+              Featured Video Showcase
             </h2>
             <p className="text-xl text-gray-600">
-              观看我们的优秀达人直播带货案例
+              Watch our excellent influencer live streaming sales cases
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {loading ? (
-              // 加载状态
+              // Loading state
               Array.from({ length: 4 }).map((_, index) => (
                 <div key={index} className="bg-gray-100 rounded-xl overflow-hidden shadow-sm animate-pulse">
                   <div className="aspect-video bg-gray-200"></div>
@@ -179,20 +179,20 @@ export function HomePage() {
                 </div>
               ))
             ) : error ? (
-              // 错误状态
+              // Error state
               <div className="col-span-full text-center py-16">
                 <div className="text-red-500 text-6xl mb-4">⚠️</div>
-                <h3 className="text-xl font-medium text-gray-900 mb-2">获取视频失败</h3>
+                <h3 className="text-xl font-medium text-gray-900 mb-2">Failed to fetch videos</h3>
                 <p className="text-gray-600">{error}</p>
                 <button 
                   onClick={() => window.location.reload()}
                   className="mt-4 text-pink-600 hover:text-pink-700 font-medium"
                 >
-                  点击重试
+                  Click to retry
                 </button>
               </div>
             ) : indexVideos.length > 0 ? (
-              // 视频列表
+              // Video list
               indexVideos.map((video) => (
                 <div 
                   key={video.id}
@@ -210,9 +210,9 @@ export function HomePage() {
                         comments_count: video.comments_count || 0,
                         shares_count: video.shares_count || 0,
                         duration: video.duration,
-                        category: video.category?.name || "未分类",
+                        category: video.category?.name || "Uncategorized",
                         influencer: {
-                          name: video.influencer_name || "未知达人",
+                          name: video.influencer_name || "Unknown Influencer",
                           avatar: video.influencer_avatar || "/default-avatar.png",
                           followers: video.influencer_followers || "0",
                           rating: video.influencer_rating || 0
@@ -245,11 +245,11 @@ export function HomePage() {
                 </div>
               ))
             ) : (
-              // 无数据状态
+              // No data state
               <div className="col-span-full text-center py-16">
                 <div className="text-gray-400 text-6xl mb-4">📹</div>
-                <h3 className="text-xl font-medium text-gray-900 mb-2">暂无视频</h3>
-                <p className="text-gray-600">请稍后再试</p>
+                <h3 className="text-xl font-medium text-gray-900 mb-2">No videos available</h3>
+                <p className="text-gray-600">Please try again later</p>
               </div>
             )}
           </div>
@@ -261,10 +261,10 @@ export function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              为什么选择我们
+              Why Choose Us
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              平台聚焦"人货匹配"与"高效协作"，通过任务发布、达人接单、沟通协作、结算保障、争议处理五大核心功能，帮助商家高效拓展海外市场。
+              We focus on precise creator-product matching and efficient collaboration. Through five core features - mission posting, creator acceptance, communication & collaboration, secure settlement, and dispute resolution - we help global brands scale efficiently across markets.
             </p>
           </div>
           
@@ -286,10 +286,10 @@ export function HomePage() {
       <section className="py-20 bg-gradient-to-r from-pink-500 to-purple-600">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            准备开始您的TikTok直播带货之旅？
+            Ready to Start Your TikTok Live Streaming Sales Journey?
           </h2>
           <p className="text-xl text-pink-100 mb-8">
-            加入tkbubu.com，与优质合作伙伴一起创造更大价值
+            Join tkbubu.com and create greater value with quality partners
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
@@ -297,7 +297,7 @@ export function HomePage() {
               className="bg-white text-pink-600 px-8 py-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg transform hover:scale-105"
             >
               <Users className="w-5 h-5" />
-              <span>我是达人</span>
+              <span>I'm a Creator</span>
               <ArrowRight className="w-5 h-5" />
             </Link>
             <Link 
@@ -305,7 +305,7 @@ export function HomePage() {
               className="border-2 border-white text-white px-8 py-4 rounded-xl font-medium hover:bg-white hover:text-pink-600 transition-all duration-200 flex items-center justify-center space-x-2"
             >
               <Building2 className="w-5 h-5" />
-              <span>我是品牌方</span>
+              <span>I'm a Brand</span>
               <ArrowRight className="w-5 h-5" />
             </Link>
           </div>
