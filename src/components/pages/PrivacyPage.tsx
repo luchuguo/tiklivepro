@@ -243,7 +243,7 @@ export function PrivacyPage() {
               </div>
               <div className="bg-white rounded-lg p-4">
                 <strong className="text-gray-900">Customer Service</strong>
-                <p className="text-gray-600">China 025-84799999 USA 610-8577777</p>
+                <p className="text-gray-600">Tel (USA): +1-610-8577777   |   Tel (China): +86-25-84799999</p>
               </div>
               <div className="bg-white rounded-lg p-4">
                 <strong className="text-gray-900">Business Hours</strong>

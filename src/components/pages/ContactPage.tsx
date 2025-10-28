@@ -28,7 +28,7 @@ export function ContactPage() {
     {
       icon: Phone,
       title: 'Customer Hotline',
-      content: 'China 025-84799999\nUSA 610-8577777',
+      content: 'Tel (USA): +1-610-8577777   |   Tel (China): +86-25-84799999',
       description: '7×24 hours professional service',
       color: 'from-blue-500 to-purple-600'
     },

@@ -444,8 +444,8 @@ export function AccountSettingsPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center py-12">
             <Loader className="w-8 h-8 animate-spin text-blue-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900">加载中...</h2>
-            <p className="text-gray-600 mt-2">正在获取您的账号设置</p>
+            <h2 className="text-xl font-semibold text-gray-900">Loading...</h2>
+            <p className="text-gray-600 mt-2">Loading your account settings</p>
             <p className="text-sm text-gray-500 mt-2">authLoading: {authLoading.toString()}, loading: {loading.toString()}</p>
           </div>
         </div>
@@ -459,8 +459,8 @@ export function AccountSettingsPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center py-12">
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">未登录</h2>
-            <p className="text-gray-600 mb-6">请先登录后再访问账号设置</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Not Logged In</h2>
+            <p className="text-gray-600 mb-6">Please log in to access account settings</p>
           </div>
         </div>
       </div>
@@ -479,7 +479,7 @@ export function AccountSettingsPage() {
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <h1 className="text-2xl font-bold text-gray-900">账号设置</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Account Settings</h1>
           </div>
         </div>
         
@@ -515,7 +515,7 @@ export function AccountSettingsPage() {
                     <User className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">{profile?.user_type === 'influencer' ? '达人账号' : profile?.user_type === 'company' ? '企业账号' : '普通账号'}</div>
+                    <div className="font-medium text-gray-900">{profile?.user_type === 'influencer' ? 'Creator Account' : profile?.user_type === 'company' ? 'Company Account' : 'Regular Account'}</div>
                     <div className="text-sm text-gray-500">{user.email}</div>
                   </div>
                 </div>
@@ -532,7 +532,7 @@ export function AccountSettingsPage() {
                     }`}
                   >
                     <User className="w-5 h-5" />
-                    <span>个人资料</span>
+                    <span>Profile</span>
                   </button>
                   
                   <button
@@ -544,7 +544,7 @@ export function AccountSettingsPage() {
                     }`}
                   >
                     <Shield className="w-5 h-5" />
-                    <span>安全设置</span>
+                    <span>Security Settings</span>
                   </button>
                   
                   <button
@@ -556,7 +556,7 @@ export function AccountSettingsPage() {
                     }`}
                   >
                     <Bell className="w-5 h-5" />
-                    <span>通知设置</span>
+                    <span>Notification Settings</span>
                   </button>
                   
                   <button
@@ -568,7 +568,7 @@ export function AccountSettingsPage() {
                     }`}
                   >
                     <UserCog className="w-5 h-5" />
-                    <span>隐私设置</span>
+                    <span>Privacy Settings</span>
                   </button>
                 </nav>
               </div>
@@ -579,7 +579,7 @@ export function AccountSettingsPage() {
                   className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors"
                 >
                   <LogOut className="w-5 h-5" />
-                  <span>退出登录</span>
+                  <span>Sign Out</span>
                 </button>
               </div>
             </div>
@@ -591,11 +591,11 @@ export function AccountSettingsPage() {
               {/* 个人资料 */}
               {activeTab === 'profile' && (
                 <div className="p-8">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-6">个人资料</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-6">Profile</h2>
                   <form onSubmit={saveProfile} className="space-y-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        邮箱地址
+                        Email Address
                       </label>
                       <input
                         type="email"
@@ -603,12 +603,12 @@ export function AccountSettingsPage() {
                         disabled
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
                       />
-                      <p className="mt-1 text-sm text-gray-500">邮箱地址不可修改</p>
+                      <p className="mt-1 text-sm text-gray-500">Email address cannot be changed</p>
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        手机号码
+                        Phone Number
                       </label>
                       <div className="space-y-3">
                         <div className="flex space-x-2">
@@ -620,7 +620,7 @@ export function AccountSettingsPage() {
                               value={profileForm.phone}
                               onChange={handleProfileInputChange}
                               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              placeholder="请输入手机号码"
+                              placeholder="Enter your phone number"
                               maxLength={11}
                             />
                           </div>
@@ -633,12 +633,12 @@ export function AccountSettingsPage() {
                             {smsVerification.sending ? (
                               <>
                                 <RefreshCw className="w-4 h-4 animate-spin" />
-                                <span>发送中...</span>
+                                <span>Sending...</span>
                               </>
                             ) : (
                               <>
                                 <Send className="w-4 h-4" />
-                                <span>发送验证码</span>
+                                <span>Send Verification Code</span>
                               </>
                             )}
                           </button>
@@ -653,7 +653,7 @@ export function AccountSettingsPage() {
                                 type="text"
                                 value={smsVerification.inputCode}
                                 onChange={(e) => handleSmsVerificationChange('inputCode', e.target.value)}
-                                placeholder="请输入4位验证码"
+                                placeholder="Enter 4-digit code"
                                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 maxLength={4}
                               />
@@ -665,7 +665,7 @@ export function AccountSettingsPage() {
                               className="px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center space-x-2"
                             >
                               <CheckCircle className="w-4 h-4" />
-                              <span>验证</span>
+                              <span>Verify</span>
                             </button>
                           </div>
                         )}
@@ -705,13 +705,13 @@ export function AccountSettingsPage() {
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        账号类型
+                        Account Type
                       </label>
                       <input
                         type="text"
-                        value={profile?.user_type === 'influencer' ? '达人账号' : 
-                               profile?.user_type === 'company' ? '企业账号' : 
-                               profile?.user_type === 'admin' ? '管理员账号' : '普通账号'}
+                        value={profile?.user_type === 'influencer' ? 'Creator Account' : 
+                               profile?.user_type === 'company' ? 'Company Account' : 
+                               profile?.user_type === 'admin' ? 'Admin Account' : 'Regular Account'}
                         disabled
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
                       />
@@ -726,18 +726,18 @@ export function AccountSettingsPage() {
                         {saving ? (
                           <>
                             <Loader className="w-5 h-5 animate-spin" />
-                            <span>保存中...</span>
+                            <span>Saving...</span>
                           </>
                         ) : (
                           <>
                             <Save className="w-5 h-5" />
-                            <span>保存更改</span>
+                            <span>Save Changes</span>
                           </>
                         )}
                       </button>
                       {profileForm.phone && !smsVerification.verified && (
                         <p className="mt-2 text-sm text-orange-600">
-                          ⚠️ 请先验证手机号码后再保存
+                          ⚠️ Please verify your phone number before saving
                         </p>
                       )}
                     </div>
@@ -748,11 +748,11 @@ export function AccountSettingsPage() {
               {/* 安全设置 */}
               {activeTab === 'security' && (
                 <div className="p-8">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-6">安全设置</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-6">Security Settings</h2>
                   <form onSubmit={changePassword} className="space-y-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        当前密码
+                        Current Password
                       </label>
                       <div className="relative">
                         <input
@@ -761,7 +761,7 @@ export function AccountSettingsPage() {
                           value={securityForm.currentPassword}
                           onChange={handleSecurityInputChange}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
-                          placeholder="请输入当前密码"
+                          placeholder="Enter your current password"
                         />
                         <button
                           type="button"
@@ -775,7 +775,7 @@ export function AccountSettingsPage() {
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        新密码
+                        New Password
                       </label>
                       <div className="relative">
                         <input
@@ -784,7 +784,7 @@ export function AccountSettingsPage() {
                           value={securityForm.newPassword}
                           onChange={handleSecurityInputChange}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
-                          placeholder="请输入新密码"
+                          placeholder="Enter your new password"
                         />
                         <button
                           type="button"
@@ -794,12 +794,12 @@ export function AccountSettingsPage() {
                           {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                         </button>
                       </div>
-                      <p className="mt-1 text-sm text-gray-500">密码长度至少6位</p>
+                      <p className="mt-1 text-sm text-gray-500">Password must be at least 6 characters</p>
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        确认新密码
+                        Confirm New Password
                       </label>
                       <input
                         type={showNewPassword ? 'text' : 'password'}
@@ -807,7 +807,7 @@ export function AccountSettingsPage() {
                         value={securityForm.confirmPassword}
                         onChange={handleSecurityInputChange}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="请再次输入新密码"
+                        placeholder="Confirm your new password"
                       />
                     </div>
                     
@@ -820,12 +820,12 @@ export function AccountSettingsPage() {
                         {saving ? (
                           <>
                             <Loader className="w-5 h-5 animate-spin" />
-                            <span>更新中...</span>
+                            <span>Updating...</span>
                           </>
                         ) : (
                           <>
                             <Save className="w-5 h-5" />
-                            <span>更新密码</span>
+                            <span>Update Password</span>
                           </>
                         )}
                       </button>
@@ -833,16 +833,16 @@ export function AccountSettingsPage() {
                   </form>
                   
                   <div className="mt-8 pt-8 border-t border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">登录历史</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Login History</h3>
                     <div className="bg-gray-50 rounded-lg p-4">
                       <div className="text-sm text-gray-500">
-                        最近登录: {new Date().toLocaleString()}
+                        Last Login: {new Date().toLocaleString()}
                       </div>
                       <div className="text-sm text-gray-500">
-                        设备: Web浏览器
+                        Device: Web Browser
                       </div>
                       <div className="text-sm text-gray-500">
-                        IP地址: 192.168.1.1
+                        IP Address: 192.168.1.1
                       </div>
                     </div>
                   </div>
@@ -939,7 +939,7 @@ export function AccountSettingsPage() {
                         {saving ? (
                           <>
                             <Loader className="w-5 h-5 animate-spin" />
-                            <span>保存中...</span>
+                            <span>Saving...</span>
                           </>
                         ) : (
                           <>
@@ -1018,7 +1018,7 @@ export function AccountSettingsPage() {
                         {saving ? (
                           <>
                             <Loader className="w-5 h-5 animate-spin" />
-                            <span>保存中...</span>
+                            <span>Saving...</span>
                           </>
                         ) : (
                           <>

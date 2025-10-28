@@ -1,11 +1,12 @@
 ﻿import React, { useState, useRef } from 'react'
-import { Mail, Lock, User, Building2, Eye, EyeOff, Loader, Send, MessageSquare, XCircle, CheckCircle, ArrowLeft } from 'lucide-react'
+import { Mail, Lock, User, Building2, Eye, EyeOff, Loader, Send, MessageSquare, XCircle, CheckCircle, ArrowLeft, Globe } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { TalentType, talentTypeConfig } from '../../types/talent'
 import { TalentTypeForm } from '../talent/TalentTypeForm'
 import { TalentQuestionForm } from '../talent/TalentQuestionForm'
+import { countries, Country } from '../../types/countries'
 
 export function SignupPage() {
   const [userType, setUserType] = useState<'influencer' | 'company'>('influencer')
@@ -16,6 +17,7 @@ export function SignupPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [country, setCountry] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
   // Email verification related states
@@ -44,6 +46,7 @@ export function SignupPage() {
       setEmailError('Please enter email address')
       return
     }
+    // 生成统一的验证码
     const code = Math.floor(100000 + Math.random() * 900000).toString()
     setEmailCodeSent(code)
     setSendingEmail(true)
@@ -51,29 +54,63 @@ export function SignupPage() {
     setEmailSuccess('')
 
     try {
+      // 使用生成的验证码发送邮件
       const formData = new URLSearchParams()
       formData.append('app_key', EMAIL_API_KEY)
       formData.append('to', email)
       formData.append('template_id', EMAIL_TEMPLATE_ID)
       formData.append('data', JSON.stringify({ code }))
 
-      const res = await fetch(EMAIL_API_URL, { method: 'POST', body: formData })
-      const data = await res.json()
-      
-      console.log('Email API response:', data)
-      
-      const isSuccess = data.code === 0 || data.success === true || data.status === 'success' || 
-                       (data.message && data.message.includes('success'))
-      
-      if (isSuccess) {
-        setEmailSuccess('Verification code sent, please check your email')
-        setEmailError('')
-      } else {
-        setEmailError(data.message || 'Send failed')
-        setEmailSuccess('')
+      console.log('Sending email verification code to:', email)
+      console.log('Generated code:', code)
+      console.log('Using API URL:', EMAIL_API_URL)
+
+      // 尝试发送邮件
+      try {
+        const res = await fetch(EMAIL_API_URL, { 
+          method: 'POST', 
+          body: formData,
+          headers: {
+            'Accept': 'application/json',
+          }
+        })
+
+        console.log('Response status:', res.status)
+        
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`)
+        }
+
+        const data = await res.json()
+        console.log('Email API response:', data)
+        
+        const isSuccess = data.code === 0 || data.success === true || data.status === 'success' || 
+                         (data.message && data.message.includes('success'))
+        
+        if (isSuccess) {
+          setEmailSuccess('验证码已发送')
+          setEmailError('')
+        } else {
+          setEmailError(data.message || '发送失败')
+          setEmailSuccess('')
+        }
+      } catch (fetchError: any) {
+        // 如果邮件发送失败（如SSL证书错误），在开发环境中显示验证码
+        console.warn('Email sending failed:', fetchError)
+        
+        const isDevelopment = import.meta.env.DEV
+        if (isDevelopment) {
+          console.log('开发环境：由于邮件发送失败，显示验证码（仅用于测试）')
+          console.log('验证码:', code)
+          setEmailSuccess(`由于邮件服务问题，验证码已生成（仅用于测试）: ${code}`)
+          setEmailError('')
+        } else {
+          throw fetchError
+        }
       }
     } catch (e: any) {
-      setEmailError('Send failed: ' + e.message)
+      console.error('Email sending error:', e)
+      setEmailError('Send failed: ' + (e.message || 'Network error'))
       setEmailSuccess('')
     } finally {
       setSendingEmail(false)
@@ -336,9 +373,23 @@ export function SignupPage() {
         } else if (data?.user) {
           console.log('Registration successful')
 
-          // If influencer user, create talent profile
+          // If influencer user, create talent profile and save country
           if (userType === 'influencer') {
             try {
+              // Save country to influencers table if provided
+              if (country) {
+                const { error: countryError } = await supabase
+                  .from('influencers')
+                  .update({ country })
+                  .eq('user_id', data.user.id)
+                
+                if (countryError) {
+                  console.error('Saving country failed:', countryError)
+                } else {
+                  console.log('Country saved successfully:', country)
+                }
+              }
+              
               await createTalentProfile(data.user.id)
             } catch (profileError) {
               console.error('Creating talent profile failed:', profileError)
@@ -365,8 +416,8 @@ export function SignupPage() {
             navigate('/')
           } else {
             alert('Registration successful! Please log in to complete your profile.')
-            // Creator users redirect to login test page
-            navigate('/login-test')
+            // Creator users redirect to homepage
+            navigate('/')
           }
           
           // Redirect to login page
@@ -444,6 +495,32 @@ export function SignupPage() {
                 </button>
               </div>
             </div>
+
+            {/* Country field for influencers - placed before talent type selection */}
+            {userType === 'influencer' && (
+              <div className="w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Country / 国家 <span className="text-gray-400 text-xs">(Optional)</span>
+                </label>
+                <div className="relative w-full">
+                  <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <select
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white cursor-pointer"
+                    disabled={loading}
+                    style={{ width: '100%' }}
+                  >
+                    <option value="" disabled>Select Country / 选择国家</option>
+                    {countries.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.name} / {c.nameEn}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
 
             {/* Talent type selection and questions */}
             {userType === 'influencer' && (
@@ -530,9 +607,9 @@ export function SignupPage() {
                 </div>
               )}
               {emailSuccess && (
-                <div className="mt-2 flex items-center space-x-2 text-green-600 text-sm">
+                <div className="mt-2 flex items-center space-x-2 text-green-600 text-sm font-medium">
                   <CheckCircle className="w-4 h-4" />
-                  <span>{emailSuccess}</span>
+                  <span className="text-green-600">{emailSuccess}</span>
                 </div>
               )}
               {emailVerified && (

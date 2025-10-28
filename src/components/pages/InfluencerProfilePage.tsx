@@ -56,8 +56,8 @@ export function InfluencerProfilePage() {
   const [avatarKey, setAvatarKey] = useState(0)
 
   const availableCategories = [
-    '美妆护肤', '时尚穿搭', '美食生活', '数码科技', 
-    '健身运动', '母婴用品', '家居家装', '图书教育'
+    'Beauty & Skincare', 'Fashion & Style', 'Food & Lifestyle', 'Technology', 
+    'Fitness & Sports', 'Baby & Parenting', 'Home & Interior', 'Books & Education'
   ]
 
   // 验证PICUI API密钥是否配置
@@ -79,7 +79,7 @@ export function InfluencerProfilePage() {
       setLoading(true)
       setError(null)
       
-      console.log('开始获取达人资料，用户ID:', user.id)
+      console.log('Fetching influencer profile, User ID:', user.id)
       
       // 获取当前用户的达人资料
       const { data: influencerData, error: influencerError } = await supabase
@@ -88,16 +88,16 @@ export function InfluencerProfilePage() {
         .eq('user_id', user.id)
         .single()
 
-      console.log('获取达人资料结果:', { influencerData, influencerError })
+      console.log('Influencer profile fetch result:', { influencerData, influencerError })
 
       if (influencerError) {
         if (influencerError.code === 'PGRST116') {
           // 没有找到记录，可能是新用户
-          console.log('未找到达人资料，可能需要创建新资料')
+          console.log('No influencer profile found, may need to create new profile')
           setInfluencer(null)
         } else {
-          console.error('获取达人资料失败:', influencerError)
-          setError('获取资料失败，请重试')
+          console.error('Failed to fetch influencer profile:', influencerError)
+          setError('Failed to fetch profile, please try again')
         }
       } else {
         console.log('成功获取达人资料:', influencerData)
@@ -119,8 +119,8 @@ export function InfluencerProfilePage() {
         setAvatarPreview(influencerData.avatar_url || null)
       }
     } catch (error) {
-      console.error('获取达人资料时发生错误:', error)
-      setError('获取资料时发生错误，请重试')
+        console.error('Error occurred while fetching influencer profile:', error)
+      setError('An error occurred while fetching profile, please try again')
     } finally {
       setLoading(false)
     }
@@ -148,11 +148,11 @@ export function InfluencerProfilePage() {
   const handleAddCategory = () => {
     if (!newCategory.trim()) return
     if (formData.categories.includes(newCategory.trim())) {
-      alert('该分类已存在')
+      alert('This category already exists')
       return
     }
     const updatedCategories = [...formData.categories, newCategory.trim()]
-    console.log('添加专业领域:', newCategory.trim(), '更新后的分类:', updatedCategories)
+    console.log('Adding expertise area:', newCategory.trim(), 'Updated categories:', updatedCategories)
     setFormData(prev => ({
       ...prev,
       categories: updatedCategories
@@ -163,11 +163,11 @@ export function InfluencerProfilePage() {
   const handleAddTag = () => {
     if (!newTag.trim()) return
     if (formData.tags.includes(newTag.trim())) {
-      alert('该标签已存在')
+      alert('This tag already exists')
       return
     }
     const updatedTags = [...formData.tags, newTag.trim()]
-    console.log('添加技能标签:', newTag.trim(), '更新后的标签:', updatedTags)
+    console.log('Adding skill tag:', newTag.trim(), 'Updated tags:', updatedTags)
     setFormData(prev => ({
       ...prev,
       tags: updatedTags
@@ -225,12 +225,12 @@ export function InfluencerProfilePage() {
           setAvatarPreview(result.data.links.url)
           console.log('头像上传成功:', result.data.links.url)
         } else {
-          setError(result.message || '上传失败')
-          console.error('头像上传失败:', result)
+          setError(result.message || 'Upload failed')
+          console.error('Avatar upload failed:', result)
         }
       } catch (error: any) {
         console.error('头像上传异常:', error)
-        setError(error.message || '上传异常')
+        setError(error.message || 'Upload error')
       }
     }
   }
@@ -239,7 +239,7 @@ export function InfluencerProfilePage() {
     e.preventDefault()
     
     if (!user) {
-      setError('用户未登录')
+          setError('User not logged in')
       return
     }
     
@@ -252,7 +252,7 @@ export function InfluencerProfilePage() {
       
       // 验证必填字段
       if (!formData.nickname) {
-        setError('昵称不能为空')
+        setError('Nickname cannot be empty')
         return
       }
       
@@ -283,7 +283,7 @@ export function InfluencerProfilePage() {
         
         if (updateError) {
           console.error('更新资料失败:', updateError)
-          setError('更新资料失败，请重试')
+          setError('Failed to update profile, please try again')
           return
         }
         
@@ -306,7 +306,7 @@ export function InfluencerProfilePage() {
         
         if (insertError) {
           console.error('创建资料失败:', insertError)
-          setError('创建资料失败，请重试')
+          setError('Failed to create profile, please try again')
           return
         }
         
@@ -316,7 +316,7 @@ export function InfluencerProfilePage() {
         }
       }
       
-      setSuccess('资料保存成功！')
+      setSuccess('Profile saved successfully!')
       setEditMode(false)
       
       // 清除头像相关状态
@@ -334,7 +334,7 @@ export function InfluencerProfilePage() {
       
     } catch (error) {
       console.error('保存资料时发生错误:', error)
-      setError('保存资料时发生错误，请重试')
+      setError('An error occurred while saving profile, please try again')
     } finally {
       setSaving(false)
     }
@@ -346,8 +346,8 @@ export function InfluencerProfilePage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center py-12">
             <Loader className="w-8 h-8 animate-spin text-pink-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900">加载中...</h2>
-            <p className="text-gray-600 mt-2">正在获取您的资料</p>
+            <h2 className="text-xl font-semibold text-gray-900">Loading...</h2>
+            <p className="text-gray-600 mt-2">Loading your profile</p>
           </div>
         </div>
       </div>
@@ -360,8 +360,8 @@ export function InfluencerProfilePage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center py-12">
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">未登录</h2>
-            <p className="text-gray-600 mb-6">请先登录后再访问个人中心</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Not Logged In</h2>
+            <p className="text-gray-600 mb-6">Please log in to access your profile</p>
           </div>
         </div>
       </div>
@@ -374,8 +374,8 @@ export function InfluencerProfilePage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center py-12">
             <AlertCircle className="w-16 h-16 text-amber-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">权限不足</h2>
-            <p className="text-gray-600 mb-6">只有达人用户可以访问此页面</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Insufficient Permissions</h2>
+            <p className="text-gray-600 mb-6">Only creator users can access this page</p>
           </div>
         </div>
       </div>
@@ -394,7 +394,7 @@ export function InfluencerProfilePage() {
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <h1 className="text-2xl font-bold text-gray-900">达人个人中心</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Creator Profile</h1>
           </div>
           <button
             onClick={() => setEditMode(!editMode)}
@@ -407,12 +407,12 @@ export function InfluencerProfilePage() {
             {editMode ? (
               <>
                 <X className="w-4 h-4" />
-                <span>取消编辑</span>
+                <span>Cancel</span>
               </>
             ) : (
               <>
                 <Edit className="w-4 h-4" />
-                <span>编辑资料</span>
+                <span>Edit Profile</span>
               </>
             )}
           </button>
@@ -444,7 +444,7 @@ export function InfluencerProfilePage() {
             {editMode && (
               <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
                 <button className="bg-white text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors">
-                  更换封面
+                  Change Cover
                 </button>
               </div>
             )}
@@ -458,7 +458,7 @@ export function InfluencerProfilePage() {
                 <div className="relative w-full h-full">
                   <img
                     src={avatarPreview || influencer?.avatar_url || 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400'}
-                    alt="头像预览"
+                    alt="Avatar Preview"
                     className="w-full h-full object-cover"
                   />
                   <label className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 cursor-pointer">
@@ -474,7 +474,7 @@ export function InfluencerProfilePage() {
               ) : (
                 <img
                   src={avatarPreview || influencer?.avatar_url ? `${avatarPreview || influencer?.avatar_url}?t=${Date.now()}` : 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400'}
-                  alt="用户头像"
+                  alt="User Avatar"
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement
@@ -492,7 +492,7 @@ export function InfluencerProfilePage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        昵称 <span className="text-red-500">*</span>
+                        Nickname <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -501,13 +501,13 @@ export function InfluencerProfilePage() {
                         onChange={handleInputChange}
                         required
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                        placeholder="请输入您的昵称"
+                        placeholder="Enter your nickname"
                       />
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        真实姓名
+                        Real Name
                       </label>
                       <input
                         type="text"
@@ -515,13 +515,13 @@ export function InfluencerProfilePage() {
                         value={formData.real_name}
                         onChange={handleInputChange}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                        placeholder="请输入您的真实姓名（选填）"
+                        placeholder="Enter your real name (optional)"
                       />
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        TikTok账号
+                        TikTok Account
                       </label>
                       <input
                         type="text"
@@ -529,13 +529,13 @@ export function InfluencerProfilePage() {
                         value={formData.tiktok_account}
                         onChange={handleInputChange}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                        placeholder="请输入您的TikTok账号"
+                        placeholder="Enter your TikTok account"
                       />
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        所在地区
+                        Location
                       </label>
                       <input
                         type="text"
@@ -543,13 +543,13 @@ export function InfluencerProfilePage() {
                         value={formData.location}
                         onChange={handleInputChange}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                        placeholder="请输入您的所在地区"
+                        placeholder="Enter your location"
                       />
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        小时收费（元）
+                        Hourly Rate (CNY)
                       </label>
                       <input
                         type="number"
@@ -558,13 +558,13 @@ export function InfluencerProfilePage() {
                         onChange={handleInputChange}
                         min="0"
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                        placeholder="请输入您的小时收费"
+                        placeholder="Enter your hourly rate"
                       />
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        从业年限
+                        Experience (Years)
                       </label>
                       <input
                         type="number"
@@ -574,7 +574,7 @@ export function InfluencerProfilePage() {
                         min="0"
                         step="0.1"
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                        placeholder="请输入您的从业年限"
+                        placeholder="Enter your experience in years"
                       />
                     </div>
                   </div>
@@ -582,7 +582,7 @@ export function InfluencerProfilePage() {
                   {/* 个人简介 */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      个人简介
+                      Bio
                     </label>
                     <textarea
                       name="bio"
@@ -590,14 +590,14 @@ export function InfluencerProfilePage() {
                       onChange={handleInputChange}
                       rows={4}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
-                      placeholder="请简要介绍自己..."
+                      placeholder="Briefly introduce yourself..."
                     />
                   </div>
                   
                   {/* 专业领域 */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      专业领域
+                      Areas of Expertise
                     </label>
                     <div className="flex flex-wrap gap-2 mb-3">
                       {formData.categories.map((category, index) => (
@@ -619,7 +619,7 @@ export function InfluencerProfilePage() {
                         onChange={(e) => setNewCategory(e.target.value)}
                         className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                       >
-                        <option value="">选择分类...</option>
+                        <option value="">Select category...</option>
                         {availableCategories
                           .filter(cat => !formData.categories.includes(cat))
                           .map(category => (
@@ -632,16 +632,16 @@ export function InfluencerProfilePage() {
                         onClick={handleAddCategory}
                         className="bg-pink-500 text-white px-4 py-2 rounded-lg hover:bg-pink-600 transition-colors"
                       >
-                        添加
+                        Add
                       </button>
                     </div>
                   </div>
                   
                   {/* 技能标签 */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      技能标签
-                    </label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Skills & Tags
+                      </label>
                     <div className="flex flex-wrap gap-2 mb-3">
                       {formData.tags.map((tag, index) => (
                         <div key={index} className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm flex items-center space-x-1">
@@ -662,14 +662,14 @@ export function InfluencerProfilePage() {
                         value={newTag}
                         onChange={(e) => setNewTag(e.target.value)}
                         className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                        placeholder="输入标签..."
+                        placeholder="Enter tag..."
                       />
                       <button
                         type="button"
                         onClick={handleAddTag}
                         className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
                       >
-                        添加
+                        Add
                       </button>
                     </div>
                   </div>
@@ -681,7 +681,7 @@ export function InfluencerProfilePage() {
                       onClick={() => setEditMode(false)}
                       className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                     >
-                      取消
+                      Cancel
                     </button>
                     <button
                       type="submit"
@@ -691,12 +691,12 @@ export function InfluencerProfilePage() {
                       {saving ? (
                         <>
                           <Loader className="w-5 h-5 animate-spin" />
-                          <span>保存中...</span>
+                          <span>Saving...</span>
                         </>
                       ) : (
                         <>
                           <Save className="w-5 h-5" />
-                          <span>保存资料</span>
+                          <span>Save Profile</span>
                         </>
                       )}
                     </button>
@@ -706,20 +706,20 @@ export function InfluencerProfilePage() {
                 <div>
                   {/* 名称和状态 */}
                   <div className="flex items-center space-x-3 mb-4">
-                    <h2 className="text-2xl font-bold text-gray-900">{influencer?.nickname || '未设置昵称'}</h2>
+                    <h2 className="text-2xl font-bold text-gray-900">{influencer?.nickname || 'No Nickname Set'}</h2>
                     {influencer?.is_verified && (
                       <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs flex items-center space-x-1">
                         <CheckCircle className="w-3 h-3" />
-                        <span>已认证</span>
+                        <span>Verified</span>
                       </span>
                     )}
                     {influencer?.is_approved ? (
                       <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs">
-                        已审核
+                        Approved
                       </span>
                     ) : (
                       <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs">
-                        待审核
+                        Pending
                       </span>
                     )}
                   </div>
@@ -730,7 +730,7 @@ export function InfluencerProfilePage() {
                       <div className="flex items-center space-x-3">
                         <User className="w-5 h-5 text-gray-400" />
                         <div>
-                          <div className="text-sm text-gray-500">真实姓名</div>
+                          <div className="text-sm text-gray-500">Real Name</div>
                           <div className="font-medium">{influencer.real_name}</div>
                         </div>
                       </div>
@@ -739,7 +739,7 @@ export function InfluencerProfilePage() {
                     <div className="flex items-center space-x-3">
                       <Mail className="w-5 h-5 text-gray-400" />
                       <div>
-                        <div className="text-sm text-gray-500">邮箱</div>
+                        <div className="text-sm text-gray-500">Email</div>
                         <div className="font-medium">{user.email}</div>
                       </div>
                     </div>
@@ -748,7 +748,7 @@ export function InfluencerProfilePage() {
                       <div className="flex items-center space-x-3">
                         <Instagram className="w-5 h-5 text-gray-400" />
                         <div>
-                          <div className="text-sm text-gray-500">TikTok账号</div>
+                          <div className="text-sm text-gray-500">TikTok Account</div>
                           <div className="font-medium">{influencer.tiktok_account}</div>
                         </div>
                       </div>
@@ -758,7 +758,7 @@ export function InfluencerProfilePage() {
                       <div className="flex items-center space-x-3">
                         <MapPin className="w-5 h-5 text-gray-400" />
                         <div>
-                          <div className="text-sm text-gray-500">所在地区</div>
+                          <div className="text-sm text-gray-500">Location</div>
                           <div className="font-medium">{influencer.location}</div>
                         </div>
                       </div>
@@ -767,16 +767,16 @@ export function InfluencerProfilePage() {
                     <div className="flex items-center space-x-3">
                       <DollarSign className="w-5 h-5 text-gray-400" />
                       <div>
-                        <div className="text-sm text-gray-500">小时收费</div>
-                        <div className="font-medium">${influencer?.hourly_rate?.toLocaleString() || '未设置'}</div>
+                        <div className="text-sm text-gray-500">Hourly Rate</div>
+                        <div className="font-medium">${influencer?.hourly_rate?.toLocaleString() || 'Not Set'}</div>
                       </div>
                     </div>
                     
                     <div className="flex items-center space-x-3">
                       <Clock className="w-5 h-5 text-gray-400" />
                       <div>
-                        <div className="text-sm text-gray-500">从业年限</div>
-                        <div className="font-medium">{influencer?.experience_years || '未设置'} 年</div>
+                        <div className="text-sm text-gray-500">Experience (Years)</div>
+                        <div className="font-medium">{influencer?.experience_years || 'Not Set'} years</div>
                       </div>
                     </div>
                   </div>
@@ -784,14 +784,14 @@ export function InfluencerProfilePage() {
                   {/* 个人简介 */}
                   {influencer?.bio && (
                     <div className="mb-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">个人简介</h3>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Bio</h3>
                       <p className="text-gray-700 whitespace-pre-line">{influencer.bio}</p>
                     </div>
                   )}
                   
                   {/* 专业领域 */}
                   <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">专业领域</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Areas of Expertise</h3>
                     {influencer?.categories && influencer.categories.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {influencer.categories.map((category, index) => (
@@ -801,13 +801,13 @@ export function InfluencerProfilePage() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-gray-500">暂未设置专业领域</p>
+                      <p className="text-gray-500">No expertise areas set</p>
                     )}
                   </div>
                   
                   {/* 技能标签 */}
                   <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">技能标签</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Skills & Tags</h3>
                     {influencer?.tags && influencer.tags.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {influencer.tags.map((tag, index) => (
@@ -817,24 +817,24 @@ export function InfluencerProfilePage() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-gray-500">暂未设置技能标签</p>
+                      <p className="text-gray-500">No skills & tags set</p>
                     )}
                   </div>
                   
-                  {/* 账号状态 */}
+                  {/* Account Status */}
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">账号状态</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Account Status</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="flex items-center space-x-3">
                         <div className={`w-3 h-3 rounded-full ${
                           influencer?.status === 'active' ? 'bg-green-500' : 'bg-gray-400'
                         }`}></div>
                         <div>
-                          <div className="text-sm text-gray-500">账号状态</div>
+                          <div className="text-sm text-gray-500">Account Status</div>
                           <div className="font-medium">
-                            {influencer?.status === 'active' ? '活跃' : 
-                             influencer?.status === 'inactive' ? '不活跃' : 
-                             influencer?.status === 'suspended' ? '已暂停' : '未知'}
+                            {influencer?.status === 'active' ? 'Active' : 
+                             influencer?.status === 'inactive' ? 'Inactive' : 
+                             influencer?.status === 'suspended' ? 'Suspended' : 'Unknown'}
                           </div>
                         </div>
                       </div>
@@ -844,9 +844,9 @@ export function InfluencerProfilePage() {
                           influencer?.is_approved ? 'bg-green-500' : 'bg-yellow-500'
                         }`}></div>
                         <div>
-                          <div className="text-sm text-gray-500">审核状态</div>
+                          <div className="text-sm text-gray-500">Review Status</div>
                           <div className="font-medium">
-                            {influencer?.is_approved ? '已审核' : '待审核'}
+                            {influencer?.is_approved ? 'Approved' : 'Pending'}
                           </div>
                         </div>
                       </div>
@@ -856,9 +856,9 @@ export function InfluencerProfilePage() {
                           influencer?.is_verified ? 'bg-blue-500' : 'bg-gray-400'
                         }`}></div>
                         <div>
-                          <div className="text-sm text-gray-500">认证状态</div>
+                          <div className="text-sm text-gray-500">Verification Status</div>
                           <div className="font-medium">
-                            {influencer?.is_verified ? '已认证' : '未认证'}
+                            {influencer?.is_verified ? 'Verified' : 'Not Verified'}
                           </div>
                         </div>
                       </div>
@@ -873,7 +873,7 @@ export function InfluencerProfilePage() {
         {/* 数据统计卡片 */}
         {!editMode && influencer && (
           <div className="bg-white rounded-xl shadow-sm p-8 mb-8">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">数据统计</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">Statistics</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div className="text-center">
                 <div className="w-16 h-16 bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
@@ -882,7 +882,7 @@ export function InfluencerProfilePage() {
                 <div className="text-2xl font-bold text-gray-900 mb-1">
                   {influencer.followers_count?.toLocaleString() || 0}
                 </div>
-                <div className="text-sm text-gray-600">粉丝数量</div>
+                <div className="text-sm text-gray-600">Followers</div>
               </div>
               
               <div className="text-center">
@@ -892,7 +892,7 @@ export function InfluencerProfilePage() {
                 <div className="text-2xl font-bold text-gray-900 mb-1">
                   {influencer.total_live_count || 0}
                 </div>
-                <div className="text-sm text-gray-600">直播场次</div>
+                <div className="text-sm text-gray-600">Live Sessions</div>
               </div>
               
               <div className="text-center">
@@ -902,7 +902,7 @@ export function InfluencerProfilePage() {
                 <div className="text-2xl font-bold text-gray-900 mb-1">
                   {influencer.avg_views?.toLocaleString() || 0}
                 </div>
-                <div className="text-sm text-gray-600">平均观看量</div>
+                <div className="text-sm text-gray-600">Average Views</div>
               </div>
               
               <div className="text-center">
@@ -912,7 +912,7 @@ export function InfluencerProfilePage() {
                 <div className="text-2xl font-bold text-gray-900 mb-1">
                   {Number(influencer.rating).toFixed(1) || '0.0'}
                 </div>
-                <div className="text-sm text-gray-600">平均评分 ({influencer.total_reviews || 0})</div>
+                <div className="text-sm text-gray-600">Average Rating ({influencer.total_reviews || 0})</div>
               </div>
             </div>
           </div>
@@ -922,20 +922,20 @@ export function InfluencerProfilePage() {
         {!influencer && !editMode && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-8 text-center">
             <Briefcase className="w-16 h-16 text-amber-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-amber-900 mb-2">完善您的达人资料</h3>
+            <h3 className="text-xl font-semibold text-amber-900 mb-2">Complete Your Creator Profile</h3>
             <p className="text-amber-700 mb-6 max-w-2xl mx-auto">
-              您还没有设置达人资料。完善资料可以帮助品牌方更好地了解您，增加合作机会。
+              You haven't set up your creator profile yet. A complete profile helps brands get to know you better and increases collaboration opportunities.
             </p>
             <button
               onClick={() => setEditMode(true)}
               className="bg-amber-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-amber-600 transition-colors"
             >
-              立即设置
+              Set Up Now
             </button>
           </div>
         )}
 
-        {/* 审核提示 */}
+        {/* Review Notice */}
         {influencer && !influencer.is_approved && (
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
             <div className="flex items-start space-x-4">
@@ -943,25 +943,25 @@ export function InfluencerProfilePage() {
                 <Clock className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-blue-900 mb-2">审核中</h3>
-                <p className="text-blue-700 mb-4">
-                  您的达人资料正在审核中，审核通过后您将可以接收任务邀请和申请任务。
-                  审核通常需要1-3个工作日，请耐心等待。
+                <h3 className="text-lg font-semibold text-blue-900 mb-2">Under Review</h3>
+                  <p className="text-blue-700 mb-4">
+                  Your creator profile is under review. Once approved, you'll be able to receive task invitations and apply for tasks.
+                  Review typically takes 1-3 business days. Please wait patiently.
                 </p>
                 <div className="text-sm text-blue-600">
-                  提交时间: {new Date(influencer.created_at).toLocaleString()}
+                  Submitted: {new Date(influencer.created_at).toLocaleString()}
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* 完善资料提示 */}
+        {/* Profile Completion Tips */}
         {influencer && !editMode && (
           <div className="bg-white rounded-xl shadow-sm p-8">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">提升资料完整度</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">Improve Profile Completeness</h3>
             <p className="text-gray-600 mb-6">
-              完善的资料可以提高您被品牌方选中的几率。以下是一些建议：
+              A complete profile can increase your chances of being selected by brands. Here are some suggestions:
             </p>
             <div className="space-y-3">
               {!influencer.bio && (
@@ -969,7 +969,7 @@ export function InfluencerProfilePage() {
                   <div className="w-6 h-6 bg-pink-100 rounded-full flex items-center justify-center">
                     <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
                   </div>
-                  <span className="text-gray-700">添加个人简介，介绍您的专业背景和特长</span>
+                  <span className="text-gray-700">Add a bio to introduce your professional background and expertise</span>
                 </div>
               )}
               
@@ -978,7 +978,7 @@ export function InfluencerProfilePage() {
                   <div className="w-6 h-6 bg-pink-100 rounded-full flex items-center justify-center">
                     <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
                   </div>
-                  <span className="text-gray-700">选择您擅长的专业领域</span>
+                  <span className="text-gray-700">Select your areas of expertise</span>
                 </div>
               )}
               
@@ -987,7 +987,7 @@ export function InfluencerProfilePage() {
                   <div className="w-6 h-6 bg-pink-100 rounded-full flex items-center justify-center">
                     <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
                   </div>
-                  <span className="text-gray-700">添加技能标签，展示您的专业能力</span>
+                  <span className="text-gray-700">Add skill tags to showcase your professional abilities</span>
                 </div>
               )}
               
@@ -996,7 +996,7 @@ export function InfluencerProfilePage() {
                   <div className="w-6 h-6 bg-pink-100 rounded-full flex items-center justify-center">
                     <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
                   </div>
-                  <span className="text-gray-700">关联您的TikTok账号</span>
+                  <span className="text-gray-700">Link your TikTok account</span>
                 </div>
               )}
               
@@ -1005,7 +1005,7 @@ export function InfluencerProfilePage() {
                   <div className="w-6 h-6 bg-pink-100 rounded-full flex items-center justify-center">
                     <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
                   </div>
-                  <span className="text-gray-700">填写您的所在地区</span>
+                  <span className="text-gray-700">Enter your location</span>
                 </div>
               )}
               
@@ -1014,7 +1014,7 @@ export function InfluencerProfilePage() {
                   <div className="w-6 h-6 bg-pink-100 rounded-full flex items-center justify-center">
                     <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
                   </div>
-                  <span className="text-gray-700">上传个人头像</span>
+                  <span className="text-gray-700">Upload your avatar</span>
                 </div>
               )}
             </div>

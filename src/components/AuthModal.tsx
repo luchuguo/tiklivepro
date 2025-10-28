@@ -354,7 +354,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <h2 className="text-2xl font-bold text-gray-900">
-            {mode === 'signin' ? '登录' : '注册'}
+            {mode === 'signin' ? 'Login' : 'Sign Up'}
           </h2>
           <button
             onClick={onClose}
@@ -368,7 +368,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
           {mode === 'signup' && (
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-3">
-                用户类型
+                User Type
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <button
@@ -381,7 +381,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
                   }`}
                 >
                   <User className="w-5 h-5 mx-auto mb-1" />
-                  <div className="text-sm font-medium">达人主播</div>
+                  <div className="text-sm font-medium">Creator</div>
                 </button>
                 <button
                   type="button"
@@ -393,7 +393,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
                   }`}
                 >
                   <Building2 className="w-5 h-5 mx-auto mb-1" />
-                  <div className="text-sm font-medium">企业用户</div>
+                  <div className="text-sm font-medium">Company</div>
                 </button>
               </div>
             </div>
@@ -402,7 +402,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                邮箱地址
+                Email Address
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -411,7 +411,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                  placeholder="请输入邮箱地址"
+                  placeholder="Enter your email address"
                   required
                   disabled={loading}
                 />
@@ -430,12 +430,12 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
                   {sendingEmail ? (
                     <>
                       <Loader className="w-4 h-4 animate-spin" />
-                      <span>发送中...</span>
+                      <span>Sending...</span>
                     </>
                   ) : (
                     <>
                       <Send className="w-4 h-4" />
-                      <span>发送验证码</span>
+                      <span>Send Verification Code</span>
                     </>
                   )}
                 </button>
@@ -443,7 +443,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
                 {/* 邮箱验证码输入 */}
                 <div className="mt-3">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    邮箱验证码 <span className="text-red-500">*</span>
+                    Email Verification Code <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <MessageSquare className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -454,7 +454,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
                           value={emailInputCode}
                           onChange={handleInputChange}
                           className="w-full pl-9 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                          placeholder="请输入6位验证码"
+                          placeholder="Enter 6-digit code"
                           maxLength={6}
                           disabled={loading}
                         />
@@ -489,7 +489,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
                 {emailVerified && (
                   <div className="mt-2 flex items-center space-x-2 text-green-600 text-sm">
                     <CheckCircle className="w-4 h-4" />
-                    <span>邮箱验证成功</span>
+                    <span>Email verified successfully</span>
                   </div>
                 )}
               </div>
@@ -497,7 +497,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                密码
+                Password
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -506,7 +506,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                  placeholder="请输入密码"
+                  placeholder="Enter your password"
                   required
                   disabled={loading}
                 />
@@ -524,7 +524,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
             {mode === 'signup' && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  确认密码
+                  Confirm Password
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -533,7 +533,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                    placeholder="请再次输入密码"
+                    placeholder="Confirm your password"
                     required
                     disabled={loading}
                   />
@@ -555,17 +555,17 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
               {loading ? (
                 <>
                   <Loader className="w-5 h-5 animate-spin" />
-                  <span>{mode === 'signin' ? '登录中...' : '注册中...'}</span>
+                  <span>{mode === 'signin' ? 'Logging in...' : 'Signing up...'}</span>
                 </>
               ) : (
-                <span>{mode === 'signin' ? '登录' : '注册'}</span>
+                <span>{mode === 'signin' ? 'Login' : 'Sign Up'}</span>
               )}
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              {mode === 'signin' ? '还没有账号？' : '已有账号？'}
+              {mode === 'signin' ? "Don't have an account?" : 'Already have an account?'}
               {mode === 'signin' ? (
                 <button
                   onClick={() => {
@@ -575,7 +575,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
                   className="ml-1 text-pink-600 hover:text-pink-700 font-medium"
                   disabled={loading}
                 >
-                  立即注册
+                  Sign Up
                 </button>
               ) : (
                 <button
@@ -583,7 +583,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'signin', defaultUser
                   className="ml-1 text-pink-600 hover:text-pink-700 font-medium"
                   disabled={loading}
                 >
-                  立即登录
+                  Login
                 </button>
               )}
             </p>

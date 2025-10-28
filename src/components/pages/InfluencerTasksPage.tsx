@@ -33,7 +33,7 @@ export function InfluencerTasksPage() {
         .single()
 
       if (influencerErr || !influencerData) {
-        throw influencerErr || new Error('未找到达人信息，请先完善达人资料')
+        throw influencerErr || new Error('Creator profile not found, please complete your creator profile first')
       }
 
       const influencerId = influencerData.id
@@ -49,8 +49,8 @@ export function InfluencerTasksPage() {
 
       setApplications((apps || []) as any)
     } catch (err: any) {
-      console.error('加载任务申请失败:', err)
-      setError(err.message || '加载任务申请失败')
+      console.error('Failed to load task applications:', err)
+      setError(err.message || 'Failed to load task applications')
     } finally {
       setLoading(false)
     }
@@ -59,23 +59,23 @@ export function InfluencerTasksPage() {
   if (!isInfluencer) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-500">
-        仅达人用户可访问此页面
+        Only creator users can access this page
       </div>
     )
   }
 
   const taskStatusMap: Record<string, string> = {
-    open: '招募中',
-    in_progress: '进行中',
-    completed: '已完成',
-    cancelled: '已取消',
+    open: 'Open',
+    in_progress: 'In Progress',
+    completed: 'Completed',
+    cancelled: 'Cancelled',
   }
 
   const applicationStatusMap: Record<string, string> = {
-    pending: '待审核',
-    accepted: '已通过',
-    refused: '已拒绝',
-    withdrawn: '已撤回',
+    pending: 'Pending',
+    accepted: 'Accepted',
+    refused: 'Refused',
+    withdrawn: 'Withdrawn',
   }
 
   return (
@@ -85,7 +85,7 @@ export function InfluencerTasksPage() {
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
             <Video className="w-6 h-6 text-pink-600" />
-            <span>我的任务</span>
+            <span>My Tasks</span>
           </h1>
         </div>
 
@@ -100,7 +100,7 @@ export function InfluencerTasksPage() {
             <span className="text-red-700">{error}</span>
           </div>
         ) : applications.length === 0 ? (
-          <div className="text-center text-gray-500 py-20">暂无任务申请或合作记录</div>
+          <div className="text-center text-gray-500 py-20">No task applications or collaboration records yet</div>
         ) : (
           <div className="space-y-4">
             {applications.map((app) => (
@@ -110,11 +110,11 @@ export function InfluencerTasksPage() {
               >
                 <div>
                   <h3 className="text-lg font-medium text-gray-900">{app.task?.title}</h3>
-                  <p className="text-sm text-gray-500 mt-1">任务状态：{taskStatusMap[app.task?.status]}</p>
-                  <p className="text-sm text-gray-500 mt-1">申请状态：{applicationStatusMap[app.status]}</p>
+                  <p className="text-sm text-gray-500 mt-1">Task Status: {taskStatusMap[app.task?.status]}</p>
+                  <p className="text-sm text-gray-500 mt-1">Application Status: {applicationStatusMap[app.status]}</p>
                 </div>
                 {app.proposed_rate !== null && (
-                  <div className="text-sm text-gray-500">报价：${app.proposed_rate?.toLocaleString()}</div>
+                  <div className="text-sm text-gray-500">Proposed Rate: ${app.proposed_rate?.toLocaleString()}</div>
                 )}
               </div>
             ))}

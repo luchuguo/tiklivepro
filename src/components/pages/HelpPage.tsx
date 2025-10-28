@@ -84,7 +84,7 @@ export function HelpPage() {
     {
       icon: Phone,
       title: 'Customer Hotline',
-      description: 'China 025-84799999 USA 610-8577777',
+      description: 'Tel (USA): +1-610-8577777   |   Tel (China): +86-25-84799999',
       action: 'Call Now',
       color: 'from-green-500 to-blue-600'
     },

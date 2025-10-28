@@ -249,14 +249,14 @@ function App() {
                             className="flex items-center w-full text-left py-2 px-4 text-gray-700 hover:text-pink-600 hover:bg-pink-50 transition-colors"
                           >
                             <UserCheck className="w-4 h-4 mr-3" />
-                            个人中心
+                            Profile
                           </button>
                           <button
                             onClick={() => handlePageChange("account-settings")}
                             className="flex items-center w-full text-left py-2 px-4 text-gray-700 hover:text-pink-600 hover:bg-pink-50 transition-colors"
                           >
                             <Cog className="w-4 h-4 mr-3" />
-                            账号设置
+                            Account Settings
                           </button>
                           {profile?.user_type === "influencer" && (
                             <button
@@ -264,7 +264,7 @@ function App() {
                               className="flex items-center w-full text-left py-2 px-4 text-gray-700 hover:text-pink-600 hover:bg-pink-50 transition-colors"
                             >
                               <Briefcase className="w-4 h-4 mr-3" />
-                              我的任务
+                              My Tasks
                             </button>
                           )}
                           {profile?.user_type === "company" && (
@@ -273,7 +273,7 @@ function App() {
                               className="flex items-center w-full text-left py-2 px-4 text-gray-700 hover:text-pink-600 hover:bg-pink-50 transition-colors"
                             >
                               <Briefcase className="w-4 h-4 mr-3" />
-                              我的任务
+                              My Tasks
                             </button>
                           )}
                         </>
@@ -383,20 +383,20 @@ function App() {
                           onClick={() => handlePageChange("profile")}
                           className="block w-full text-left py-2 px-4 text-gray-700 hover:text-pink-600 transition-colors"
                         >
-                          个人中心
+                          Profile
                         </button>
                         <button
                           onClick={() => handlePageChange("account-settings")}
                           className="block w-full text-left py-2 px-4 text-gray-700 hover:text-pink-600 transition-colors"
                         >
-                          账号设置
+                          Account Settings
                         </button>
                         {profile?.user_type === "influencer" && (
                           <button
                             onClick={() => handlePageChange("influencer-tasks")}
                             className="block w-full text-left py-2 px-4 text-gray-700 hover:text-pink-600 transition-colors"
                           >
-                            我的任务
+                            My Tasks
                           </button>
                         )}
                         {profile?.user_type === "company" && (
@@ -404,7 +404,7 @@ function App() {
                             onClick={() => handlePageChange("company-tasks")}
                             className="block w-full text-left py-2 px-4 text-gray-700 hover:text-pink-600 transition-colors"
                           >
-                            我的任务
+                            My Tasks
                           </button>
                         )}
                       </>
