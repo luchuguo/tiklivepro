@@ -4,43 +4,43 @@ const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
 
 export default async function handler(req, res) {
-  // 设置CORS头
+  // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 
-  // 处理OPTIONS请求
+  // Handle OPTIONS request
   if (req.method === 'OPTIONS') {
     return res.status(200).end()
   }
 
-  // 只允许 GET 请求
+  // Only allow GET requests
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
   try {
-    // 检查环境变量
+    // Check environment variables
     if (!supabaseUrl || !supabaseKey) {
-      console.error('❌ 环境变量未设置')
-      return res.status(500).json({ error: 'Supabase 配置错误' })
+      console.error('❌ Environment variables not set')
+      return res.status(500).json({ error: 'Supabase configuration error' })
     }
 
-    // 获取视频ID
+    // Get video ID
     const { id } = req.query
     if (!id) {
-      return res.status(400).json({ error: '缺少视频ID参数' })
+      return res.status(400).json({ error: 'Missing video ID parameter' })
     }
 
-    // 创建缓存键（用于日志）
+    // Create cache key (for logging)
     const cacheKey = `video_detail_${id}`
-    console.log(`🔍 查询缓存键: ${cacheKey}`)
+    console.log(`🔍 Query cache key: ${cacheKey}`)
 
-    // 创建 Supabase 客户端
+    // Create Supabase client
     const supabase = createClient(supabaseUrl, supabaseKey)
-    console.log('🎬 开始获取视频详情...')
+    console.log('🎬 Starting to fetch video details...')
 
-    // 获取视频详情
+    // Get video details
     const { data: video, error: videoError } = await supabase
       .from('videos')
       .select(`
@@ -52,11 +52,11 @@ export default async function handler(req, res) {
       .single()
 
     if (videoError || !video) {
-      console.error('❌ 视频不存在或已禁用:', videoError)
-      return res.status(404).json({ error: '视频不存在或已禁用' })
+      console.error('❌ Video does not exist or is disabled:', videoError)
+      return res.status(404).json({ error: 'Video does not exist or is disabled' })
     }
 
-    // 获取相关视频推荐
+    // Get related video recommendations
     const { data: relatedVideos, error: relatedError } = await supabase
       .from('videos')
       .select(`
@@ -77,10 +77,10 @@ export default async function handler(req, res) {
       .limit(6)
 
     if (relatedError) {
-      console.error('❌ 获取相关视频失败:', relatedError)
+      console.error('❌ Failed to fetch related videos:', relatedError)
     }
 
-    // 获取视频分类信息
+    // Get video category info
     const { data: categories, error: categoriesError } = await supabase
       .from('video_categories')
       .select('*')
@@ -88,10 +88,10 @@ export default async function handler(req, res) {
       .order('sort_order', { ascending: true })
 
     if (categoriesError) {
-      console.error('❌ 获取分类信息失败:', categoriesError)
+      console.error('❌ Failed to fetch category info:', categoriesError)
     }
 
-    // 构建响应数据
+    // Build response data
     const result = {
       video: {
         ...video,
@@ -111,12 +111,12 @@ export default async function handler(req, res) {
       }
     }
 
-    console.log('✅ 成功获取视频详情')
+    console.log('✅ Successfully fetched video details')
 
-    // 缓存策略：使用Vercel CDN缓存
-    console.log(`💾 视频详情数据将通过CDN缓存，TTL: 600秒`)
+    // Cache strategy: use Vercel CDN cache
+    console.log(`💾 Video details data will be cached via CDN, TTL: 600 seconds`)
 
-    // 设置缓存头
+    // Set cache headers
     res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate, public')
     res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=600')
     res.setHeader('CDN-Cache-Control', 's-maxage=600')
@@ -125,9 +125,9 @@ export default async function handler(req, res) {
 
     res.json(result)
   } catch (error) {
-    console.error('❌ 视频详情API错误:', error)
+    console.error('❌ Video details API error:', error)
     res.status(500).json({ 
-      error: '获取视频详情失败',
+      error: 'Failed to fetch video details',
       details: error.message 
     })
   }

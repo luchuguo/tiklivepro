@@ -14,11 +14,70 @@ import {
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 
+// Translation mapping for Chinese to English
+const translationMap: Record<string, string> = {
+  // Categories
+  '美妆': 'Beauty',
+  '时尚': 'Fashion',
+  '数码': 'Tech',
+  '生活': 'Lifestyle',
+  '美食': 'Food',
+  '旅游': 'Travel',
+  '教育': 'Education',
+  '直播带货': 'Live Commerce',
+  '健身': 'Fitness',
+  '母婴': 'Maternal & Baby',
+  '家居': 'Home',
+  '图书': 'Books',
+  '美妆护肤': 'Beauty & Skincare',
+  '时尚服装': 'Fashion',
+  '数码科技': 'Digital Tech',
+  '生活用品': 'Lifestyle',
+  '美食烹饪': 'Food & Cooking',
+  '旅游出行': 'Travel',
+  '教育培训': 'Education',
+  
+  // Common tags
+  '产品展示': 'Product Showcase',
+  '互动性强': 'High Engagement',
+  '转化率高': 'High Conversion',
+  '专业': 'Professional',
+  '推荐': 'Recommended',
+  
+  // Common descriptions
+  '专业美妆达人': 'Professional Beauty Influencer',
+  '直播带货': 'Live Commerce',
+  '展示产品效果': 'Showcase Product Effects',
+}
+
+// Function to translate Chinese text to English
+const translateToEnglish = (text: string | undefined | null): string => {
+  if (!text) return ''
+  const trimmed = text.trim()
+  
+  // Check if it's already in English (contains mostly ASCII)
+  const isEnglish = /^[\x00-\x7F]*$/.test(trimmed)
+  if (isEnglish) return trimmed
+  
+  // Direct translation lookup
+  if (translationMap[trimmed]) {
+    return translationMap[trimmed]
+  }
+  
+  // Partial translation for common phrases
+  let translated = trimmed
+  for (const [chinese, english] of Object.entries(translationMap)) {
+    translated = translated.replace(new RegExp(chinese, 'g'), english)
+  }
+  
+  return translated || trimmed
+}
+
 interface Video {
   id: string
   title: string
   description: string
-  video_url: string  // 现在这个字段将存储 YouTube 视频 ID
+  video_url: string  // This field now stores the YouTube video ID
   poster_url: string
   views_count: string
   likes_count: string
@@ -75,7 +134,7 @@ export function VideoPlayerPage() {
   const [showControls, setShowControls] = useState(true)
   const [isFullscreen, setIsFullscreen] = useState(false)
   
-  // 新增状态
+  // New state
   const [videoData, setVideoData] = useState<VideoDetailResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -84,11 +143,11 @@ export function VideoPlayerPage() {
   const location = useLocation()
   const { videoId } = useParams()
 
-  // 从URL参数或location state获取视频信息
+  // Get video info from URL params or location state
   const videoInfo = location.state?.videoInfo || {
     id: videoId || '1',
-    title: '加载中...',
-    description: '正在加载视频信息...',
+    title: 'Loading...',
+    description: 'Loading video information...',
     video_url: '',
     poster_url: '',
     views_count: '0',
@@ -96,9 +155,9 @@ export function VideoPlayerPage() {
     comments_count: '0',
     shares: '0',
     duration: '0:00',
-    category: '加载中',
+    category: 'Loading',
     influencer: {
-      name: '加载中',
+      name: 'Loading',
       avatar: '',
       followers: '0',
       rating: 0
@@ -108,7 +167,7 @@ export function VideoPlayerPage() {
 
   const videoRef = React.useRef<HTMLVideoElement>(null)
 
-  // 环境自适应数据获取
+  // Environment adaptive data fetching
   const fetchVideoDetail = async () => {
     if (!videoId) return
     
@@ -119,8 +178,8 @@ export function VideoPlayerPage() {
       const isProduction = import.meta.env.PROD;
       
       if (isProduction) {
-        // 生产环境：使用API
-        console.log('🌐 生产环境：从API获取视频详情...')
+        // Production: use API
+        console.log('🌐 Production: Fetching video details from API...')
         
         const response = await fetch(`/api/video-detail?id=${videoId}`)
         
@@ -131,12 +190,12 @@ export function VideoPlayerPage() {
         const data: VideoDetailResponse = await response.json()
         setVideoData(data)
         
-        console.log('✅ 成功获取视频详情:', data)
+        console.log('✅ Successfully fetched video details:', data)
       } else {
-        // 本地开发环境：直接使用Supabase
-        console.log('🏠 本地开发环境：直接从Supabase获取视频详情...')
+        // Local dev: directly use Supabase
+        console.log('🏠 Local dev: Fetching video details directly from Supabase...')
         
-        // 获取视频详情
+        // Get video details
         const { data: video, error: videoError } = await supabase
           .from('videos')
           .select(`
@@ -148,10 +207,10 @@ export function VideoPlayerPage() {
           .single();
 
         if (videoError || !video) {
-          throw new Error('视频不存在或已禁用');
+          throw new Error('Video does not exist or is disabled');
         }
 
-        // 获取相关视频推荐
+        // Get related video recommendations
         const { data: relatedVideos, error: relatedError } = await supabase
           .from('videos')
           .select(`
@@ -172,10 +231,10 @@ export function VideoPlayerPage() {
           .limit(6);
 
         if (relatedError) {
-          console.error('⚠️ 获取相关视频失败:', relatedError);
+          console.error('⚠️ Failed to fetch related videos:', relatedError);
         }
 
-        // 获取视频分类信息
+        // Get video category info
         const { data: categories, error: categoriesError } = await supabase
           .from('video_categories')
           .select('*')
@@ -183,10 +242,10 @@ export function VideoPlayerPage() {
           .order('sort_order', { ascending: true });
 
         if (categoriesError) {
-          console.error('⚠️ 获取分类信息失败:', categoriesError);
+          console.error('⚠️ Failed to fetch category info:', categoriesError);
         }
 
-        // 构建响应数据
+        // Build response data
         const data: VideoDetailResponse = {
           video: {
             ...video,
@@ -217,17 +276,17 @@ export function VideoPlayerPage() {
         };
 
         setVideoData(data);
-        console.log('✅ 本地环境：成功获取视频详情');
+        console.log('✅ Local env: Successfully fetched video details');
       }
     } catch (error) {
-      console.error('❌ 获取视频详情失败:', error)
-      setError(error instanceof Error ? error.message : '获取数据失败')
+      console.error('❌ Failed to fetch video details:', error)
+      setError(error instanceof Error ? error.message : 'Failed to fetch data')
     } finally {
       setLoading(false)
     }
   }
 
-  // 计算当前视频数据，优先使用API数据，回退到location state数据
+  // Calculate current video data, prioritize API data, fallback to location state data
   const currentVideo = videoData?.video || videoInfo
   const relatedVideos = videoData?.relatedVideos || []
 
@@ -314,27 +373,27 @@ export function VideoPlayerPage() {
     }
   }
 
-  // 显示加载状态
+  // Show loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">加载视频详情中...</p>
+          <p className="text-gray-600">Loading video details...</p>
         </div>
       </div>
     )
   }
 
-  // 显示错误状态
+  // Show error state
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-red-500 text-xl mb-4">❌ 加载失败</div>
+          <div className="text-red-500 text-xl mb-4">❌ Failed to load</div>
           <p className="text-gray-600 mb-4">{error}</p>
           <button onClick={fetchVideoDetail} className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
-            重试
+            Retry
           </button>
         </div>
       </div>
@@ -352,7 +411,7 @@ export function VideoPlayerPage() {
               className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
-              <span>返回</span>
+              <span>Back</span>
             </button>
             
             <div className="flex items-center space-x-4">
@@ -369,16 +428,16 @@ export function VideoPlayerPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* 视频播放区域 */}
+          {/* Video player area */}
           <div className="lg:col-span-2">
-            {/* 视频播放器 */}
+            {/* Video player */}
             <div className="bg-black rounded-xl overflow-hidden shadow-lg">
               <div className="relative aspect-video">
                 <iframe
                   width="100%"
                   height="100%"
                   src={`https://www.youtube.com/embed/${currentVideo.video_url}`}
-                  title={currentVideo.title}
+                  title={translateToEnglish(currentVideo.title)}
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   referrerPolicy="strict-origin-when-cross-origin"
@@ -388,17 +447,17 @@ export function VideoPlayerPage() {
               </div>
             </div>
 
-            {/* 视频信息 */}
+            {/* Video information */}
             <div className="mt-6 bg-white rounded-xl p-6 shadow-sm">
               <h1 className="text-2xl font-bold text-gray-900 mb-3">
-                {currentVideo.title}
+                {translateToEnglish(currentVideo.title)}
               </h1>
               
               <p className="text-gray-600 mb-4">
-                {currentVideo.description}
+                {translateToEnglish(currentVideo.description)}
               </p>
 
-              {/* 分类和时长 */}
+              {/* Category and duration */}
               <div className="flex items-center space-x-6 text-sm text-gray-500 mb-4">
                 <div className="flex items-center space-x-1">
                   <Clock className="w-4 h-4" />
@@ -406,52 +465,52 @@ export function VideoPlayerPage() {
                 </div>
                 <div className="flex items-center space-x-1">
                   <Star className="w-4 h-4" />
-                  <span>{currentVideo.category?.name || currentVideo.category}</span>
+                  <span>{translateToEnglish(currentVideo.category?.name || currentVideo.category)}</span>
                 </div>
               </div>
 
-              {/* 标签 */}
+              {/* Tags */}
               <div className="mt-4 flex flex-wrap gap-2">
                 {(currentVideo.tags || []).map((tag: string, index: number) => (
                   <span
                     key={index}
                     className="px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-sm"
                   >
-                    #{tag}
+                    #{translateToEnglish(tag)}
                   </span>
                 ))}
               </div>
             </div>
           </div>
 
-          {/* 侧边栏 */}
+          {/* Sidebar */}
           <div className="space-y-6">
-            {/* 达人信息 */}
+            {/* Influencer information */}
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <div className="flex items-center space-x-4 mb-4">
                 <img
                   src={currentVideo.influencer_avatar || currentVideo.influencer?.avatar}
-                  alt={currentVideo.influencer_name || currentVideo.influencer?.name}
+                  alt={translateToEnglish(currentVideo.influencer_name || currentVideo.influencer?.name)}
                   className="w-16 h-16 rounded-full"
                 />
                 <div>
                   <h3 className="font-semibold text-gray-900">
-                    {currentVideo.influencer_name || currentVideo.influencer?.name}
+                    {translateToEnglish(currentVideo.influencer_name || currentVideo.influencer?.name)}
                   </h3>
                   <p className="text-sm text-gray-600">
-                    {currentVideo.category?.name || currentVideo.category}
+                    {translateToEnglish(currentVideo.category?.name || currentVideo.category)}
                   </p>
                 </div>
               </div>
               
               <button className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 px-4 rounded-lg font-medium hover:shadow-lg transition-all duration-200">
-                关注达人
+                Follow Influencer
               </button>
             </div>
 
-            {/* 相关推荐 */}
+            {/* Related recommendations */}
             <div className="bg-white rounded-xl p-6 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-4">相关推荐</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">Related Videos</h3>
               <div className="space-y-4">
                 {relatedVideos && relatedVideos.length > 0 ? (
                   relatedVideos.map((video) => (
@@ -463,33 +522,33 @@ export function VideoPlayerPage() {
                       <div className="w-20 h-16 bg-gray-200 rounded-lg overflow-hidden">
                         <img
                           src={video.poster_url}
-                          alt={video.title}
+                          alt={translateToEnglish(video.title)}
                           className="w-full h-full object-cover"
                         />
                       </div>
                       <div className="flex-1">
                         <h4 className="font-medium text-gray-900 text-sm line-clamp-2">
-                          {video.title}
+                          {translateToEnglish(video.title)}
                         </h4>
                         <p className="text-xs text-gray-500">
-                          {video.influencer_name}
+                          {translateToEnglish(video.influencer_name)}
                         </p>
                       </div>
                     </div>
                   ))
                 ) : (
                   <div className="text-center py-4 text-gray-500">
-                    <p>暂无相关推荐</p>
+                    <p>No related recommendations</p>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* 热门标签 */}
+            {/* Popular tags */}
             <div className="bg-white rounded-xl p-6 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-4">热门标签</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">Popular Tags</h3>
               <div className="flex flex-wrap gap-2">
-                {['直播带货', '美妆', '时尚', '数码', '生活', '美食', '旅游', '教育'].map((tag, index) => (
+                {['Live Commerce', 'Beauty', 'Fashion', 'Tech', 'Lifestyle', 'Food', 'Travel', 'Education'].map((tag, index) => (
                   <span
                     key={index}
                     className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 cursor-pointer transition-colors"
@@ -503,7 +562,7 @@ export function VideoPlayerPage() {
         </div>
       </div>
 
-      {/* 自定义样式 */}
+      {/* Custom styles */}
       <style>
         {`
         .slider::-webkit-slider-thumb {

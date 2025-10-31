@@ -179,9 +179,9 @@ app.get('/videos', async (req, res) => {
       }
     };
 
-    console.log(`✅ 成功获取视频列表: ${processedVideos.length} 个`);
+    console.log(`✅ Successfully fetched video list: ${processedVideos.length} videos`);
 
-    // 设置缓存头
+    // Set cache headers
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('X-Cache-Status', 'local-server');
     res.setHeader('X-Cache-TTL', '0');
@@ -196,35 +196,35 @@ app.get('/videos', async (req, res) => {
   }
 });
 
-// 视频详情API
+// Video details API
 app.get('/video-detail', async (req, res) => {
   try {
     const { id } = req.query;
     if (!id) {
-      return res.status(400).json({ error: '缺少视频ID参数' });
+      return res.status(400).json({ error: 'Missing video ID parameter' });
     }
 
-    console.log('🎬 开始获取视频详情...');
+    console.log('🎬 Starting to fetch video details...');
 
-    // 如果没有 Supabase 连接，返回模拟数据
+    // If no Supabase connection, return mock data
     if (!supabase) {
-      console.log('⚠️ 使用模拟视频详情数据（Supabase 未连接）');
+      console.log('⚠️ Using mock video details data (Supabase not connected)');
       const mockVideo = {
         id: id,
-        title: '美妆产品直播带货',
-        description: '专业美妆达人直播带货，展示产品效果，互动性强，转化率高。',
+        title: 'Beauty Product Live Commerce',
+        description: 'Professional beauty influencer live commerce, showcasing product effects, high engagement, high conversion rate.',
         video_url: 'https://example.com/video1.mp4',
         poster_url: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400',
-        views_count: '15.2万',
-        likes_count: '2.8万',
-        comments_count: '1.2万',
-        shares_count: '5.6千',
+        views_count: '152K',
+        likes_count: '28K',
+        comments_count: '12K',
+        shares_count: '5.6K',
         duration: '2:35',
-        category: { name: '美妆', description: '美妆护肤相关' },
-        influencer_name: '张小美',
+        category: { name: 'Beauty', description: 'Beauty and skincare related' },
+        influencer_name: 'Beauty Expert',
         influencer_avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150',
         influencer_rating: 4.8,
-        tags: ['美妆', '直播带货', '产品展示', '互动性强'],
+        tags: ['Beauty', 'Live Commerce', 'Product Showcase', 'High Engagement'],
         created_at: '2024-01-15',
         is_featured: true,
         is_active: true
@@ -233,21 +233,21 @@ app.get('/video-detail', async (req, res) => {
       const mockRelatedVideos = [
         {
           id: '2',
-          title: '时尚服装展示',
+          title: 'Fashion Clothing Showcase',
           poster_url: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150',
           duration: '3:12',
-          views_count: '12.8万',
-          likes_count: '2.1万',
-          influencer_name: '李时尚',
+          views_count: '128K',
+          likes_count: '21K',
+          influencer_name: 'Fashion Expert',
           influencer_avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150',
-          category: { name: '时尚' }
+          category: { name: 'Fashion' }
         }
       ];
       
       const result = {
         video: mockVideo,
         relatedVideos: mockRelatedVideos,
-        categories: [{ id: '1', name: '美妆', description: '美妆护肤相关' }],
+        categories: [{ id: '1', name: 'Beauty', description: 'Beauty and skincare related' }],
         meta: {
           title: mockVideo.title,
           description: mockVideo.description,
@@ -259,7 +259,7 @@ app.get('/video-detail', async (req, res) => {
       return res.json(result);
     }
 
-    // 获取视频详情
+    // Get video details
     const { data: video, error: videoError } = await supabase
       .from('videos')
       .select(`
@@ -271,11 +271,11 @@ app.get('/video-detail', async (req, res) => {
       .single();
 
     if (videoError || !video) {
-      console.error('❌ 视频不存在或已禁用:', videoError);
-      return res.status(404).json({ error: '视频不存在或已禁用' });
+      console.error('❌ Video does not exist or is disabled:', videoError);
+      return res.status(404).json({ error: 'Video does not exist or is disabled' });
     }
 
-    // 获取相关视频推荐
+    // Get related video recommendations
     const { data: relatedVideos, error: relatedError } = await supabase
       .from('videos')
       .select(`
@@ -296,10 +296,10 @@ app.get('/video-detail', async (req, res) => {
       .limit(6);
 
     if (relatedError) {
-      console.error('❌ 获取相关视频失败:', relatedError);
+      console.error('❌ Failed to fetch related videos:', relatedError);
     }
 
-    // 获取视频分类信息
+    // Get video category info
     const { data: categories, error: categoriesError } = await supabase
       .from('video_categories')
       .select('*')
@@ -307,10 +307,10 @@ app.get('/video-detail', async (req, res) => {
       .order('sort_order', { ascending: true });
 
     if (categoriesError) {
-      console.error('❌ 获取分类信息失败:', categoriesError);
+      console.error('❌ Failed to fetch category info:', categoriesError);
     }
 
-    // 构建响应数据
+    // Build response data
     const result = {
       video: {
         ...video,
@@ -330,9 +330,9 @@ app.get('/video-detail', async (req, res) => {
       }
     };
 
-    console.log('✅ 成功获取视频详情');
+    console.log('✅ Successfully fetched video details');
 
-    // 设置缓存头
+    // Set cache headers
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('X-Cache-Status', 'local-server');
     res.setHeader('X-Cache-TTL', '0');
