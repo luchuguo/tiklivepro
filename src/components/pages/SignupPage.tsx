@@ -500,7 +500,7 @@ export function SignupPage() {
             {userType === 'influencer' && (
               <div className="w-full">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Country / 国家 <span className="text-gray-400 text-xs">(Optional)</span>
+                  Country <span className="text-gray-400 text-xs">(Optional)</span>
                 </label>
                 <div className="relative w-full">
                   <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -511,10 +511,10 @@ export function SignupPage() {
                     disabled={loading}
                     style={{ width: '100%' }}
                   >
-                    <option value="" disabled>Select Country / 选择国家</option>
+                    <option value="" disabled>Select Country</option>
                     {countries.map((c) => (
                       <option key={c.code} value={c.code}>
-                        {c.name} / {c.nameEn}
+                        {c.nameEn}
                       </option>
                     ))}
                   </select>
