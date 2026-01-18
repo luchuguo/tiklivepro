@@ -11,8 +11,7 @@ export function Footer({ onPageChange }: FooterProps) {
     { name: 'Terms of Service', page: 'terms' },
     { name: 'Privacy Policy', page: 'privacy' },
     { name: 'Help Center', page: 'help' },
-    { name: 'Contact Us', page: 'contact' },
-    { name: 'Sitemap', page: 'sitemap', href: '/sitemap.xml' } // Add sitemap link
+    { name: 'Contact Us', page: 'contact' }
   ]
 
   const services = [

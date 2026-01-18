@@ -82,8 +82,8 @@ export function AboutPage() {
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Services</h2>
               <ul className="list-disc pl-6 text-lg text-gray-600 mb-8 space-y-2">
-                <li>Chinese Merchants / Factories / Brands: Looking to expand sales in TikTok international markets.</li>
-                <li>Overseas TikTok Influencers / Chinese Streamers / Studios: With sales capabilities, seeking monetization opportunities.</li>
+                <li>Merchants / Factories / Brands: Looking to expand sales in TikTok international markets.</li>
+                <li>Overseas TikTok Influencers / Streamers / Studios: With sales capabilities, seeking monetization opportunities.</li>
               </ul>
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
