@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Users, Building2, TrendingUp, Star, Play, ArrowRight } from "lucide-react";
 import { supabase } from "../../lib/supabase";
@@ -128,7 +128,7 @@ export function HomePage() {
             <div className="relative">
               <div className="relative z-10">
                 <img
-                  src="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=800"
+                  src="/baner88.jpg"
                   alt="TikTok Live Streaming"
                   className="rounded-2xl shadow-2xl"
                 />
