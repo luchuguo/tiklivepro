@@ -56,30 +56,30 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
       setCacheStatus('loading')
       
       const isProduction = import.meta.env.PROD
-      console.log(`开始获取达人详情: ${influencerId} (环境: ${isProduction ? '生产' : '开发'})`)
+      console.log(`Fetching influencer details: ${influencerId} (Environment: ${isProduction ? 'Production' : 'Development'})`)
 
       if (isProduction) {
-        // 生产环境：使用API端点
+        // Production: Use API endpoint
         await fetchFromAPI()
       } else {
-        // 开发环境：直接使用Supabase
+        // Development: Use Supabase directly
         await fetchFromSupabase()
       }
       
-      console.log(`成功获取达人详情: ${influencerId}`)
+      console.log(`Successfully fetched influencer details: ${influencerId}`)
       
     } catch (error: any) {
-      console.error('获取达人详情时发生错误:', error)
-      setError(error.message || '获取达人详情失败，请重试')
+      console.error('Error occurred while fetching influencer details:', error)
+      setError(error.message || 'Failed to fetch influencer details, please try again')
     } finally {
       setLoading(false)
     }
   }
 
   const fetchFromAPI = async () => {
-    console.log('🔄 从API获取达人详情')
+    console.log('🔄 Fetching influencer details from API')
     
-    // 从API获取达人详情（带缓存）
+    // Fetch influencer details from API (with cache)
     const response = await fetch(`/api/influencer-detail?id=${influencerId}`, {
       method: 'GET',
       headers: {
@@ -93,21 +93,21 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
 
     const data = await response.json()
 
-    // 检查缓存状态
+    // Check cache status
     const cacheControl = response.headers.get('Cache-Control')
     const age = response.headers.get('Age')
 
     if (cacheControl && cacheControl.includes('s-maxage')) {
       setCacheStatus('cached')
-      console.log('✅ 达人详情数据来自服务器缓存')
+      console.log('✅ Influencer details data from server cache')
     } else {
       setCacheStatus('fresh')
-      console.log('🔄 达人详情数据来自数据库')
+      console.log('🔄 Influencer details data from database')
     }
 
     setInfluencer(data)
     
-    // 从API获取任务申请数据
+    // Fetch task application data from API
     const tasksResponse = await fetch(`/api/task-applications?influencerId=${influencerId}`, {
       method: 'GET',
       headers: {
@@ -117,28 +117,28 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
 
     if (tasksResponse.ok) {
       const tasksData = await tasksResponse.json()
-      // 筛选已完成的任务
+      // Filter completed tasks
       const completedTasksData = tasksData.filter((task: any) => task.status === 'completed')
       setCompletedTasks(completedTasksData || [])
     }
     
-    // 设置评价数据（从API返回的数据中获取）
+    // Set review data (from API response)
     if (data.reviews) {
       setReviews(data.reviews || [])
     } else {
       setReviews([])
     }
     
-    // 设置相似达人（暂时使用空数组）
+    // Set similar influencers (temporarily using empty array)
     setSimilarInfluencers([])
     
     setCacheStatus('fresh')
   }
 
   const fetchFromSupabase = async () => {
-    console.log('🔄 从Supabase获取达人详情')
+    console.log('🔄 Fetching influencer details from Supabase')
     
-    // 直接从Supabase获取达人详情
+    // Fetch influencer details directly from Supabase
     const { data: influencerData, error: influencerError } = await supabase
       .from('influencers')
       .select('*')
@@ -146,18 +146,18 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
       .single()
 
     if (influencerError) {
-      console.error('Supabase查询达人失败:', influencerError)
-      throw new Error(`数据库查询失败: ${influencerError.message}`)
+      console.error('Supabase query influencer failed:', influencerError)
+      throw new Error(`Database query failed: ${influencerError.message}`)
     }
 
     if (!influencerData) {
-      throw new Error('达人不存在')
+      throw new Error('Influencer does not exist')
     }
 
-    console.log('✅ 成功从Supabase获取达人详情:', influencerData)
+    console.log('✅ Successfully fetched influencer details from Supabase:', influencerData)
     setInfluencer(influencerData)
     
-    // 获取任务申请数据
+    // Fetch task application data
     const { data: applicationsData, error: applicationsError } = await supabase
       .from('task_applications')
       .select('*')
@@ -165,12 +165,12 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
       .order('applied_at', { ascending: false })
 
     if (applicationsError) {
-      console.error('获取任务申请失败:', applicationsError)
+      console.error('Failed to fetch task applications:', applicationsError)
     } else {
-      // 筛选已完成的任务申请
+      // Filter completed task applications
       const completedApplications = applicationsData?.filter(app => app.status === 'accepted') || []
       
-      // 如果有已接受的任务申请，获取对应的任务详情
+      // If there are accepted task applications, fetch corresponding task details
       if (completedApplications.length > 0) {
         const taskIds = completedApplications.map(app => app.task_id)
         const { data: tasksData, error: tasksError } = await supabase
@@ -188,7 +188,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
       }
     }
     
-    // 获取评价数据
+    // Fetch review data
     const { data: reviewsData, error: reviewsError } = await supabase
       .from('reviews')
       .select('*')
@@ -196,13 +196,13 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
       .order('created_at', { ascending: false })
 
     if (reviewsError) {
-      console.error('获取评价失败:', reviewsError)
+      console.error('Failed to fetch reviews:', reviewsError)
       setReviews([])
     } else {
       setReviews(reviewsData || [])
     }
     
-    // 获取相似达人（基于相同分类）
+    // Fetch similar influencers (based on same category)
     if (influencerData.category_id) {
       const { data: similarData, error: similarError } = await supabase
         .from('influencers')
@@ -219,7 +219,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
         .limit(3)
 
       if (!similarError && similarData) {
-        // 使用类型断言，简化处理
+        // Use type assertion to simplify processing
         setSimilarInfluencers(similarData as any)
       } else {
         setSimilarInfluencers([])
@@ -235,30 +235,30 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
     e.preventDefault()
     
     if (!user || !isCompany) {
-      alert('请先登录企业账号')
+      alert('Please log in with a company account first')
       return
     }
     
     if (!message.trim()) {
-      alert('请输入消息内容')
+      alert('Please enter message content')
       return
     }
     
     try {
       setSubmitting(true)
       
-      // 这里应该有发送消息的逻辑，但目前没有实现消息系统
-      // 模拟发送成功
+      // There should be message sending logic here, but the message system is not implemented yet
+      // Simulate successful sending
       setTimeout(() => {
-        alert('消息发送成功！')
+        alert('Message sent successfully!')
         setMessage('')
         setShowContactForm(false)
         setSubmitting(false)
       }, 1000)
       
     } catch (error) {
-      console.error('发送消息时发生错误:', error)
-      alert('发送消息时发生错误，请重试')
+      console.error('Error occurred while sending message:', error)
+      alert('Error occurred while sending message, please try again')
       setSubmitting(false)
     }
   }
@@ -300,20 +300,20 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center py-12">
             <Users className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">加载失败</h2>
-            <p className="text-gray-600 mb-6">{error || '无法加载达人详情'}</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Failed to Load</h2>
+            <p className="text-gray-600 mb-6">{error || 'Unable to load influencer details'}</p>
             <div className="flex justify-center space-x-4">
               <button
                 onClick={fetchInfluencerDetails}
                 className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors"
               >
-                重试
+                Retry
               </button>
               <button
                 onClick={onBack}
                 className="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                返回
+                Back
               </button>
             </div>
           </div>
@@ -325,64 +325,64 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
   return (
     <div className="min-h-screen bg-gray-50 pt-8 pb-16">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* 返回按钮和缓存状态 */}
+        {/* Back button and cache status */}
         <div className="flex justify-between items-center mb-6">
           <button
             onClick={() => {
-              // 检查URL参数，判断是否从列表页面打开
+              // Check URL parameters to determine if opened from list page
               const urlParams = new URLSearchParams(window.location.search)
               const fromList = urlParams.get('from') === 'list'
               
               if (fromList && window.opener) {
-                // 如果是从列表页面新标签页打开，关闭当前标签页
+                // If opened from list page in new tab, close current tab
                 window.close()
               } else if (window.history.length > 1) {
-                // 如果有历史记录，返回上一页
+                // If there is history, go back
                 onBack()
               } else {
-                // 否则跳转到达人列表页面
+                // Otherwise navigate to influencer list page
                 window.location.href = '/influencers'
               }
             }}
             className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft className="w-5 h-5" />
-            <span>返回达人列表</span>
+            <span>Back to Influencer List</span>
           </button>
           
-          {/* 缓存状态 - 生产环境隐藏 */}
+          {/* Cache status - Hidden in production */}
           {!import.meta.env.PROD && (
             <div className="flex items-center space-x-2">
               {cacheStatus === 'loading' && (
                 <div className="flex items-center space-x-2 text-blue-600">
                   <Clock className="w-4 h-4 animate-spin" />
-                  <span className="text-xs">加载中...</span>
+                  <span className="text-xs">Loading...</span>
                 </div>
               )}
               {cacheStatus === 'cached' && (
                 <div className="flex items-center space-x-2 text-green-600">
                   <CheckCircle className="w-4 h-4" />
-                  <span className="text-xs">服务器缓存</span>
+                  <span className="text-xs">Server Cache</span>
                 </div>
               )}
               {cacheStatus === 'fresh' && (
                 <div className="flex items-center space-x-2 text-orange-600">
                   <Clock className="w-4 h-4" />
-                  <span className="text-xs">实时数据</span>
+                  <span className="text-xs">Real-time Data</span>
                 </div>
               )}
             </div>
           )}
         </div>
 
-        {/* 达人资料卡片 */}
+        {/* Influencer profile card */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
-          {/* 封面图 */}
+          {/* Cover image */}
           <div className="h-48 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500"></div>
           
-          {/* 基本信息 */}
+          {/* Basic information */}
           <div className="px-8 pt-0 pb-8 relative">
-            {/* 头像 */}
+            {/* Avatar */}
             <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden absolute -top-12 left-8 bg-gray-100">
               <img
                 src={influencer.avatar_url || 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400'}
@@ -392,7 +392,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                 onError={(e) => {
                   const target = e.target as HTMLImageElement
                   target.src = 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400'
-                  target.onerror = null // 防止无限循环
+                  target.onerror = null // Prevent infinite loop
                 }}
                 onLoad={(e) => {
                   const target = e.target as HTMLImageElement
@@ -402,7 +402,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
               />
             </div>
             
-            {/* 名称和状态 */}
+            {/* Name and status */}
             <div className="flex justify-between items-start mt-16 mb-6">
               <div className="flex-1 ml-32">
                 <div className="flex items-center space-x-3 mb-1">
@@ -410,19 +410,19 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                   {influencer.is_verified && (
                     <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs flex items-center space-x-1">
                       <CheckCircle className="w-3 h-3" />
-                      <span>已认证</span>
+                      <span>Verified</span>
                     </span>
                   )}
                   {!influencer.is_approved && (
                     <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs">
-                      待审核
+                      Pending Review
                     </span>
                   )}
                 </div>
                 <div className="flex items-center space-x-4 text-gray-600 text-sm">
                   <div className="flex items-center space-x-1">
                     <MapPin className="w-4 h-4" />
-                    <span>{influencer.location || '未知地区'}</span>
+                    <span>{influencer.location || 'Unknown Location'}</span>
                   </div>
                   <div className="flex items-center space-x-1">
                     <Star className="w-4 h-4 text-yellow-400 fill-current" />
@@ -443,13 +443,13 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                     onClick={() => setShowContactForm(true)}
                     className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg transition-all duration-200"
                   >
-                    联系达人
+                    Contact Influencer
                   </button>
                 )}
               </div>
             </div>
             
-            {/* 标签 */}
+            {/* Tags */}
             <div className="flex flex-wrap gap-2 mb-6">
               {influencer.categories?.map((category, index) => (
                 <span key={index} className="bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-sm">
@@ -463,14 +463,14 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
               ))}
             </div>
             
-            {/* 联系表单 */}
+            {/* Contact form */}
             {showContactForm && (
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
-                <h3 className="text-lg font-semibold text-blue-900 mb-4">联系达人</h3>
+                <h3 className="text-lg font-semibold text-blue-900 mb-4">Contact Influencer</h3>
                 <form onSubmit={handleSendMessage} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-blue-800 mb-2">
-                      消息内容
+                      Message Content
                     </label>
                     <textarea
                       value={message}
@@ -478,7 +478,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                       rows={4}
                       required
                       className="w-full px-4 py-3 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                      placeholder="请描述您的合作意向..."
+                      placeholder="Please describe your collaboration intent..."
                     />
                   </div>
                   
@@ -488,7 +488,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                       onClick={() => setShowContactForm(false)}
                       className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                     >
-                      取消
+                      Cancel
                     </button>
                     <button
                       type="submit"
@@ -498,10 +498,10 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                       {submitting ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                          <span>发送中...</span>
+                          <span>Sending...</span>
                         </>
                       ) : (
-                        <span>发送消息</span>
+                        <span>Send Message</span>
                       )}
                     </button>
                   </div>
@@ -511,7 +511,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
             
 
             
-            {/* 标签页导航 */}
+            {/* Tab navigation */}
             <div className="border-b border-gray-200 mb-6">
               <div className="flex space-x-8">
                 <button
@@ -522,7 +522,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                       : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  个人资料
+                  Profile
                 </button>
                 <button
                   onClick={() => setActiveTab('tasks')}
@@ -532,7 +532,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                       : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  历史任务
+                  History Tasks
                 </button>
                 <button
                   onClick={() => setActiveTab('reviews')}
@@ -542,60 +542,60 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                       : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  评价 ({reviews.length})
+                  Reviews ({reviews.length})
                 </button>
               </div>
             </div>
             
-            {/* 标签页内容 */}
+            {/* Tab content */}
             {activeTab === 'profile' && (
               <div>
-                {/* 个人简介 */}
+                {/* Personal introduction */}
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">个人简介</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Personal Introduction</h3>
                   <p className="text-gray-700 whitespace-pre-line">
-                    {influencer.bio || '该达人暂未填写个人简介'}
+                    {influencer.bio || 'This influencer has not filled in their personal introduction'}
                   </p>
                 </div>
                 
-                {/* 基本信息 */}
+                {/* Basic information */}
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">基本信息</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Basic Information</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex items-center space-x-3">
                       <Instagram className="w-5 h-5 text-pink-600" />
                       <div>
-                        <div className="text-sm text-gray-500">TikTok账号</div>
+                        <div className="text-sm text-gray-500">TikTok Account</div>
                         <div className="font-medium">***</div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
                       <MapPin className="w-5 h-5 text-pink-600" />
                       <div>
-                        <div className="text-sm text-gray-500">所在地区</div>
-                        <div className="font-medium">{influencer.location || '未设置'}</div>
+                        <div className="text-sm text-gray-500">Location</div>
+                        <div className="font-medium">{influencer.location || 'Not Set'}</div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
                       <DollarSign className="w-5 h-5 text-pink-600" />
                       <div>
-                        <div className="text-sm text-gray-500">小时收费</div>
+                        <div className="text-sm text-gray-500">Hourly Rate</div>
                         <div className="font-medium">***</div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
                       <Clock className="w-5 h-5 text-pink-600" />
                       <div>
-                        <div className="text-sm text-gray-500">从业年限</div>
-                        <div className="font-medium">{Number(influencer.experience_years).toFixed(1)}年</div>
+                        <div className="text-sm text-gray-500">Years of Experience</div>
+                        <div className="font-medium">{Number(influencer.experience_years).toFixed(1)} years</div>
                       </div>
                     </div>
                   </div>
                 </div>
                 
-                {/* 专业领域 */}
+                {/* Professional fields */}
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">专业领域</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Professional Fields</h3>
                   <div className="flex flex-wrap gap-2">
                     {influencer.categories?.map((category, index) => (
                       <div key={index} className="bg-pink-100 text-pink-700 px-4 py-2 rounded-lg">
@@ -603,14 +603,14 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                       </div>
                     ))}
                     {(!influencer.categories || influencer.categories.length === 0) && (
-                      <p className="text-gray-500">暂未设置专业领域</p>
+                      <p className="text-gray-500">Professional fields not set</p>
                     )}
                   </div>
                 </div>
                 
-                {/* 技能标签 */}
+                {/* Skill tags */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">技能标签</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Skill Tags</h3>
                   <div className="flex flex-wrap gap-2">
                     {influencer.tags?.map((tag, index) => (
                       <div key={index} className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm">
@@ -618,7 +618,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                       </div>
                     ))}
                     {(!influencer.tags || influencer.tags.length === 0) && (
-                      <p className="text-gray-500">暂未设置技能标签</p>
+                      <p className="text-gray-500">Skill tags not set</p>
                     )}
                   </div>
                 </div>
@@ -627,7 +627,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
             
             {activeTab === 'tasks' && (
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">历史任务</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">History Tasks</h3>
                 {completedTasks.length > 0 ? (
                   <div className="space-y-4">
                     {completedTasks.map((task) => (
@@ -658,7 +658,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                             </div>
                             <div className="flex items-center space-x-2">
                               <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs">
-                                已完成
+                                Completed
                               </span>
                             </div>
                           </div>
@@ -669,7 +669,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                 ) : (
                   <div className="text-center py-8 bg-gray-50 rounded-lg">
                     <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500">暂无历史任务记录</p>
+                    <p className="text-gray-500">No history task records</p>
                   </div>
                 )}
               </div>
@@ -677,7 +677,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
             
             {activeTab === 'reviews' && (
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">评价</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Reviews</h3>
                 {reviews.length > 0 ? (
                   <div className="space-y-6">
                     {reviews.map((review) => (
@@ -694,7 +694,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                               <span className="ml-2 text-gray-700 font-medium">{review.rating}.0</span>
                             </div>
                             <div className="text-sm text-gray-500">
-                              {review.task_id ? `任务ID: ${review.task_id}` : ''}
+                              {review.task_id ? `Task ID: ${review.task_id}` : ''}
                             </div>
                           </div>
                           <div className="text-sm text-gray-500">
@@ -702,7 +702,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                           </div>
                         </div>
                         <p className="text-gray-700">
-                          {review.comment || '该用户未留下评价内容'}
+                          {review.comment || 'This user did not leave a review comment'}
                         </p>
                       </div>
                     ))}
@@ -710,7 +710,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                 ) : (
                   <div className="text-center py-8 bg-gray-50 rounded-lg">
                     <Star className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500">暂无评价</p>
+                    <p className="text-gray-500">No reviews</p>
                   </div>
                 )}
               </div>
@@ -718,10 +718,10 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
           </div>
         </div>
 
-        {/* 相似达人 */}
+        {/* Similar influencers */}
         {similarInfluencers.length > 0 && (
           <div className="bg-white rounded-xl shadow-sm p-8 mb-8">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">相似达人</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">Similar Influencers</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {similarInfluencers.map((similarInfluencer) => (
                 <div key={similarInfluencer.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
@@ -735,7 +735,7 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                         onError={(e) => {
                           const target = e.target as HTMLImageElement
                           target.src = 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150'
-                          target.onerror = null // 防止无限循环
+                          target.onerror = null // Prevent infinite loop
                         }}
                         onLoad={(e) => {
                           const target = e.target as HTMLImageElement
@@ -760,8 +760,8 @@ export function InfluencerDetailPage({ influencerId, onBack }: InfluencerDetailP
                     ))}
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">{similarInfluencer.followers_count?.toLocaleString() || 0} 粉丝</span>
-                    <span className="font-medium text-pink-600">${similarInfluencer.hourly_rate}/小时</span>
+                    <span className="text-gray-600">{similarInfluencer.followers_count?.toLocaleString() || 0} followers</span>
+                    <span className="font-medium text-pink-600">${similarInfluencer.hourly_rate}/hour</span>
                   </div>
                 </div>
               ))}

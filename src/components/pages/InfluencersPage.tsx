@@ -28,14 +28,14 @@ export function InfluencersPage() {
 
   const categories = [
     { id: 'all', name: 'All Categories' },
-    { id: '美妆护肤', name: 'Beauty & Skincare' },
-    { id: '时尚穿搭', name: 'Fashion & Apparel' },
-    { id: '美食生活', name: 'Food & Lifestyle' },
-    { id: '数码科技', name: 'Digital & Tech' },
-    { id: '健身运动', name: 'Fitness & Sports' },
-    { id: '母婴用品', name: 'Maternal & Baby' },
-    { id: '家居家装', name: 'Home & Decor' },
-    { id: '图书教育', name: 'Books & Education' }
+    { id: 'beauty-skincare', name: 'Beauty & Skincare' },
+    { id: 'fashion-apparel', name: 'Fashion & Apparel' },
+    { id: 'food-lifestyle', name: 'Food & Lifestyle' },
+    { id: 'digital-tech', name: 'Digital & Tech' },
+    { id: 'fitness-sports', name: 'Fitness & Sports' },
+    { id: 'maternal-baby', name: 'Maternal & Baby' },
+    { id: 'home-decor', name: 'Home & Decor' },
+    { id: 'books-education', name: 'Books & Education' }
   ]
 
   useEffect(() => {
