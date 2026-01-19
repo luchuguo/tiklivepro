@@ -105,7 +105,6 @@ export function InfluencersPage() {
             updated_at
           `)
           .eq('is_approved', true)
-          .eq('is_verified', true)
           .order('rating', { ascending: false })
           .limit(100);
 

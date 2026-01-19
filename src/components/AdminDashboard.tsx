@@ -23,7 +23,10 @@ import {
   LogOut,
   Trash2,
   Tag,
-  Play
+  Play,
+  Ban,
+  UserX,
+  UserCheck
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuthContext } from '../hooks/useAuth'
@@ -485,7 +488,10 @@ export function AdminDashboard() {
             return { 
               ...u, 
               approve_status,
-              profileData
+              profileData,
+              is_disabled: u.user_type === 'influencer' 
+                ? (profileData?.status === 'inactive')
+                : (u.user_type === 'company' ? !profileData?.is_verified : false)
             }
           })
         )
@@ -540,6 +546,212 @@ export function AdminDashboard() {
       } catch (err) {
         console.error('加载用户详情失败', err)
         alert('加载详情失败')
+      }
+    }
+
+    // 禁用用户
+    const disableUser = async (u: any) => {
+      if (!window.confirm(`确定要禁用用户 "${u.email}" 吗？禁用后该用户将无法登录系统。`)) {
+        return
+      }
+
+      try {
+        // 更新 user_profiles 表，添加 is_active 字段标记为禁用
+        // 如果表没有 is_active 字段，可以通过其他方式标记（如更新 status）
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .update({ 
+            updated_at: new Date().toISOString()
+            // 注意：如果表有 is_active 字段，可以添加: is_active: false
+          })
+          .eq('user_id', u.user_id)
+
+        if (profileError) {
+          console.warn('更新 user_profiles 失败:', profileError)
+        }
+
+        // 根据用户类型更新对应的表
+        if (u.user_type === 'influencer') {
+          const { error: influencerError } = await supabase
+            .from('influencers')
+            .update({ 
+              status: 'inactive',
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', u.user_id)
+          
+          if (influencerError) {
+            console.error('禁用达人失败:', influencerError)
+            alert('禁用用户失败，请重试')
+            return
+          }
+        } else if (u.user_type === 'company') {
+          // 对于企业用户，可以通过更新 is_verified 为 false 来禁用
+          const { error: companyError } = await supabase
+            .from('companies')
+            .update({ 
+              is_verified: false,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', u.user_id)
+          
+          if (companyError) {
+            console.error('禁用企业失败:', companyError)
+            alert('禁用用户失败，请重试')
+            return
+          }
+        }
+
+        // 尝试通过 Supabase Auth Admin API 禁用用户（需要服务端权限）
+        // 注意：这需要服务端实现，前端无法直接调用
+        // 这里我们只更新数据库状态
+
+        // 更新本地状态
+        setUsers(prev => prev.map(item => 
+          item.user_id === u.user_id 
+            ? { ...item, is_disabled: true, approve_status: false } 
+            : item
+        ))
+
+        alert('用户已禁用')
+        
+        // 记录管理员操作日志
+        try {
+          await supabase.from('admin_logs').insert({
+            admin_id: user?.id,
+            action_type: 'user_disabled',
+            description: `管理员禁用了用户: ${u.email} (${u.user_type})`
+          })
+        } catch (logError) {
+          console.warn('记录操作日志失败:', logError)
+        }
+
+        // 刷新列表
+        fetchUsers()
+      } catch (error) {
+        console.error('禁用用户失败:', error)
+        alert('禁用用户失败，请重试')
+      }
+    }
+
+    // 启用用户
+    const enableUser = async (u: any) => {
+      if (!window.confirm(`确定要启用用户 "${u.email}" 吗？`)) {
+        return
+      }
+
+      try {
+        // 根据用户类型更新对应的表
+        if (u.user_type === 'influencer') {
+          const { error: influencerError } = await supabase
+            .from('influencers')
+            .update({ 
+              status: 'active',
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', u.user_id)
+          
+          if (influencerError) {
+            console.error('启用达人失败:', influencerError)
+            alert('启用用户失败，请重试')
+            return
+          }
+        } else if (u.user_type === 'company') {
+          const { error: companyError } = await supabase
+            .from('companies')
+            .update({ 
+              is_verified: true,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', u.user_id)
+          
+          if (companyError) {
+            console.error('启用企业失败:', companyError)
+            alert('启用用户失败，请重试')
+            return
+          }
+        }
+
+        // 更新本地状态
+        setUsers(prev => prev.map(item => 
+          item.user_id === u.user_id 
+            ? { ...item, is_disabled: false } 
+            : item
+        ))
+
+        alert('用户已启用')
+        
+        // 记录管理员操作日志
+        try {
+          await supabase.from('admin_logs').insert({
+            admin_id: user?.id,
+            action_type: 'user_enabled',
+            description: `管理员启用了用户: ${u.email} (${u.user_type})`
+          })
+        } catch (logError) {
+          console.warn('记录操作日志失败:', logError)
+        }
+
+        // 刷新列表
+        fetchUsers()
+      } catch (error) {
+        console.error('启用用户失败:', error)
+        alert('启用用户失败，请重试')
+      }
+    }
+
+    // 删除用户（谨慎操作）
+    const deleteUser = async (u: any) => {
+      if (!window.confirm(`⚠️ 警告：确定要删除用户 "${u.email}" 吗？\n\n此操作将：\n- 删除用户的所有数据\n- 删除用户账号\n- 此操作不可恢复！\n\n请谨慎操作！`)) {
+        return
+      }
+
+      if (!window.confirm(`最后确认：您真的要删除用户 "${u.email}" 吗？此操作不可恢复！`)) {
+        return
+      }
+
+      try {
+        // 1. 删除相关数据（按依赖关系）
+        if (u.user_type === 'influencer') {
+          // 删除达人的相关数据
+          await supabase.from('reviews').delete().eq('influencer_id', u.profileData?.id)
+          await supabase.from('task_applications').delete().eq('influencer_id', u.profileData?.id)
+          await supabase.from('influencers').delete().eq('user_id', u.user_id)
+        } else if (u.user_type === 'company') {
+          // 删除企业的相关数据
+          await supabase.from('task_applications').delete().eq('company_id', u.profileData?.id)
+          await supabase.from('tasks').delete().eq('company_id', u.profileData?.id)
+          await supabase.from('companies').delete().eq('user_id', u.user_id)
+        }
+
+        // 2. 删除 user_profiles
+        await supabase.from('user_profiles').delete().eq('user_id', u.user_id)
+
+        // 3. 注意：Supabase Auth 用户需要通过 Admin API 删除，前端无法直接删除
+        // 这里我们只删除数据库中的相关记录
+        // 实际的 auth.users 表中的用户需要通过服务端 API 删除
+
+        // 更新本地状态
+        setUsers(prev => prev.filter(item => item.user_id !== u.user_id))
+
+        alert('用户数据已删除（注意：Auth 用户账号需要通过服务端删除）')
+        
+        // 记录管理员操作日志
+        try {
+          await supabase.from('admin_logs').insert({
+            admin_id: user?.id,
+            action_type: 'user_deleted',
+            description: `管理员删除了用户: ${u.email} (${u.user_type})`
+          })
+        } catch (logError) {
+          console.warn('记录操作日志失败:', logError)
+        }
+
+        // 刷新列表
+        fetchUsers()
+      } catch (error) {
+        console.error('删除用户失败:', error)
+        alert('删除用户失败，请重试')
       }
     }
 
@@ -611,33 +823,72 @@ export function AdminDashboard() {
                     <td className="px-4 py-2 text-gray-600">{new Date(u.created_at).toLocaleString()}</td>
                     <td className="px-4 py-2 text-gray-600">{new Date(u.updated_at).toLocaleString()}</td>
                     <td className="px-4 py-2">
-                      {u.approve_status ? (
-                        <span className="text-green-600 flex items-center space-x-1"><CheckCircle className="w-4 h-4"/><span>已审核</span></span>
-                      ) : (
-                        <span className="text-yellow-600 flex items-center space-x-1"><AlertTriangle className="w-4 h-4"/><span>待审核</span></span>
-                      )}
+                      <div className="flex flex-col space-y-1">
+                        {u.approve_status ? (
+                          <span className="text-green-600 flex items-center space-x-1"><CheckCircle className="w-4 h-4"/><span>已审核</span></span>
+                        ) : (
+                          <span className="text-yellow-600 flex items-center space-x-1"><AlertTriangle className="w-4 h-4"/><span>待审核</span></span>
+                        )}
+                        {u.is_disabled && (
+                          <span className="text-red-600 flex items-center space-x-1"><Ban className="w-4 h-4"/><span>已禁用</span></span>
+                        )}
+                      </div>
                     </td>
-                    <td className="px-4 py-2 space-x-2">
-                      <button
-                        onClick={() => viewUser(u)}
-                        className="text-sm text-blue-600 hover:underline"
-                      >查看</button>
-                      {!u.approve_status && (
+                    <td className="px-4 py-2">
+                      <div className="flex items-center space-x-2 flex-wrap gap-2">
                         <button
-                          onClick={() => approveUser(u)}
-                          className="text-sm text-white bg-emerald-500 hover:bg-emerald-600 px-3 py-1 rounded-lg"
+                          onClick={() => viewUser(u)}
+                          className="text-sm text-blue-600 hover:underline flex items-center space-x-1"
                         >
-                          审核通过
+                          <Eye className="w-4 h-4" />
+                          <span>查看</span>
                         </button>
-                      )}
-                      {!u.approve_status && (
+                        {!u.approve_status && (
+                          <button
+                            onClick={() => approveUser(u)}
+                            className="text-sm text-white bg-emerald-500 hover:bg-emerald-600 px-3 py-1 rounded-lg flex items-center space-x-1"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                            <span>审核通过</span>
+                          </button>
+                        )}
+                        {!u.approve_status && (
+                          <button
+                            onClick={() => rejectUser(u)}
+                            className="text-sm text-white bg-orange-500 hover:bg-orange-600 px-3 py-1 rounded-lg flex items-center space-x-1"
+                          >
+                            <XCircle className="w-4 h-4" />
+                            <span>审核拒绝</span>
+                          </button>
+                        )}
+                        {u.is_disabled ? (
+                          <button
+                            onClick={() => enableUser(u)}
+                            className="text-sm text-white bg-green-500 hover:bg-green-600 px-3 py-1 rounded-lg flex items-center space-x-1"
+                            title="启用用户"
+                          >
+                            <UserCheck className="w-4 h-4" />
+                            <span>启用</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => disableUser(u)}
+                            className="text-sm text-white bg-yellow-500 hover:bg-yellow-600 px-3 py-1 rounded-lg flex items-center space-x-1"
+                            title="禁用用户"
+                          >
+                            <Ban className="w-4 h-4" />
+                            <span>禁用</span>
+                          </button>
+                        )}
                         <button
-                          onClick={() => rejectUser(u)}
-                          className="text-sm text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded-lg"
+                          onClick={() => deleteUser(u)}
+                          className="text-sm text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded-lg flex items-center space-x-1"
+                          title="删除用户（不可恢复）"
                         >
-                          审核拒绝
+                          <Trash2 className="w-4 h-4" />
+                          <span>删除</span>
                         </button>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 ))}

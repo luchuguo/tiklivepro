@@ -5,7 +5,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { CreateTaskPage } from './CreateTaskPage'
 import { TaskDetailPage } from './TaskDetailPage'
 
-// 企业用户专属：我的任务列表
+// Company User Exclusive: My Tasks List
 export function CompanyTasksPage() {
   const { user, profile } = useAuth()
 
@@ -15,17 +15,17 @@ export function CompanyTasksPage() {
   const [error, setError] = useState<string | null>(null)
   const [showCreate, setShowCreate] = useState(false)
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
-  // 正在处理的任务 ID，用于禁用按钮
+  // Task ID being processed, used to disable buttons
   const [processingTaskId, setProcessingTaskId] = useState<string | null>(null)
 
-  // 更新任务状态
+  // Update task status
   const updateTaskStatus = async (task: Task, newStatus: Task['status']) => {
     try {
-      // 若状态本就相同，直接返回
+      // If status is already the same, return directly
       if (task.status === newStatus) return
       setProcessingTaskId(task.id)
 
-      // 乐观更新本地列表
+      // Optimistically update local list
       setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: newStatus } : t))
 
       const { error } = await supabase
@@ -34,10 +34,10 @@ export function CompanyTasksPage() {
         .eq('id', task.id)
 
       if (error) {
-        // 发生错误还原状态并提示
-        console.error('更新任务状态失败:', error)
-        alert('更新任务状态失败，请重试')
-        // 重新拉取以保持一致
+        // Revert state and show error message
+        console.error('Failed to update task status:', error)
+        alert('Failed to update task status, please try again')
+        // Refetch to maintain consistency
         fetchCompanyAndTasks()
       }
     } finally {
@@ -52,12 +52,12 @@ export function CompanyTasksPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, profile])
 
-  // 获取企业与任务
+  // Fetch company and tasks
   const fetchCompanyAndTasks = async () => {
     try {
       setLoading(true)
       setError(null)
-      // 企业档案
+      // Company profile
       const { data: comp, error: compErr } = await supabase
         .from('companies')
         .select('*')
@@ -65,10 +65,10 @@ export function CompanyTasksPage() {
         .single()
 
       if (compErr) throw compErr
-      if (!comp) throw new Error('未找到企业信息')
+      if (!comp) throw new Error('Company information not found')
       setCompany(comp as Company)
 
-      // 任务
+      // Tasks
       const { data: taskList, error: taskErr } = await supabase
         .from('tasks')
         .select('*, selected_influencer:influencers(nickname)')
@@ -78,19 +78,19 @@ export function CompanyTasksPage() {
       if (taskErr) throw taskErr
       setTasks(taskList as Task[])
     } catch (err: any) {
-      console.error('加载任务失败:', err)
-      setError(err.message || '加载任务失败')
+      console.error('Failed to load tasks:', err)
+      setError(err.message || 'Failed to load tasks')
     } finally {
       setLoading(false)
     }
   }
 
-  // 非企业用户拦截
+  // Non-company user interception
   if (profile && profile.user_type !== 'company') {
-    return <div className="min-h-screen flex items-center justify-center text-gray-500">仅企业用户可访问此页面</div>
+    return <div className="min-h-screen flex items-center justify-center text-gray-500">Only company users can access this page</div>
   }
 
-  // 创建任务表单
+  // Create task form
   if (showCreate) {
     return (
       <CreateTaskPage
@@ -106,22 +106,22 @@ export function CompanyTasksPage() {
   return (
     <div className="min-h-screen bg-gray-50 pt-8 pb-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* 顶部栏 */}
+        {/* Top bar */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
             <Building2 className="w-6 h-6 text-blue-600" />
-            <span>我的任务</span>
+            <span>My Tasks</span>
           </h1>
           <button
             onClick={() => setShowCreate(true)}
             className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-semibold transition-colors"
           >
             <Plus className="w-5 h-5" />
-            <span>发布新任务</span>
+            <span>Create New Task</span>
           </button>
         </div>
 
-        {/* 任务列表 */}
+        {/* Task list */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader className="w-8 h-8 animate-spin text-blue-500" />
@@ -143,39 +143,39 @@ export function CompanyTasksPage() {
               >
                 <div>
                   <h3 className="text-lg font-medium text-gray-900">{task.title}</h3>
-                  <p className="text-sm text-gray-500">直播时间：{task.live_date ? new Date(task.live_date).toLocaleDateString() : '未设置'}</p>
+                  <p className="text-sm text-gray-500">Live Date: {task.live_date ? new Date(task.live_date).toLocaleDateString() : 'Not Set'}</p>
                 </div>
                 <div className="text-sm text-gray-500 text-right space-y-1">
-                  <p>状态：{
+                  <p>Status: {
                     {
-                      open: '招募中',
-                      in_progress: '进行中',
-                      completed: '已完成',
-                      cancelled: '已取消',
+                      open: 'Open',
+                      in_progress: 'In Progress',
+                      completed: 'Completed',
+                      cancelled: 'Cancelled',
                     }[task.status]
                   }</p>
                   {task.selected_influencer && (
-                    <p className="text-green-600">已选择：{task.selected_influencer.nickname}</p>
+                    <p className="text-green-600">Selected: {task.selected_influencer.nickname}</p>
                   )}
-                  <p>申请：{(task.current_applicants ?? 0)}/{task.max_applicants}</p>
+                  <p>Applications: {(task.current_applicants ?? 0)}/{task.max_applicants}</p>
 
-                  {/* 操作按钮 */}
+                  {/* Action buttons */}
                   <div className="flex items-center justify-end space-x-2 mt-1">
-                    {/* 取消按钮：仅在 open 或 in_progress 状态可见 */}
+                    {/* Cancel button: visible only in open or in_progress status */}
                     {(task.status === 'open' || task.status === 'in_progress') && (
                       <button
                         onClick={(e) => { e.stopPropagation(); updateTaskStatus(task, 'cancelled') }}
                         disabled={processingTaskId === task.id}
                         className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs disabled:opacity-50"
-                      >取消</button>
+                      >Cancel</button>
                     )}
-                    {/* 完成按钮：仅在 in_progress 状态可见 */}
+                    {/* Complete button: visible only in in_progress status */}
                     {task.status === 'in_progress' && (
                       <button
                         onClick={(e) => { e.stopPropagation(); updateTaskStatus(task, 'completed') }}
                         disabled={processingTaskId === task.id}
                         className="px-3 py-1 rounded bg-green-500 hover:bg-green-600 text-white text-xs disabled:opacity-50"
-                      >完成</button>
+                      >Complete</button>
                     )}
                   </div>
                 </div>
@@ -184,12 +184,12 @@ export function CompanyTasksPage() {
           </div>
         )}
 
-        {/* 详情弹窗 */}
+        {/* Detail modal */}
         {selectedTaskId && (
           <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                <h3 className="text-xl font-bold text-gray-900">任务详情</h3>
+                <h3 className="text-xl font-bold text-gray-900">Task Details</h3>
                 <button onClick={() => setSelectedTaskId(null)} className="text-gray-500 hover:text-gray-900">
                   <XCircle className="w-6 h-6" />
                 </button>

@@ -29,9 +29,9 @@ import MD5 from 'crypto-js/md5'
 export function AccountSettingsPage() {
   const { user, profile, loading: authLoading, signOut } = useAuthContext()
   
-  // 添加调试日志 - 仅在开发环境显示
+  // Add debug logs - only shown in development environment
   if (import.meta.env.DEV) {
-    console.log('AccountSettingsPage 渲染:', { user, profile, authLoading })
+    console.log('AccountSettingsPage rendered:', { user, profile, authLoading })
   }
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'notifications' | 'privacy'>('profile')
   const [loading, setLoading] = useState(false)
@@ -39,7 +39,7 @@ export function AccountSettingsPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   
-  // 短信验证相关状态
+  // SMS verification related state
   const [smsVerification, setSmsVerification] = useState({
     phone: '',
     verificationCode: '',
@@ -50,29 +50,29 @@ export function AccountSettingsPage() {
     success: ''
   })
 
-  // 短信宝API配置
+  // SMS API configuration
   const SMS_USERNAME = 'luchuguo'
   const SMS_PASSWORD_MD5 = '95895002b700461898a9821c0704e929'
   const SMS_API_URL = 'https://api.smsbao.com/sms'
 
-  // 错误代码映射
+  // Error code mapping
   const errorMessages = {
-    '30': '错误密码',
-    '40': '账号不存在',
-    '41': '余额不足',
-    '43': 'IP地址限制',
-    '50': '内容含有敏感词',
-    '51': '手机号码不正确'
+    '30': 'Incorrect password',
+    '40': 'Account does not exist',
+    '41': 'Insufficient balance',
+    '43': 'IP address restricted',
+    '50': 'Content contains sensitive words',
+    '51': 'Invalid phone number'
   }
 
-  // 个人资料表单
+  // Profile form
   const [profileForm, setProfileForm] = useState({
     phone: '',
     email_notifications: true,
     sms_notifications: false
   })
   
-  // 安全设置表单
+  // Security settings form
   const [securityForm, setSecurityForm] = useState({
     currentPassword: '',
     newPassword: '',
@@ -81,7 +81,7 @@ export function AccountSettingsPage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   
-  // 隐私设置
+  // Privacy settings
   const [privacySettings, setPrivacySettings] = useState({
     profileVisibility: 'public',
     contactInfoVisibility: 'private',
@@ -100,43 +100,43 @@ export function AccountSettingsPage() {
     try {
       setLoading(true)
       setError(null)
-      console.log('开始获取用户设置，用户ID:', user.id)
+      console.log('Fetching user settings, user ID:', user.id)
       
-      // 获取用户资料
+      // Get user profile
       const { data: userData, error: userError } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('user_id', user.id)
         .single()
 
-      console.log('用户设置查询结果:', { userData, userError })
+      console.log('User settings query result:', { userData, userError })
 
       if (userError) {
-        console.error('获取用户设置失败:', userError)
-        setError('获取设置失败，请重试')
+        console.error('Failed to fetch user settings:', userError)
+        setError('Failed to fetch settings, please try again')
       } else       if (userData) {
-        // 填充表单数据
+        // Populate form data
         setProfileForm({
           phone: userData.phone || '',
-          email_notifications: true, // 默认值，实际应从数据库获取
-          sms_notifications: false // 默认值，实际应从数据库获取
+          email_notifications: true, // Default value, should be fetched from database
+          sms_notifications: false // Default value, should be fetched from database
         })
         
-        // 如果已有手机号，同步到短信验证状态
+        // If phone number exists, sync to SMS verification state
         if (userData.phone) {
           setSmsVerification(prev => ({
             ...prev,
             phone: userData.phone,
-            verified: true // 假设数据库中已存在的手机号是已验证的
+            verified: true // Assume existing phone number in database is verified
           }))
         }
       }
     } catch (error) {
-      console.error('获取用户设置时发生错误:', error)
-      setError('获取设置时发生错误，请重试')
+      console.error('Error occurred while fetching user settings:', error)
+      setError('Error occurred while fetching settings, please try again')
     } finally {
       setLoading(false)
-      console.log('用户设置获取完成，loading 设置为 false')
+      console.log('User settings fetch completed, loading set to false')
     }
   }
 
@@ -156,12 +156,12 @@ export function AccountSettingsPage() {
     }))
   }
 
-  // 根据元素类型安全地处理隐私设置变更，避免在 select 元素上访问不存在的 checked 属性
+  // Safely handle privacy settings changes based on element type, avoiding accessing non-existent checked property on select elements
   const handlePrivacyChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const target = e.target
     const { name } = target
 
-    // 判断是否为复选框
+    // Check if it's a checkbox
     const newValue = target instanceof HTMLInputElement && target.type === 'checkbox'
       ? target.checked
       : target.value
@@ -172,23 +172,23 @@ export function AccountSettingsPage() {
     }))
   }
 
-  // 生成验证码
+  // Generate verification code
   const generateVerificationCode = () => {
     return Math.floor(1000 + Math.random() * 9000).toString()
   }
 
-  // 发送短信验证码
+  // Send SMS verification code
   const sendSmsCode = async () => {
     const phone = smsVerification.phone || profileForm.phone
     
     if (!phone) {
-      setSmsVerification(prev => ({ ...prev, error: '请输入手机号码' }))
+      setSmsVerification(prev => ({ ...prev, error: 'Please enter phone number' }))
       return
     }
 
     const phoneRegex = /^1[3-9]\d{9}$/
     if (!phoneRegex.test(phone)) {
-      setSmsVerification(prev => ({ ...prev, error: '请输入正确的手机号码格式' }))
+      setSmsVerification(prev => ({ ...prev, error: 'Please enter a valid phone number format' }))
       return
     }
 
@@ -203,7 +203,7 @@ export function AccountSettingsPage() {
         verificationCode: code 
       }))
 
-      const content = `【短信宝】您的验证码是${code}，30秒内有效`
+      const content = `[SMS] Your verification code is ${code}, valid for 30 seconds`
       
       const params = new URLSearchParams({
         u: SMS_USERNAME,
@@ -213,7 +213,7 @@ export function AccountSettingsPage() {
       })
 
       const apiUrl = `${SMS_API_URL}?${params.toString()}`
-      console.log('发送短信API URL:', apiUrl)
+      console.log('Send SMS API URL:', apiUrl)
 
       const response = await fetch(apiUrl, {
         method: 'GET',
@@ -229,32 +229,32 @@ export function AccountSettingsPage() {
       if (cleanResult === '0') {
         setSmsVerification(prev => ({ 
           ...prev, 
-          success: `短信已发送到 ${phone}，请查收！`,
+          success: `SMS sent to ${phone}, please check!`,
           phone: phone
         }))
       } else {
         const errorMessage = errorMessages[cleanResult as keyof typeof errorMessages]
         if (errorMessage) {
-          console.log('API返回错误代码，但短信实际发送成功:', cleanResult)
+          console.log('API returned error code, but SMS actually sent successfully:', cleanResult)
           setSmsVerification(prev => ({ 
             ...prev, 
-            success: `短信已发送到 ${phone}，请查收！`,
+            success: `SMS sent to ${phone}, please check!`,
             phone: phone
           }))
         } else {
-          console.log('API返回未知结果，但短信可能已发送成功')
+          console.log('API returned unknown result, but SMS may have been sent successfully')
           setSmsVerification(prev => ({ 
             ...prev, 
-            success: `短信已发送到 ${phone}，请查收！`,
+            success: `SMS sent to ${phone}, please check!`,
             phone: phone
           }))
         }
       }
     } catch (error) {
-      console.error('发送短信失败:', error)
+      console.error('Failed to send SMS:', error)
       setSmsVerification(prev => ({ 
         ...prev, 
-        success: `短信已发送到 ${phone}，请查收！`,
+        success: `SMS sent to ${phone}, please check!`,
         phone: phone
       }))
     } finally {
@@ -262,15 +262,15 @@ export function AccountSettingsPage() {
     }
   }
 
-  // 验证短信验证码
+  // Verify SMS verification code
   const verifySmsCode = () => {
     if (!smsVerification.inputCode) {
-      setSmsVerification(prev => ({ ...prev, error: '请输入验证码' }))
+      setSmsVerification(prev => ({ ...prev, error: 'Please enter verification code' }))
       return
     }
 
     if (!smsVerification.verificationCode) {
-      setSmsVerification(prev => ({ ...prev, error: '请先发送验证码' }))
+      setSmsVerification(prev => ({ ...prev, error: 'Please send verification code first' }))
       return
     }
 
@@ -278,21 +278,21 @@ export function AccountSettingsPage() {
       setSmsVerification(prev => ({ 
         ...prev, 
         verified: true, 
-        success: '验证成功！手机号码已绑定',
+        success: 'Verification successful! Phone number has been bound',
         error: ''
       }))
-      // 更新个人资料表单中的手机号
+      // Update phone number in profile form
       setProfileForm(prev => ({ ...prev, phone: smsVerification.phone }))
     } else {
       setSmsVerification(prev => ({ 
         ...prev, 
-        error: '验证码错误，请重新输入',
+        error: 'Incorrect verification code, please re-enter',
         verified: false 
       }))
     }
   }
 
-  // 处理短信验证输入变化
+  // Handle SMS verification input changes
   const handleSmsVerificationChange = (field: string, value: string) => {
     setSmsVerification(prev => ({ ...prev, [field]: value }))
   }
@@ -301,13 +301,13 @@ export function AccountSettingsPage() {
     e.preventDefault()
     
     if (!user) {
-      setError('用户未登录')
+      setError('User not logged in')
       return
     }
 
-    // 检查手机号码是否已验证
+    // Check if phone number is verified
     if (profileForm.phone && !smsVerification.verified && smsVerification.phone !== profileForm.phone) {
-      setError('请先验证手机号码')
+      setError('Please verify phone number first')
       return
     }
     
@@ -316,7 +316,7 @@ export function AccountSettingsPage() {
       setError(null)
       setSuccess(null)
       
-      // 更新用户资料
+      // Update user profile
       const { error: updateError } = await supabase
         .from('user_profiles')
         .update({
@@ -326,14 +326,14 @@ export function AccountSettingsPage() {
         .eq('user_id', user.id)
       
       if (updateError) {
-        console.error('更新资料失败:', updateError)
-        setError('更新资料失败，请重试')
+        console.error('Failed to update profile:', updateError)
+        setError('Failed to update profile, please try again')
         return
       }
       
-      setSuccess('个人资料已更新')
+      setSuccess('Profile updated successfully')
       
-      // 重置短信验证状态
+      // Reset SMS verification state
       setSmsVerification(prev => ({
         ...prev,
         verified: false,
@@ -344,8 +344,8 @@ export function AccountSettingsPage() {
       }))
       
     } catch (error) {
-      console.error('保存资料时发生错误:', error)
-      setError('保存资料时发生错误，请重试')
+      console.error('Error occurred while saving profile:', error)
+      setError('Error occurred while saving profile, please try again')
     } finally {
       setSaving(false)
     }
@@ -355,18 +355,18 @@ export function AccountSettingsPage() {
     e.preventDefault()
     
     if (!user) {
-      setError('用户未登录')
+      setError('User not logged in')
       return
     }
     
-    // 验证密码
+    // Validate password
     if (securityForm.newPassword !== securityForm.confirmPassword) {
-      setError('两次输入的新密码不一致')
+      setError('New passwords do not match')
       return
     }
     
     if (securityForm.newPassword.length < 6) {
-      setError('新密码长度不能少于6位')
+      setError('New password must be at least 6 characters')
       return
     }
     
@@ -375,29 +375,29 @@ export function AccountSettingsPage() {
       setError(null)
       setSuccess(null)
       
-      // 更新密码
+      // Update password
       const { error } = await supabase.auth.updateUser({
         password: securityForm.newPassword
       })
       
       if (error) {
-        console.error('更新密码失败:', error)
-        setError(`更新密码失败: ${error.message}`)
+        console.error('Failed to update password:', error)
+        setError(`Failed to update password: ${error.message}`)
         return
       }
       
-      // 清空表单
+      // Clear form
       setSecurityForm({
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
       })
       
-      setSuccess('密码已成功更新')
+      setSuccess('Password updated successfully')
       
     } catch (error) {
-      console.error('更新密码时发生错误:', error)
-      setError('更新密码时发生错误，请重试')
+      console.error('Error occurred while updating password:', error)
+      setError('Error occurred while updating password, please try again')
     } finally {
       setSaving(false)
     }
@@ -411,16 +411,16 @@ export function AccountSettingsPage() {
       setError(null)
       setSuccess(null)
       
-      // 这里应该有保存隐私设置的逻辑
-      // 目前仅模拟成功
+      // There should be logic to save privacy settings here
+      // Currently only simulating success
       setTimeout(() => {
-        setSuccess('隐私设置已更新')
+        setSuccess('Privacy settings updated')
         setSaving(false)
       }, 1000)
       
     } catch (error) {
-      console.error('保存隐私设置时发生错误:', error)
-      setError('保存隐私设置时发生错误，请重试')
+      console.error('Error occurred while saving privacy settings:', error)
+      setError('Error occurred while saving privacy settings, please try again')
       setSaving(false)
     }
   }
@@ -430,8 +430,8 @@ export function AccountSettingsPage() {
       await signOut()
       window.location.href = '/'
     } catch (error) {
-      console.error('退出登录失败:', error)
-      setError('退出登录失败，请重试')
+      console.error('Failed to sign out:', error)
+      setError('Failed to sign out, please try again')
     }
   }
 
@@ -470,7 +470,7 @@ export function AccountSettingsPage() {
   return (
     <div className="min-h-screen bg-gray-50 pt-8 pb-16">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* 页面标题 */}
+        {/* Page title */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-3">
             <button
@@ -485,7 +485,7 @@ export function AccountSettingsPage() {
         
 
 
-        {/* 错误和成功提示 */}
+        {/* Error and success messages */}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
             <div className="flex items-center space-x-2">
@@ -504,9 +504,9 @@ export function AccountSettingsPage() {
           </div>
         )}
 
-        {/* 主内容区 */}
+        {/* Main content area */}
         <div className="flex flex-col md:flex-row gap-8">
-          {/* 侧边栏 */}
+          {/* Sidebar */}
           <div className="w-full md:w-64 flex-shrink-0">
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="p-6 border-b border-gray-100">
@@ -585,10 +585,10 @@ export function AccountSettingsPage() {
             </div>
           </div>
           
-          {/* 主内容 */}
+          {/* Main content */}
           <div className="flex-1">
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              {/* 个人资料 */}
+              {/* Profile */}
               {activeTab === 'profile' && (
                 <div className="p-8">
                   <h2 className="text-xl font-semibold text-gray-900 mb-6">Profile</h2>
@@ -644,7 +644,7 @@ export function AccountSettingsPage() {
                           </button>
                         </div>
 
-                        {/* 短信验证码输入 */}
+                        {/* SMS verification code input */}
                         {smsVerification.success && (
                           <div className="flex space-x-2">
                             <div className="flex-1 relative">
@@ -670,7 +670,7 @@ export function AccountSettingsPage() {
                           </div>
                         )}
 
-                        {/* 短信验证状态提示 */}
+                        {/* SMS verification status messages */}
                         {smsVerification.error && (
                           <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                             <div className="flex items-center space-x-2">
@@ -694,8 +694,8 @@ export function AccountSettingsPage() {
                             <div className="flex items-center space-x-2">
                               <CheckCircle className="w-6 h-6 text-blue-500" />
                               <div>
-                                <div className="font-medium text-blue-900">验证成功！</div>
-                                <div className="text-sm text-blue-700">手机号码已绑定，可以保存资料</div>
+                                <div className="font-medium text-blue-900">Verification successful!</div>
+                                <div className="text-sm text-blue-700">Phone number has been bound, you can save your profile</div>
                               </div>
                             </div>
                           </div>
@@ -745,7 +745,7 @@ export function AccountSettingsPage() {
                 </div>
               )}
               
-              {/* 安全设置 */}
+              {/* Security settings */}
               {activeTab === 'security' && (
                 <div className="p-8">
                   <h2 className="text-xl font-semibold text-gray-900 mb-6">Security Settings</h2>
@@ -849,18 +849,18 @@ export function AccountSettingsPage() {
                 </div>
               )}
               
-              {/* 通知设置 */}
+              {/* Notification settings */}
               {activeTab === 'notifications' && (
                 <div className="p-8">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-6">通知设置</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-6">Notification Settings</h2>
                   <form className="space-y-6">
                     <div className="space-y-4">
-                      <h3 className="text-lg font-medium text-gray-900">邮件通知</h3>
+                      <h3 className="text-lg font-medium text-gray-900">Email Notifications</h3>
                       
                       <div className="flex items-center justify-between">
                         <div>
-                          <div className="font-medium text-gray-700">系统通知</div>
-                          <div className="text-sm text-gray-500">接收系统更新、维护和安全相关的通知</div>
+                          <div className="font-medium text-gray-700">System Notifications</div>
+                          <div className="text-sm text-gray-500">Receive notifications about system updates, maintenance, and security</div>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input 
@@ -876,8 +876,8 @@ export function AccountSettingsPage() {
                       
                       <div className="flex items-center justify-between">
                         <div>
-                          <div className="font-medium text-gray-700">任务通知</div>
-                          <div className="text-sm text-gray-500">接收新任务、申请状态变更等通知</div>
+                          <div className="font-medium text-gray-700">Task Notifications</div>
+                          <div className="text-sm text-gray-500">Receive notifications about new tasks, application status changes, etc.</div>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input type="checkbox" className="sr-only peer" defaultChecked />
@@ -887,8 +887,8 @@ export function AccountSettingsPage() {
                       
                       <div className="flex items-center justify-between">
                         <div>
-                          <div className="font-medium text-gray-700">营销信息</div>
-                          <div className="text-sm text-gray-500">接收优惠、活动和新功能相关的通知</div>
+                          <div className="font-medium text-gray-700">Marketing Messages</div>
+                          <div className="text-sm text-gray-500">Receive notifications about promotions, events, and new features</div>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input type="checkbox" className="sr-only peer" />
@@ -898,12 +898,12 @@ export function AccountSettingsPage() {
                     </div>
                     
                     <div className="space-y-4 pt-6 border-t border-gray-200">
-                      <h3 className="text-lg font-medium text-gray-900">短信通知</h3>
+                      <h3 className="text-lg font-medium text-gray-900">SMS Notifications</h3>
                       
                       <div className="flex items-center justify-between">
                         <div>
-                          <div className="font-medium text-gray-700">重要通知</div>
-                          <div className="text-sm text-gray-500">接收账号安全和重要更新的短信通知</div>
+                          <div className="font-medium text-gray-700">Important Notifications</div>
+                          <div className="text-sm text-gray-500">Receive SMS notifications about account security and important updates</div>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input 
@@ -919,8 +919,8 @@ export function AccountSettingsPage() {
                       
                       <div className="flex items-center justify-between">
                         <div>
-                          <div className="font-medium text-gray-700">任务提醒</div>
-                          <div className="text-sm text-gray-500">接收即将开始的直播任务提醒</div>
+                          <div className="font-medium text-gray-700">Task Reminders</div>
+                          <div className="text-sm text-gray-500">Receive reminders for upcoming live streaming tasks</div>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input type="checkbox" className="sr-only peer" />
@@ -944,7 +944,7 @@ export function AccountSettingsPage() {
                         ) : (
                           <>
                             <Save className="w-5 h-5" />
-                            <span>保存设置</span>
+                            <span>Save Settings</span>
                           </>
                         )}
                       </button>
@@ -953,14 +953,14 @@ export function AccountSettingsPage() {
                 </div>
               )}
               
-              {/* 隐私设置 */}
+              {/* Privacy settings */}
               {activeTab === 'privacy' && (
                 <div className="p-8">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-6">隐私设置</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-6">Privacy Settings</h2>
                   <form onSubmit={savePrivacySettings} className="space-y-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        资料可见性
+                        Profile Visibility
                       </label>
                       <select
                         name="profileVisibility"
@@ -968,16 +968,16 @@ export function AccountSettingsPage() {
                         onChange={handlePrivacyChange}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
-                        <option value="public">公开 - 所有人可见</option>
-                        <option value="registered">注册用户 - 仅注册用户可见</option>
-                        <option value="private">私密 - 仅自己可见</option>
+                        <option value="public">Public - Visible to everyone</option>
+                        <option value="registered">Registered Users - Visible to registered users only</option>
+                        <option value="private">Private - Visible to yourself only</option>
                       </select>
-                      <p className="mt-1 text-sm text-gray-500">控制谁可以查看您的个人资料</p>
+                      <p className="mt-1 text-sm text-gray-500">Control who can view your profile</p>
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        联系方式可见性
+                        Contact Information Visibility
                       </label>
                       <select
                         name="contactInfoVisibility"
@@ -985,17 +985,17 @@ export function AccountSettingsPage() {
                         onChange={handlePrivacyChange}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
-                        <option value="public">公开 - 所有人可见</option>
-                        <option value="contacts">联系人 - 仅联系人可见</option>
-                        <option value="private">私密 - 不公开</option>
+                        <option value="public">Public - Visible to everyone</option>
+                        <option value="contacts">Contacts - Visible to contacts only</option>
+                        <option value="private">Private - Not public</option>
                       </select>
-                      <p className="mt-1 text-sm text-gray-500">控制谁可以查看您的联系方式</p>
+                      <p className="mt-1 text-sm text-gray-500">Control who can view your contact information</p>
                     </div>
                     
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="font-medium text-gray-700">允许私信</div>
-                        <div className="text-sm text-gray-500">允许其他用户向您发送私信</div>
+                        <div className="font-medium text-gray-700">Allow Private Messages</div>
+                        <div className="text-sm text-gray-500">Allow other users to send you private messages</div>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input 
@@ -1023,7 +1023,7 @@ export function AccountSettingsPage() {
                         ) : (
                           <>
                             <Save className="w-5 h-5" />
-                            <span>保存设置</span>
+                            <span>Save Settings</span>
                           </>
                         )}
                       </button>
@@ -1033,44 +1033,44 @@ export function AccountSettingsPage() {
               )}
             </div>
             
-            {/* 账号信息卡片 */}
+            {/* Account information card */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden mt-8">
               <div className="p-6 border-b border-gray-100">
-                <h3 className="text-lg font-semibold text-gray-900">账号信息</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Account Information</h3>
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <div className="text-sm text-gray-500 mb-1">账号ID</div>
+                    <div className="text-sm text-gray-500 mb-1">Account ID</div>
                     <div className="font-medium text-gray-900">{user.id}</div>
                   </div>
                   <div>
-                    <div className="text-sm text-gray-500 mb-1">注册时间</div>
+                    <div className="text-sm text-gray-500 mb-1">Registration Date</div>
                     <div className="font-medium text-gray-900">{new Date(user.created_at || '').toLocaleString()}</div>
                   </div>
                   <div>
-                    <div className="text-sm text-gray-500 mb-1">账号类型</div>
+                    <div className="text-sm text-gray-500 mb-1">Account Type</div>
                     <div className="font-medium text-gray-900">
-                      {profile?.user_type === 'influencer' ? '达人账号' : 
-                       profile?.user_type === 'company' ? '企业账号' : 
-                       profile?.user_type === 'admin' ? '管理员账号' : '普通账号'}
+                      {profile?.user_type === 'influencer' ? 'Creator Account' : 
+                       profile?.user_type === 'company' ? 'Company Account' : 
+                       profile?.user_type === 'admin' ? 'Admin Account' : 'Regular Account'}
                     </div>
                   </div>
                   <div>
-                    <div className="text-sm text-gray-500 mb-1">账号状态</div>
-                    <div className="font-medium text-green-600">正常</div>
+                    <div className="text-sm text-gray-500 mb-1">Account Status</div>
+                    <div className="font-medium text-green-600">Active</div>
                   </div>
                 </div>
                 
                 <div className="mt-6 pt-6 border-t border-gray-100">
                   <div className="flex items-center justify-between">
-                    <div className="text-red-600 font-medium">删除账号</div>
+                    <div className="text-red-600 font-medium">Delete Account</div>
                     <button className="bg-red-50 text-red-700 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors">
-                      申请删除
+                      Request Deletion
                     </button>
                   </div>
                   <p className="mt-2 text-sm text-gray-500">
-                    删除账号将永久移除您的所有数据，此操作不可撤销。
+                    Deleting your account will permanently remove all your data. This action cannot be undone.
                   </p>
                 </div>
               </div>

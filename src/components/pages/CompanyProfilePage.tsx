@@ -42,12 +42,12 @@ export function CompanyProfilePage() {
   const [logoKey, setLogoKey] = useState(0)
 
   const companySizes = [
-    '1-10人', '11-50人', '51-100人', '101-500人', '501-1000人', '1000人以上'
+    '1-10 employees', '11-50 employees', '51-100 employees', '101-500 employees', '501-1000 employees', '1000+ employees'
   ]
 
   const industries = [
-    '美妆护肤', '服装时尚', '数码科技', '美食生活', 
-    '母婴用品', '家居家装', '健康保健', '教育培训', '其他'
+    'Beauty & Skincare', 'Fashion & Apparel', 'Digital Technology', 'Food & Lifestyle', 
+    'Baby & Maternity', 'Home & Furnishing', 'Health & Wellness', 'Education & Training', 'Other'
   ]
 
   useEffect(() => {
@@ -63,7 +63,7 @@ export function CompanyProfilePage() {
       setLoading(true)
       setError(null)
       
-      // 获取当前用户的企业资料
+      // Get current user's company profile
       const { data: companyData, error: companyError } = await supabase
         .from('companies')
         .select('*')
@@ -72,16 +72,16 @@ export function CompanyProfilePage() {
 
       if (companyError) {
         if (companyError.code === 'PGRST116') {
-          // 没有找到记录，可能是新用户
-          console.log('未找到企业资料，可能需要创建新资料')
+          // No record found, may be a new user
+          console.log('Company profile not found, may need to create new profile')
           setCompany(null)
         } else {
-          console.error('获取企业资料失败:', companyError)
-          setError('获取资料失败，请重试')
+          console.error('Failed to fetch company profile:', companyError)
+          setError('Failed to fetch profile, please try again')
         }
       } else {
         setCompany(companyData)
-        // 填充表单数据
+        // Populate form data
         setFormData({
           company_name: companyData.company_name || '',
           contact_person: companyData.contact_person || '',
@@ -94,8 +94,8 @@ export function CompanyProfilePage() {
         setLogoPreview(companyData.logo_url || null)
       }
     } catch (error) {
-      console.error('获取企业资料时发生错误:', error)
-      setError('获取资料时发生错误，请重试')
+      console.error('Error occurred while fetching company profile:', error)
+      setError('Error occurred while fetching profile, please try again')
     } finally {
       setLoading(false)
     }
@@ -113,22 +113,22 @@ export function CompanyProfilePage() {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
       setLogoFile(file)
-      setLogoPreview('') // 清空预览
+      setLogoPreview('') // Clear preview
       setError(null)
       
-      console.log('开始上传企业Logo:', {
+      console.log('Starting company logo upload:', {
         fileName: file.name,
         fileSize: file.size,
         fileType: file.type
       })
     
     try {
-        // 使用PICUI图床API
+        // Use PICUI image hosting API
         const formData = new FormData()
         formData.append('file', file)
-        formData.append('permission', '1') // 公开权限
+        formData.append('permission', '1') // Public permission
 
-        console.log('发送PICUI API请求...')
+        console.log('Sending PICUI API request...')
         const response = await fetch('https://picui.cn/api/v1/upload', {
           method: 'POST',
           headers: {
@@ -139,33 +139,33 @@ export function CompanyProfilePage() {
         })
 
         const result = await response.json()
-        console.log('PICUI API响应:', result)
+        console.log('PICUI API response:', result)
 
         if (result.status && result.data?.links?.url) {
           setLogoPreview(result.data.links.url)
-          console.log('企业Logo上传成功:', result.data.links.url)
+          console.log('Company logo uploaded successfully:', result.data.links.url)
         } else {
-          setError(result.message || '上传失败')
-          console.error('企业Logo上传失败:', result)
+          setError(result.message || 'Upload failed')
+          console.error('Company logo upload failed:', result)
         }
       } catch (error: any) {
-        console.error('企业Logo上传异常:', error)
-        setError(error.message || '上传异常')
+        console.error('Company logo upload error:', error)
+        setError(error.message || 'Upload error')
       }
     }
   }
 
-  // 验证PICUI API密钥是否配置
+  // Verify PICUI API key is configured
   const PICUI_API_KEY = import.meta.env.VITE_PICUI_API_KEY as string
   if (!PICUI_API_KEY) {
-    console.warn('PICUI API密钥未配置，Logo上传功能可能无法正常工作')
+    console.warn('PICUI API key not configured, logo upload feature may not work properly')
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!user) {
-      setError('用户未登录')
+      setError('User not logged in')
       return
     }
     
@@ -174,13 +174,13 @@ export function CompanyProfilePage() {
       setError(null)
       setSuccess(null)
       
-      // 验证必填字段
+      // Validate required fields
       if (!formData.company_name || !formData.contact_person) {
-        setError('公司名称和联系人不能为空')
+        setError('Company name and contact person cannot be empty')
         return
       }
       
-      // 上传Logo（如果有）
+      // Upload Logo (if any)
       let logoUrl = company?.logo_url || null
       if (logoPreview) {
         logoUrl = logoPreview
@@ -193,7 +193,7 @@ export function CompanyProfilePage() {
       }
       
       if (company) {
-        // 更新现有资料
+        // Update existing profile
         const { data: updateResult, error: updateError } = await supabase
           .from('companies')
           .update(updateData)
@@ -201,17 +201,17 @@ export function CompanyProfilePage() {
           .select()
         
         if (updateError) {
-          console.error('更新资料失败:', updateError)
-          setError('更新资料失败，请重试')
+          console.error('Failed to update profile:', updateError)
+          setError('Failed to update profile, please try again')
           return
         }
         
-        // 立即更新本地状态
+        // Immediately update local state
         if (updateResult && updateResult[0]) {
           setCompany(updateResult[0])
         }
       } else {
-        // 创建新资料
+        // Create new profile
         const { data: insertResult, error: insertError } = await supabase
           .from('companies')
           .insert({
@@ -221,31 +221,31 @@ export function CompanyProfilePage() {
           .select()
         
         if (insertError) {
-          console.error('创建资料失败:', insertError)
-          setError('创建资料失败，请重试')
+          console.error('Failed to create profile:', insertError)
+          setError('Failed to create profile, please try again')
           return
         }
         
-        // 立即更新本地状态
+        // Immediately update local state
         if (insertResult && insertResult[0]) {
           setCompany(insertResult[0])
         }
       }
       
-      setSuccess('资料保存成功！')
+      setSuccess('Profile saved successfully!')
       setEditMode(false)
       
-      // 清除Logo相关状态
+      // Clear logo-related state
       setLogoFile(null)
       setLogoPreview(null)
-      setLogoKey(prev => prev + 1) // 强制重新渲染Logo
+      setLogoKey(prev => prev + 1) // Force re-render logo
       
-      // 重新获取资料以确保数据同步
+      // Refetch profile to ensure data synchronization
       await fetchCompanyProfile()
       
     } catch (error) {
-      console.error('保存资料时发生错误:', error)
-      setError('保存资料时发生错误，请重试')
+      console.error('Error occurred while saving profile:', error)
+      setError('Error occurred while saving profile, please try again')
     } finally {
       setSaving(false)
     }
@@ -257,8 +257,8 @@ export function CompanyProfilePage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center py-12">
             <Loader className="w-8 h-8 animate-spin text-blue-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900">加载中...</h2>
-            <p className="text-gray-600 mt-2">正在获取您的资料</p>
+            <h2 className="text-xl font-semibold text-gray-900">Loading...</h2>
+            <p className="text-gray-600 mt-2">Fetching your profile</p>
           </div>
         </div>
       </div>
@@ -271,8 +271,8 @@ export function CompanyProfilePage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center py-12">
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">未登录</h2>
-            <p className="text-gray-600 mb-6">请先登录后再访问个人中心</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Not Logged In</h2>
+            <p className="text-gray-600 mb-6">Please log in to access your profile</p>
           </div>
         </div>
       </div>
@@ -285,8 +285,8 @@ export function CompanyProfilePage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center py-12">
             <AlertCircle className="w-16 h-16 text-amber-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">权限不足</h2>
-            <p className="text-gray-600 mb-6">只有企业用户可以访问此页面</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Insufficient Permissions</h2>
+            <p className="text-gray-600 mb-6">Only company users can access this page</p>
           </div>
         </div>
       </div>
@@ -296,7 +296,7 @@ export function CompanyProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50 pt-8 pb-16">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* 页面标题 */}
+        {/* Page title */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-3">
             <button
@@ -305,7 +305,7 @@ export function CompanyProfilePage() {
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <h1 className="text-2xl font-bold text-gray-900">企业中心</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Company Center</h1>
           </div>
           <button
             onClick={() => setEditMode(!editMode)}
@@ -318,18 +318,18 @@ export function CompanyProfilePage() {
             {editMode ? (
               <>
                 <X className="w-4 h-4" />
-                <span>取消编辑</span>
+                <span>Cancel Edit</span>
               </>
             ) : (
               <>
                 <Edit className="w-4 h-4" />
-                <span>编辑资料</span>
+                <span>Edit Profile</span>
               </>
             )}
           </button>
         </div>
 
-        {/* 错误和成功提示 */}
+        {/* Error and success messages */}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
             <div className="flex items-center space-x-2">
@@ -348,20 +348,20 @@ export function CompanyProfilePage() {
           </div>
         )}
 
-        {/* 主内容区 */}
+        {/* Main content area */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
-          {/* 封面图 */}
+          {/* Cover image */}
           <div className="h-48 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 relative">
             {editMode && (
               <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
                 <button className="bg-white text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors">
-                  更换封面
+                  Change Cover
                 </button>
               </div>
             )}
           </div>
           
-          {/* 企业资料 */}
+          {/* Company profile */}
           <div className="px-8 pt-0 pb-8 relative">
             {/* Logo */}
             <div className="w-24 h-24 rounded-lg border-4 border-white overflow-hidden absolute -top-12 right-8 bg-white" key={`logo-${logoKey}-${company?.logo_url}`}>
@@ -369,7 +369,7 @@ export function CompanyProfilePage() {
                 <div className="relative w-full h-full">
                   <img
                     src={logoPreview || company?.logo_url || 'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=200'}
-                    alt="Logo预览"
+                    alt="Logo Preview"
                     className="w-full h-full object-cover"
                   />
                   <label className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 cursor-pointer">
@@ -385,7 +385,7 @@ export function CompanyProfilePage() {
               ) : (
                 <img
                   src={company?.logo_url || 'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=200'}
-                  alt="公司Logo"
+                  alt="Company Logo"
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement
@@ -395,15 +395,15 @@ export function CompanyProfilePage() {
               )}
             </div>
             
-            {/* 基本信息 */}
+            {/* Basic information */}
             <div className="mt-16 mb-8">
               {editMode ? (
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* 基本信息 */}
+                  {/* Basic information */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        公司名称 <span className="text-red-500">*</span>
+                        Company Name <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -412,13 +412,13 @@ export function CompanyProfilePage() {
                         onChange={handleInputChange}
                         required
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="请输入公司名称"
+                        placeholder="Enter company name"
                       />
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        联系人 <span className="text-red-500">*</span>
+                        Contact Person <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -427,13 +427,13 @@ export function CompanyProfilePage() {
                         onChange={handleInputChange}
                         required
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="请输入联系人姓名"
+                        placeholder="Enter contact person name"
                       />
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        营业执照号
+                        Business License Number
                       </label>
                       <input
                         type="text"
@@ -441,13 +441,13 @@ export function CompanyProfilePage() {
                         value={formData.business_license}
                         onChange={handleInputChange}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="请输入营业执照号"
+                        placeholder="Enter business license number"
                       />
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        所属行业
+                        Industry
                       </label>
                       <select
                         name="industry"
@@ -455,7 +455,7 @@ export function CompanyProfilePage() {
                         onChange={handleInputChange}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
-                        <option value="">请选择行业</option>
+                        <option value="">Select industry</option>
                         {industries.map(industry => (
                           <option key={industry} value={industry}>{industry}</option>
                         ))}
@@ -464,7 +464,7 @@ export function CompanyProfilePage() {
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        公司规模
+                        Company Size
                       </label>
                       <select
                         name="company_size"
@@ -472,7 +472,7 @@ export function CompanyProfilePage() {
                         onChange={handleInputChange}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
-                        <option value="">请选择公司规模</option>
+                        <option value="">Select company size</option>
                         {companySizes.map(size => (
                           <option key={size} value={size}>{size}</option>
                         ))}
@@ -481,7 +481,7 @@ export function CompanyProfilePage() {
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        公司网站
+                        Company Website
                       </label>
                       <input
                         type="url"
@@ -489,15 +489,15 @@ export function CompanyProfilePage() {
                         value={formData.website}
                         onChange={handleInputChange}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="请输入公司网站"
+                        placeholder="Enter company website"
                       />
                     </div>
                   </div>
                   
-                  {/* 公司介绍 */}
+                  {/* Company description */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      公司介绍
+                      Company Description
                     </label>
                     <textarea
                       name="description"
@@ -505,18 +505,18 @@ export function CompanyProfilePage() {
                       onChange={handleInputChange}
                       rows={4}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                      placeholder="请简要介绍公司情况..."
+                      placeholder="Briefly introduce your company..."
                     />
                   </div>
                   
-                  {/* 提交按钮 */}
+                  {/* Submit button */}
                   <div className="flex justify-end space-x-4">
                     <button
                       type="button"
                       onClick={() => setEditMode(false)}
                       className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                     >
-                      取消
+                      Cancel
                     </button>
                     <button
                       type="submit"
@@ -526,12 +526,12 @@ export function CompanyProfilePage() {
                       {saving ? (
                         <>
                           <Loader className="w-5 h-5 animate-spin" />
-                          <span>保存中...</span>
+                          <span>Saving...</span>
                         </>
                       ) : (
                         <>
                           <Save className="w-5 h-5" />
-                          <span>保存资料</span>
+                          <span>Save Profile</span>
                         </>
                       )}
                     </button>
@@ -539,24 +539,24 @@ export function CompanyProfilePage() {
                 </form>
               ) : (
                 <div>
-                  {/* 名称和状态 */}
+                  {/* Name and status */}
                   <div className="flex items-center space-x-3 mb-4">
-                    <h2 className="text-2xl font-bold text-gray-900">{company?.company_name || '未设置公司名称'}</h2>
+                    <h2 className="text-2xl font-bold text-gray-900">{company?.company_name || 'Company name not set'}</h2>
                     {company?.is_verified && (
                       <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs flex items-center space-x-1">
                         <CheckCircle className="w-3 h-3" />
-                        <span>已认证</span>
+                        <span>Verified</span>
                       </span>
                     )}
                   </div>
                   
-                  {/* 基本信息 */}
+                  {/* Basic information */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     {company?.contact_person && (
                       <div className="flex items-center space-x-3">
                         <Users className="w-5 h-5 text-gray-400" />
                         <div>
-                          <div className="text-sm text-gray-500">联系人</div>
+                          <div className="text-sm text-gray-500">Contact Person</div>
                           <div className="font-medium">{company.contact_person}</div>
                         </div>
                       </div>
@@ -565,7 +565,7 @@ export function CompanyProfilePage() {
                     <div className="flex items-center space-x-3">
                       <Mail className="w-5 h-5 text-gray-400" />
                       <div>
-                        <div className="text-sm text-gray-500">邮箱</div>
+                        <div className="text-sm text-gray-500">Email</div>
                         <div className="font-medium">{user.email}</div>
                       </div>
                     </div>
@@ -574,7 +574,7 @@ export function CompanyProfilePage() {
                       <div className="flex items-center space-x-3">
                         <Briefcase className="w-5 h-5 text-gray-400" />
                         <div>
-                          <div className="text-sm text-gray-500">所属行业</div>
+                          <div className="text-sm text-gray-500">Industry</div>
                           <div className="font-medium">{company.industry}</div>
                         </div>
                       </div>
@@ -584,7 +584,7 @@ export function CompanyProfilePage() {
                       <div className="flex items-center space-x-3">
                         <Building2 className="w-5 h-5 text-gray-400" />
                         <div>
-                          <div className="text-sm text-gray-500">公司规模</div>
+                          <div className="text-sm text-gray-500">Company Size</div>
                           <div className="font-medium">{company.company_size}</div>
                         </div>
                       </div>
@@ -594,7 +594,7 @@ export function CompanyProfilePage() {
                       <div className="flex items-center space-x-3">
                         <FileText className="w-5 h-5 text-gray-400" />
                         <div>
-                          <div className="text-sm text-gray-500">营业执照号</div>
+                          <div className="text-sm text-gray-500">Business License Number</div>
                           <div className="font-medium">{company.business_license}</div>
                         </div>
                       </div>
@@ -604,7 +604,7 @@ export function CompanyProfilePage() {
                       <div className="flex items-center space-x-3">
                         <Globe className="w-5 h-5 text-gray-400" />
                         <div>
-                          <div className="text-sm text-gray-500">公司网站</div>
+                          <div className="text-sm text-gray-500">Company Website</div>
                           <div className="font-medium">
                             <a 
                               href={company.website.startsWith('http') ? company.website : `https://${company.website}`} 
@@ -620,26 +620,26 @@ export function CompanyProfilePage() {
                     )}
                   </div>
                   
-                  {/* 公司介绍 */}
+                  {/* Company description */}
                   {company?.description && (
                     <div className="mb-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">公司介绍</h3>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Company Description</h3>
                       <p className="text-gray-700 whitespace-pre-line">{company.description}</p>
                     </div>
                   )}
                   
-                  {/* 账号状态 */}
+                  {/* Account status */}
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">账号状态</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Account Status</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="flex items-center space-x-3">
                         <div className={`w-3 h-3 rounded-full ${
                           company?.is_verified ? 'bg-blue-500' : 'bg-gray-400'
                         }`}></div>
                         <div>
-                          <div className="text-sm text-gray-500">认证状态</div>
+                          <div className="text-sm text-gray-500">Verification Status</div>
                           <div className="font-medium">
-                            {company?.is_verified ? '已认证' : '未认证'}
+                            {company?.is_verified ? 'Verified' : 'Not Verified'}
                           </div>
                         </div>
                       </div>
@@ -647,8 +647,8 @@ export function CompanyProfilePage() {
                       <div className="flex items-center space-x-3">
                         <div className="w-3 h-3 rounded-full bg-green-500"></div>
                         <div>
-                          <div className="text-sm text-gray-500">账号状态</div>
-                          <div className="font-medium">正常</div>
+                          <div className="text-sm text-gray-500">Account Status</div>
+                          <div className="font-medium">Active</div>
                         </div>
                       </div>
                     </div>
@@ -659,24 +659,24 @@ export function CompanyProfilePage() {
           </div>
         </div>
 
-        {/* 提示信息 */}
+        {/* Prompt message */}
         {!company && !editMode && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-8 text-center">
             <Building2 className="w-16 h-16 text-amber-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-amber-900 mb-2">完善您的企业资料</h3>
+            <h3 className="text-xl font-semibold text-amber-900 mb-2">Complete Your Company Profile</h3>
             <p className="text-amber-700 mb-6 max-w-2xl mx-auto">
-              您还没有设置企业资料。完善资料可以帮助达人更好地了解您的企业，增加合作机会。
+              You haven't set up your company profile yet. Completing your profile can help creators better understand your company and increase collaboration opportunities.
             </p>
             <button
               onClick={() => setEditMode(true)}
               className="bg-amber-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-amber-600 transition-colors"
             >
-              立即设置
+              Set Up Now
             </button>
           </div>
         )}
 
-        {/* 认证提示 */}
+        {/* Verification prompt */}
         {company && !company.is_verified && (
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
             <div className="flex items-start space-x-4">
@@ -684,25 +684,25 @@ export function CompanyProfilePage() {
                 <FileText className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-blue-900 mb-2">企业认证</h3>
+                <h3 className="text-lg font-semibold text-blue-900 mb-2">Company Verification</h3>
                 <p className="text-blue-700 mb-4">
-                  完成企业认证可以提高企业可信度，增加达人合作意愿。
-                  认证需要提供有效的营业执照和其他相关证明材料。
+                  Completing company verification can improve company credibility and increase creator collaboration willingness.
+                  Verification requires providing a valid business license and other relevant supporting documents.
                 </p>
                 <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                  申请认证
+                  Apply for Verification
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* 完善资料提示 */}
+        {/* Profile completion tips */}
         {company && !editMode && (
           <div className="bg-white rounded-xl shadow-sm p-8">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">提升资料完整度</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">Improve Profile Completeness</h3>
             <p className="text-gray-600 mb-6">
-              完善的资料可以提高您的企业形象和吸引更多优质达人。以下是一些建议：
+              A complete profile can improve your company image and attract more quality creators. Here are some suggestions:
             </p>
             <div className="space-y-3">
               {!company.description && (
@@ -710,7 +710,7 @@ export function CompanyProfilePage() {
                   <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                   </div>
-                  <span className="text-gray-700">添加公司介绍，展示企业文化和优势</span>
+                  <span className="text-gray-700">Add company description to showcase company culture and advantages</span>
                 </div>
               )}
               
@@ -719,7 +719,7 @@ export function CompanyProfilePage() {
                   <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                   </div>
-                  <span className="text-gray-700">选择所属行业</span>
+                  <span className="text-gray-700">Select industry</span>
                 </div>
               )}
               
@@ -728,7 +728,7 @@ export function CompanyProfilePage() {
                   <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                   </div>
-                  <span className="text-gray-700">添加公司网站链接</span>
+                  <span className="text-gray-700">Add company website link</span>
                 </div>
               )}
               
@@ -737,7 +737,7 @@ export function CompanyProfilePage() {
                   <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                   </div>
-                  <span className="text-gray-700">填写营业执照号，有助于企业认证</span>
+                  <span className="text-gray-700">Fill in business license number to help with company verification</span>
                 </div>
               )}
               
@@ -746,7 +746,7 @@ export function CompanyProfilePage() {
                   <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                   </div>
-                  <span className="text-gray-700">上传公司Logo</span>
+                  <span className="text-gray-700">Upload company logo</span>
                 </div>
               )}
             </div>
