@@ -27,10 +27,12 @@ import {
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuthContext } from '../hooks/useAuth'
+import { useAdminAuth } from '../lib/adminAuthProvider'
 import { CategoriesTab } from './CategoriesTab'
 import { VideoManagement } from './admin/VideoManagement'
 import { PermissionDebugPanel } from './PermissionDebugPanel'
 import { ErrorBoundary } from './ErrorBoundary'
+import { SessionDiagnostics } from './SessionDiagnostics'
 
 interface AdminStats {
   totalUsers: number
@@ -52,7 +54,20 @@ interface RecentActivity {
 }
 
 export function AdminDashboard() {
-  const { signOut, isAdmin, loading, user, profile, refreshPermissions } = useAuthContext()
+  // 使用新的管理员认证系统
+  const adminAuth = useAdminAuth()
+  const { signOut: signOutLegacy } = useAuthContext()
+  
+  // 优先使用新的认证系统
+  const user = adminAuth.user
+  const profile = adminAuth.profile
+  const isAdmin = adminAuth.isAdmin
+  const loading = adminAuth.loading
+  
+  const signOut = async () => {
+    await adminAuth.signOut()
+    await signOutLegacy()
+  }
   const [activeTab, setActiveTab] = useState('overview')
   const [permissionError, setPermissionError] = useState<string | null>(null)
   const [connectionError, setConnectionError] = useState<string | null>(null)
@@ -69,81 +84,81 @@ export function AdminDashboard() {
   })
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([])
   const [dashboardLoading, setDashboardLoading] = useState(true)
-
+  const [loadingTimeout, setLoadingTimeout] = useState(false)
+  // 简化的权限验证逻辑（使用新的 AdminAuthProvider）
   useEffect(() => {
-    console.log('🔄 权限验证 useEffect 触发:', { user: !!user, profile: !!profile, loading, isAdmin })
-    
-    // 权限验证
-    if (user && profile) {
-      if (profile.user_type === 'admin') {
-        console.log('✅ 管理员权限验证通过')
-        setPermissionError(null)
-        fetchDashboardData()
-      } else {
-        console.log('❌ 权限不足，用户类型:', profile.user_type)
-        setPermissionError('权限不足，只有超级管理员可以访问此页面')
-      }
-    } else if (loading) {
-      console.log('⏳ 正在加载用户信息...')
-      // 加载中不显示错误，等待加载完成
-    } else if (!user) {
+    if (user && profile && isAdmin) {
+      console.log('✅ 管理员权限验证通过')
+      setPermissionError(null)
+      setLoadingTimeout(false)
+      fetchDashboardData()
+    } else if (!loading && !user) {
       console.log('❌ 用户未登录')
       setPermissionError('用户未登录，请先登录')
-    } else if (user && !profile) {
-      console.log('⏳ 用户已登录，正在加载用户资料...')
-      // 用户已登录但资料未加载，等待资料加载完成
+    } else if (!loading && user && !isAdmin) {
+      console.log('❌ 权限不足')
+      setPermissionError('权限不足，只有超级管理员可以访问此页面')
     }
-  }, [user, profile, loading])
+  }, [user, profile, isAdmin, loading])
 
-  // 添加超时保护，防止无限加载
+  // Session 健康检查 - 定期检查 session 是否有效（只在验证通过后执行）
   useEffect(() => {
-    if (loading && user) {
-      const timeoutId = setTimeout(() => {
-        console.log('⏰ 权限验证超时，强制刷新权限...')
-        refreshPermissions()
-      }, 15000) // 15秒超时
-      
-      return () => clearTimeout(timeoutId)
-    }
-  }, [loading, user])
+    if (!user || !isAdmin) return
 
-  // 添加延迟权限检查，处理页面刷新后的权限验证
-  useEffect(() => {
-    if (user && !profile && !loading) {
-      console.log('🔄 检测到用户已登录但资料未加载，延迟检查权限...')
-      const timer = setTimeout(() => {
-        if (user && !profile) {
-          console.log('⏰ 延迟检查：用户资料仍未加载，尝试重新获取...')
-          refreshPermissions()
+    const checkSessionHealth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        
+        if (error || !session) {
+          console.warn('⚠️ Session 健康检查失败，尝试恢复...')
+          // 尝试从 localStorage 恢复
+          if (typeof window !== 'undefined') {
+            const sessionKey = 'sb-auth-token'
+            const storedSession = localStorage.getItem(sessionKey)
+            
+            if (storedSession) {
+              try {
+                const sessionData = JSON.parse(storedSession)
+                if (sessionData.refresh_token) {
+                  const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession({
+                    refresh_token: sessionData.refresh_token
+                  })
+                  
+                  if (refreshError || !refreshData.session) {
+                    console.error('❌ Session 恢复失败，需要重新登录')
+                    window.location.href = '/admin-login'
+                  } else {
+                    console.log('✅ Session 恢复成功')
+                  }
+                }
+              } catch (parseError) {
+                console.error('解析存储的 session 失败:', parseError)
+                window.location.href = '/admin-login'
+              }
+            } else {
+              console.error('❌ 没有存储的 session，需要重新登录')
+              window.location.href = '/admin-login'
+            }
+          }
+        } else {
+          console.log('✅ Session 健康检查通过')
         }
-      }, 2000) // 2秒后检查
-      
-      return () => clearTimeout(timer)
+      } catch (error) {
+        console.error('Session 健康检查异常:', error)
+      }
     }
-  }, [user, profile, loading])
 
-  // 添加权限验证重试机制
-  useEffect(() => {
-    if (user && profile && profile.user_type === 'admin' && !permissionError) {
-      console.log('✅ 权限验证成功，清除任何可能的错误状态')
-      setPermissionError(null)
-    }
-  }, [user, profile, permissionError])
+    // 每5分钟检查一次 session 健康状态
+    const healthCheckInterval = setInterval(checkSessionHealth, 5 * 60 * 1000)
+    
+    // 立即执行一次检查
+    checkSessionHealth()
 
-  // 添加强制权限恢复机制
-  useEffect(() => {
-    if (user && !profile && !loading) {
-      console.log('🔄 检测到权限验证卡住，启动强制恢复...')
-      const timer = setTimeout(() => {
-        if (user && !profile) {
-          console.log('🚨 强制恢复：用户资料仍未加载，强制刷新权限...')
-          refreshPermissions()
-        }
-      }, 5000) // 5秒后强制恢复
-      
-      return () => clearTimeout(timer)
+    return () => {
+      clearInterval(healthCheckInterval)
     }
-  }, [user, profile, loading])
+  }, [user, isAdmin])
+
 
   // 添加连接状态检查
   const checkConnection = async () => {
@@ -176,47 +191,87 @@ export function AdminDashboard() {
   const fetchDashboardData = async () => {
     try {
       setDashboardLoading(true)
+      console.log('🔄 [Dashboard] 开始获取仪表板数据...')
       
       // 获取统计数据
-      const { data: statsData } = await supabase
-        .from('system_stats')
-        .select('*')
-        .order('stat_date', { ascending: false })
-        .limit(1)
-        .single()
+      try {
+        const { data: statsData, error: statsError } = await supabase
+          .from('system_stats')
+          .select('*')
+          .order('stat_date', { ascending: false })
+          .limit(1)
+          .single()
 
-      if (statsData) {
-        setStats({
-          totalUsers: statsData.total_users || 0,
-          totalInfluencers: statsData.total_influencers || 0,
-          totalCompanies: statsData.total_companies || 0,
-          totalTasks: statsData.total_tasks || 0,
-          totalApplications: statsData.total_applications || 0,
-          dailyNewUsers: statsData.daily_new_users || 0,
-          dailyNewTasks: statsData.daily_new_tasks || 0,
-          totalRevenue: statsData.daily_revenue || 0
-        })
+        if (statsError) {
+          console.warn('⚠️ [Dashboard] 获取统计数据失败:', statsError)
+          // 如果表不存在或没有数据，使用默认值
+          if (statsError.code === 'PGRST116') {
+            console.log('ℹ️ [Dashboard] 统计数据表为空，使用默认值')
+          }
+        } else if (statsData) {
+          console.log('✅ [Dashboard] 统计数据获取成功')
+          setStats({
+            totalUsers: statsData.total_users || 0,
+            totalInfluencers: statsData.total_influencers || 0,
+            totalCompanies: statsData.total_companies || 0,
+            totalTasks: statsData.total_tasks || 0,
+            totalApplications: statsData.total_applications || 0,
+            dailyNewUsers: statsData.daily_new_users || 0,
+            dailyNewTasks: statsData.daily_new_tasks || 0,
+            totalRevenue: statsData.daily_revenue || 0
+          })
+        }
+      } catch (statsErr: any) {
+        console.error('❌ [Dashboard] 获取统计数据异常:', statsErr)
       }
 
       // 获取最近活动
-      const { data: logsData } = await supabase
-        .from('admin_logs')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(10)
+      try {
+        console.log('🔄 [Dashboard] 开始获取管理员日志...')
+        const { data: logsData, error: logsError } = await supabase
+          .from('admin_logs')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(10)
 
-      if (logsData) {
-        setRecentActivities(logsData.map(log => ({
-          id: log.id,
-          type: log.action_type as any,
-          description: log.description || '',
-          timestamp: log.created_at,
-          user: log.admin_id
-        })))
+        if (logsError) {
+          console.warn('⚠️ [Dashboard] 获取管理员日志失败:', logsError)
+          if (logsError.code === 'PGRST116') {
+            console.log('ℹ️ [Dashboard] 管理员日志表为空')
+          }
+          setRecentActivities([])
+        } else if (logsData) {
+          console.log(`✅ [Dashboard] 获取到 ${logsData.length} 条管理员日志`)
+          setRecentActivities(logsData.map(log => ({
+            id: log.id,
+            type: log.action_type as any,
+            description: log.description || '',
+            timestamp: log.created_at,
+            user: log.admin_id
+          })))
+        } else {
+          setRecentActivities([])
+        }
+      } catch (logsErr: any) {
+        console.error('❌ [Dashboard] 获取管理员日志异常:', logsErr)
+        setRecentActivities([])
       }
 
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error)
+      console.log('✅ [Dashboard] 仪表板数据获取完成')
+    } catch (error: any) {
+      console.error('❌ [Dashboard] 获取仪表板数据失败:', error)
+      // 设置默认值，避免页面崩溃
+      setStats({
+        totalUsers: 0,
+        totalInfluencers: 0,
+        totalCompanies: 0,
+        totalTasks: 0,
+        totalApplications: 0,
+        dailyNewUsers: 0,
+        dailyNewTasks: 0,
+        totalRevenue: 0
+      })
+      setRecentActivities([])
     } finally {
       setDashboardLoading(false)
     }
@@ -1070,8 +1125,11 @@ export function AdminDashboard() {
     { id: 'categories', name: '分类管理', icon: Tag, component: CategoriesTab },
     { id: 'tasks', name: '任务管理', icon: Calendar, component: TasksTab },
     { id: 'videos', name: '视频管理', icon: Play, component: VideoManagement },
-    { id: 'analytics', name: '数据分析', icon: TrendingUp, component: AnalyticsTab },
-    { id: 'settings', name: '系统设置', icon: Settings, component: SettingsTab },
+    // 数据分析模块已隐藏
+    // { id: 'analytics', name: '数据分析', icon: TrendingUp, component: AnalyticsTab },
+    // 系统设置模块已隐藏
+    // { id: 'settings', name: '系统设置', icon: Settings, component: SettingsTab },
+    { id: 'diagnostics', name: 'Session 诊断', icon: Activity, component: SessionDiagnostics },
   ]
 
   const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || OverviewTab
@@ -1110,6 +1168,56 @@ export function AdminDashboard() {
 
   // 加载状态处理
   if (loading || !user || !profile) {
+    // 如果超时，显示错误信息和修复选项
+    if (loadingTimeout && user) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center max-w-md">
+            <div className="text-red-500 text-6xl mb-4">⚠️</div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">权限验证超时</h2>
+            <p className="text-gray-600 mb-6">
+              用户资料加载超时，可能是网络问题或权限配置问题
+            </p>
+            <div className="space-y-3">
+              <button
+                onClick={async () => {
+                  setLoadingTimeout(false)
+                  await refreshPermissions()
+                }}
+                className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                重新验证权限
+              </button>
+              <button
+                onClick={() => window.location.reload()}
+                className="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                刷新页面
+              </button>
+              <button
+                onClick={() => {
+                  signOut()
+                  window.location.href = '/admin-login'
+                }}
+                className="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              >
+                退出登录
+              </button>
+            </div>
+            <div className="mt-6 p-3 bg-gray-100 rounded-lg text-xs text-left">
+              <div className="font-medium text-gray-700 mb-2">🔍 调试信息</div>
+              <div className="space-y-1 text-gray-600">
+                <div>用户: {user?.email || '未获取'}</div>
+                <div>用户ID: {user?.id || '未获取'}</div>
+                <div>用户资料: {profile ? '已加载' : '未加载'}</div>
+                <div>Loading: {loading ? 'true' : 'false'}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -1189,8 +1297,7 @@ export function AdminDashboard() {
   }
 
   return (
-    <ErrorBoundary>
-      <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
         {/* 管理后台专用顶部栏 */}
         <div className="fixed top-0 left-0 right-0 h-16 bg-white shadow-sm border-b border-gray-200 z-40">
         <div className="flex items-center justify-between h-full px-6">
@@ -1299,14 +1406,19 @@ export function AdminDashboard() {
         {/* 管理后台专用底部 */}
         <div className="bg-white border-t border-gray-200 px-6 py-4 text-center">
           <div className="text-sm text-gray-500">
-                            <span className="font-medium">tkbubu.com</span> 管理后台 | 
-            版本 1.0.0 | 
-            最后更新: {new Date().toLocaleString()} | 
-            <span className="text-green-600 ml-2">● 系统运行正常</span>
+            <span className="font-medium">tkbubu.com</span> 管理后台 | 版本 1.0.0 | 最后更新: {(() => {
+              const now = new Date()
+              const year = now.getFullYear()
+              const month = now.getMonth() + 1
+              const day = now.getDate()
+              const hours = String(now.getHours()).padStart(2, '0')
+              const minutes = String(now.getMinutes()).padStart(2, '0')
+              const seconds = String(now.getSeconds()).padStart(2, '0')
+              return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`
+            })()} | <span className="text-green-600 ml-1">● 系统运行正常</span>
           </div>
         </div>
       </div>
     </div>
-    </ErrorBoundary>
   )
 }

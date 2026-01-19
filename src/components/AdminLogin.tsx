@@ -170,9 +170,42 @@ export function AdminLogin({ onLoginSuccess, onBack }: AdminLoginProps) {
           addDebugInfo(`登录日志记录失败: ${err}`)
         })
 
-        // 步骤5: 登录成功
+        // 步骤5: 登录成功，立即持久化 session
         setStep('success')
-        addDebugInfo('登录成功，准备跳转...')
+        addDebugInfo('登录成功，准备持久化 session...')
+        
+        // 立即持久化 session 到 localStorage
+        try {
+          if (authData.session) {
+            const sessionKey = 'sb-auth-token'
+            const sessionData = {
+              access_token: authData.session.access_token,
+              refresh_token: authData.session.refresh_token,
+              expires_at: authData.session.expires_at,
+              expires_in: authData.session.expires_in,
+              token_type: authData.session.token_type,
+              user: authData.session.user
+            }
+            
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(sessionKey, JSON.stringify(sessionData))
+              addDebugInfo('✅ Session 已保存到 localStorage')
+              addDebugInfo(`存储键: ${sessionKey}`)
+              addDebugInfo(`过期时间: ${authData.session.expires_at ? new Date(authData.session.expires_at * 1000).toLocaleString() : '无'}`)
+              
+              // 验证存储是否成功
+              const stored = localStorage.getItem(sessionKey)
+              if (stored) {
+                addDebugInfo('✅ 验证: Session 存储成功')
+              } else {
+                addDebugInfo('⚠️ 警告: Session 存储验证失败')
+              }
+            }
+          }
+        } catch (persistError: any) {
+          addDebugInfo(`⚠️ Session 持久化失败: ${persistError.message}`)
+          console.error('Session 持久化错误:', persistError)
+        }
         
         // 短暂延迟后跳转
         setTimeout(() => {
@@ -216,6 +249,29 @@ export function AdminLogin({ onLoginSuccess, onBack }: AdminLoginProps) {
     try {
       addDebugInfo('快速设置管理员资料...')
       
+      // 确保有有效的 session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      if (sessionError || !session) {
+        addDebugInfo(`⚠️ 没有有效的 session: ${sessionError?.message || '无 session'}`)
+        // 尝试刷新 session
+        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession()
+        if (refreshError || !refreshedSession) {
+          addDebugInfo(`❌ 刷新 session 失败: ${refreshError?.message || '无 session'}`)
+          throw new Error('没有有效的认证 session')
+        }
+        addDebugInfo('✅ Session 已刷新')
+      } else {
+        addDebugInfo(`✅ Session 有效，用户: ${session.user?.email}`)
+        addDebugInfo(`Session userId: ${session.user?.id}`)
+        addDebugInfo(`请求 userId: ${userId}`)
+        
+        // 确保 userId 匹配
+        if (session.user.id !== userId) {
+          addDebugInfo(`⚠️ userId 不匹配，使用 session 的 userId`)
+          userId = session.user.id
+        }
+      }
+      
       // 使用更短的超时时间进行资料设置
       const profileController = new AbortController()
       const profileTimeout = setTimeout(() => {
@@ -223,7 +279,8 @@ export function AdminLogin({ onLoginSuccess, onBack }: AdminLoginProps) {
       }, 10000) // 10秒超时
 
       try {
-        const { error: profileError } = await supabase
+        addDebugInfo(`尝试创建/更新用户资料，userId: ${userId}`)
+        const { data, error: profileError } = await supabase
           .from('user_profiles')
           .upsert({
             user_id: userId,
@@ -233,15 +290,23 @@ export function AdminLogin({ onLoginSuccess, onBack }: AdminLoginProps) {
           }, {
             onConflict: 'user_id'
           })
+          .select()
+          .single()
 
         clearTimeout(profileTimeout)
 
         if (profileError) {
-          addDebugInfo(`设置用户资料失败: ${profileError.message}`)
+          addDebugInfo(`❌ 设置用户资料失败: ${profileError.message}`)
+          addDebugInfo(`错误代码: ${profileError.code || '未知'}`)
+          addDebugInfo(`错误详情: ${profileError.details || '无'}`)
+          addDebugInfo(`错误提示: ${profileError.hint || '无'}`)
           throw new Error(`设置用户资料失败: ${profileError.message}`)
         }
 
-        addDebugInfo('用户资料设置成功')
+        addDebugInfo('✅ 用户资料设置成功')
+        if (data) {
+          addDebugInfo(`用户类型: ${data.user_type}`)
+        }
 
         // 设置基本权限（异步，不等待完成）
         setupAdminPermissionsAsync(userId)
@@ -254,8 +319,8 @@ export function AdminLogin({ onLoginSuccess, onBack }: AdminLoginProps) {
         throw error
       }
       
-    } catch (error) {
-      addDebugInfo(`设置管理员资料时出错: ${error}`)
+    } catch (error: any) {
+      addDebugInfo(`❌ 设置管理员资料时出错: ${error.message || error}`)
       throw error
     }
   }

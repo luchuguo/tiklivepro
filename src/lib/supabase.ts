@@ -74,18 +74,33 @@ try {
   throw new Error('Invalid Supabase URL format')
 }
 
-// 创建 Supabase 客户端，优化配置
+// 创建 Supabase 客户端，优化配置以支持 session 持久化
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    flowType: 'pkce'
+    autoRefreshToken: true, // 自动刷新 token
+    persistSession: true, // 持久化 session 到 localStorage
+    detectSessionInUrl: true, // 检测 URL 中的 session
+    flowType: 'pkce', // 使用 PKCE 流程（更安全）
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined, // 明确指定存储位置
+    storageKey: 'sb-auth-token', // 自定义存储键名
+    debug: import.meta.env.DEV, // 开发环境启用调试
+    // 监听 session 变化并记录日志
+    storageChanged: (event) => {
+      if (import.meta.env.DEV) {
+        console.log('📦 [Storage] Session 存储发生变化:', {
+          key: event.key,
+          newValue: event.newValue ? '有值' : '无值',
+          oldValue: event.oldValue ? '有值' : '无值'
+        })
+      }
+    }
   },
   global: {
     headers: {
       'X-Client-Info': 'tkbubu-web'
     }
+    // 注意：不要覆盖 fetch 函数，这会阻止 Supabase 自动添加 Authorization 头
+    // Supabase 会自动处理认证头的添加
   },
   realtime: {
     params: {
@@ -96,6 +111,168 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     schema: 'public'
   }
 })
+
+// Session 持久化辅助函数（增强版，带详细日志）
+export const persistSession = async () => {
+  try {
+    console.log('🔄 [Session持久化] 开始获取 session...')
+    const { data: { session }, error } = await supabase.auth.getSession()
+    if (error) {
+      console.error('❌ [Session持久化] 获取 session 失败:', error)
+      return null
+    }
+    
+    if (session) {
+      console.log('✅ [Session持久化] 获取到 session:', {
+        userId: session.user?.id,
+        email: session.user?.email,
+        expiresAt: session.expires_at ? new Date(session.expires_at * 1000).toISOString() : null
+      })
+      
+      // 确保 session 被正确存储
+      if (typeof window !== 'undefined') {
+        const sessionKey = 'sb-auth-token'
+        const sessionData = {
+          access_token: session.access_token,
+          refresh_token: session.refresh_token,
+          expires_at: session.expires_at,
+          expires_in: session.expires_in,
+          token_type: session.token_type,
+          user: session.user
+        }
+        
+        try {
+          localStorage.setItem(sessionKey, JSON.stringify(sessionData))
+          console.log('✅ [Session持久化] Session 已保存到 localStorage')
+          console.log('📦 [Session持久化] 存储键:', sessionKey)
+          console.log('📦 [Session持久化] 存储大小:', JSON.stringify(sessionData).length, '字节')
+          console.log('📦 [Session持久化] 过期时间:', session.expires_at ? new Date(session.expires_at * 1000).toLocaleString() : '无')
+        } catch (storageError: any) {
+          console.error('❌ [Session持久化] 保存到 localStorage 失败:', storageError)
+          if (storageError.name === 'QuotaExceededError') {
+            console.error('⚠️ [Session持久化] localStorage 存储空间不足')
+          }
+          return null
+        }
+      }
+    } else {
+      console.warn('⚠️ [Session持久化] 没有可持久化的 session')
+    }
+    
+    return session
+  } catch (error) {
+    console.error('❌ [Session持久化] 发生错误:', error)
+    return null
+  }
+}
+
+// 恢复 session 的辅助函数（增强版，带详细日志）
+export const restoreSession = async () => {
+  try {
+    if (typeof window === 'undefined') {
+      console.log('⚠️ [Session恢复] 非浏览器环境，跳过恢复')
+      return null
+    }
+    
+    const sessionKey = 'sb-auth-token'
+    console.log('🔄 [Session恢复] 检查 localStorage 中的 session...')
+    const storedSession = localStorage.getItem(sessionKey)
+    
+    if (storedSession) {
+      console.log('📦 [Session恢复] 找到存储的 session，大小:', storedSession.length, '字节')
+      try {
+        const sessionData = JSON.parse(storedSession)
+        console.log('📦 [Session恢复] Session 数据解析成功:', {
+          hasAccessToken: !!sessionData.access_token,
+          hasRefreshToken: !!sessionData.refresh_token,
+          userId: sessionData.user?.id,
+          email: sessionData.user?.email
+        })
+        
+        // 验证 session 是否过期
+        if (sessionData.expires_at) {
+          const expiresAt = new Date(sessionData.expires_at * 1000)
+          const now = new Date()
+          const isExpired = sessionData.expires_at * 1000 < Date.now()
+          
+          console.log('⏰ [Session恢复] 过期时间:', expiresAt.toLocaleString())
+          console.log('⏰ [Session恢复] 当前时间:', now.toLocaleString())
+          console.log('⏰ [Session恢复] 是否过期:', isExpired ? '是' : '否')
+          
+          if (!isExpired) {
+            console.log('✅ [Session恢复] Session 有效，尝试恢复...')
+            // Supabase 会自动处理 session 恢复，这里只是验证
+            const { data: { session }, error } = await supabase.auth.getSession()
+            if (error) {
+              console.error('❌ [Session恢复] Supabase session 恢复失败:', error)
+              console.log('🧹 [Session恢复] 清除无效的 session 存储')
+              localStorage.removeItem(sessionKey)
+              return null
+            }
+            
+            if (session) {
+              console.log('✅ [Session恢复] Session 恢复成功:', {
+                userId: session.user?.id,
+                email: session.user?.email
+              })
+            } else {
+              console.warn('⚠️ [Session恢复] Supabase 返回空 session')
+            }
+            
+            return session
+          } else {
+            console.log('⚠️ [Session恢复] Session 已过期，清除存储')
+            localStorage.removeItem(sessionKey)
+            
+            // 如果有 refresh_token，尝试刷新
+            if (sessionData.refresh_token) {
+              console.log('🔄 [Session恢复] 尝试使用 refresh_token 刷新 session...')
+              try {
+                const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession({
+                  refresh_token: sessionData.refresh_token
+                })
+                
+                if (refreshError || !refreshData.session) {
+                  console.error('❌ [Session恢复] 刷新 session 失败:', refreshError)
+                  return null
+                }
+                
+                console.log('✅ [Session恢复] Session 刷新成功')
+                return refreshData.session
+              } catch (refreshErr) {
+                console.error('❌ [Session恢复] 刷新 session 时发生错误:', refreshErr)
+                return null
+              }
+            }
+            
+            return null
+          }
+        } else {
+          console.warn('⚠️ [Session恢复] Session 数据中没有过期时间')
+          // 仍然尝试恢复
+          const { data: { session }, error } = await supabase.auth.getSession()
+          if (error) {
+            console.error('❌ [Session恢复] 获取 session 失败:', error)
+            return null
+          }
+          return session
+        }
+      } catch (parseError: any) {
+        console.error('❌ [Session恢复] 解析存储的 session 失败:', parseError)
+        console.log('🧹 [Session恢复] 清除损坏的 session 存储')
+        localStorage.removeItem(sessionKey)
+        return null
+      }
+    } else {
+      console.log('⚠️ [Session恢复] localStorage 中没有找到 session')
+    }
+    
+    return null
+  } catch (error: any) {
+    console.error('❌ [Session恢复] 发生错误:', error)
+    return null
+  }
+}
 
 // 添加连接健康检查函数
 export const checkSupabaseConnection = async (timeout = 10000) => {
@@ -122,6 +299,51 @@ export const checkSupabaseConnection = async (timeout = 10000) => {
   } catch (error: any) {
     console.error('💥 Supabase 连接检查异常:', error)
     return { connected: false, error: error?.message || '连接检查失败' }
+  }
+}
+
+// 确保 session 有效的辅助函数
+export const ensureValidSession = async () => {
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession()
+    
+    if (error) {
+      console.error('❌ [Session验证] 获取 session 失败:', error)
+      return null
+    }
+    
+    if (!session) {
+      console.warn('⚠️ [Session验证] 没有有效的 session')
+      return null
+    }
+    
+    // 检查 session 是否即将过期（5分钟内）
+    if (session.expires_at) {
+      const expiresAt = session.expires_at * 1000
+      const now = Date.now()
+      const timeUntilExpiry = expiresAt - now
+      
+      if (timeUntilExpiry < 5 * 60 * 1000 && timeUntilExpiry > 0) {
+        console.log('🔄 [Session验证] Session 即将过期，尝试刷新...')
+        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession()
+        
+        if (refreshError) {
+          console.error('❌ [Session验证] 刷新 session 失败:', refreshError)
+          return session // 返回原 session，即使即将过期
+        }
+        
+        if (refreshedSession) {
+          console.log('✅ [Session验证] Session 刷新成功')
+          return refreshedSession
+        }
+      }
+    }
+    
+    console.log('✅ [Session验证] Session 有效')
+    return session
+  } catch (error: any) {
+    console.error('❌ [Session验证] 发生错误:', error)
+    return null
   }
 }
 

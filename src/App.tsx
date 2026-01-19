@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation, useParams, Link } from "react-router-dom";
 import { Video, Users, Building2, TrendingUp, Star, Play, ArrowRight, Menu, X, User, LogOut, Calendar, Settings, Shield, UserCheck, Cog, Briefcase } from "lucide-react";
 import { AuthModal } from "./components/AuthModal";
@@ -23,6 +23,9 @@ import { AccountSettingsPage } from "./components/pages/AccountSettingsPage";
 import { InfluencerTasksPage } from "./components/pages/InfluencerTasksPage";
 import { CompanyTasksPage } from "./components/pages/CompanyTasksPage";
 import { AdminLoginPage } from "./components/pages/AdminLoginPage";
+import { AdminLoginPageNew } from "./components/pages/AdminLoginPageNew";
+import { AdminAuthProvider } from "./lib/adminAuthProvider";
+import { AdminAuthGuard } from "./components/AdminAuthGuard";
 import InfluencerImageUploadTest from "./components/pages/InfluencerImageUploadTest";
 import { CompanyDetailPage } from "./components/pages/CompanyDetailPage";
 import { InfluencerDetailPage } from "./components/pages/InfluencerDetailPage";
@@ -454,8 +457,24 @@ function App() {
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/help" element={<HelpPage />} />
             <Route path="/contact" element={<ContactPage />} />
-            <Route path="/admin-login" element={<AdminLoginPage />} />
-            <Route path="/admin" element={<AdminDashboard />} />
+            <Route 
+              path="/admin-login" 
+              element={
+                <AdminAuthProvider>
+                  <AdminLoginPageNew />
+                </AdminAuthProvider>
+              } 
+            />
+            <Route 
+              path="/admin" 
+              element={
+                <AdminAuthProvider>
+                  <AdminAuthGuard>
+                    <AdminDashboard />
+                  </AdminAuthGuard>
+                </AdminAuthProvider>
+              } 
+            />
             <Route path="/influencer-profile" element={<InfluencerProfilePage />} />
             <Route path="/influencer-image-upload-test" element={<InfluencerImageUploadTest />} />        
             <Route path="/company-profile" element={<CompanyProfilePage />} />
@@ -478,8 +497,10 @@ function App() {
         </ErrorBoundary>
       </main>
 
-      {/* Footer */}
-      <Footer onPageChange={handlePageChange} />
+      {/* Footer - 不在管理后台页面显示 */}
+      {!location.pathname.startsWith('/admin') && (
+        <Footer onPageChange={handlePageChange} />
+      )}
 
       {/* Auth Modal */}
       {isAuthModalOpen && (

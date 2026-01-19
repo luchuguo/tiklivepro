@@ -81,12 +81,23 @@ export function InfluencerProfilePage() {
       
       console.log('Fetching influencer profile, User ID:', user.id)
       
-      // 获取当前用户的达人资料
-      const { data: influencerData, error: influencerError } = await supabase
-        .from('influencers')
-        .select('*')
-        .eq('user_id', user.id)
-        .single()
+      // 获取当前用户的达人资料（先尝试查询，如果失败则处理错误）
+      let influencerData = null
+      let influencerError = null
+      
+      try {
+        const result = await supabase
+          .from('influencers')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle() // 使用 maybeSingle 而不是 single，避免 406 错误
+        
+        influencerData = result.data
+        influencerError = result.error
+      } catch (err: any) {
+        console.error('查询达人资料时发生异常:', err)
+        influencerError = err
+      }
 
       console.log('Influencer profile fetch result:', { influencerData, influencerError })
 
@@ -99,7 +110,7 @@ export function InfluencerProfilePage() {
           console.error('Failed to fetch influencer profile:', influencerError)
           setError('Failed to fetch profile, please try again')
         }
-      } else {
+      } else if (influencerData) {
         console.log('成功获取达人资料:', influencerData)
         setInfluencer(influencerData)
         // 填充表单数据

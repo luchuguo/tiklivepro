@@ -4,8 +4,56 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <title>Tkbubu - 专业TikTok(抖音)代播平台</title>
     <meta name="description" content="专业的TikTok代播平台，连接优质品牌与专业主播，提供高效的直播带货解决方案" />
+    <!-- 页面可见性API和状态恢复脚本 -->
+    <script>
+      // 页面可见性变化处理
+      document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('visibilitychange', function() {
+          if (!document.hidden) {
+            // 页面重新获得焦点，触发会话检查事件
+            window.dispatchEvent(new CustomEvent('pageVisible', {
+              detail: { timestamp: Date.now() }
+            }));
+          }
+        });
+        
+        // 页面卸载前保存状态
+        window.addEventListener('beforeunload', function(e) {
+          // 保存状态到sessionStorage
+          const state = window.__ADMIN_AUTH_STATE__ || {};
+          if (state.isAdmin) {
+            sessionStorage.setItem('PAGE_UNLOAD_STATE', JSON.stringify({
+              timestamp: Date.now(),
+              state: state,
+              url: window.location.href
+            }));
+          }
+        });
+        
+        // 页面加载时恢复
+        window.addEventListener('load', function() {
+          const unloadState = sessionStorage.getItem('PAGE_UNLOAD_STATE');
+          if (unloadState) {
+            try {
+              const state = JSON.parse(unloadState);
+              // 检查是否是同一页面且时间间隔短
+              if (state.url === window.location.href && 
+                  Date.now() - state.timestamp < 5000) {
+                // 快速恢复状态
+                window.__ADMIN_AUTH_STATE__ = state.state;
+                window.__IS_ADMIN__ = true;
+              }
+            } catch (e) {
+              console.error('恢复页面状态失败:', e);
+            }
+            sessionStorage.removeItem('PAGE_UNLOAD_STATE');
+          }
+        });
+      });
+    </script>
     <!-- 自定义样式 -->
     <style>
       /* 隐藏 Google 翻译相关元素 */

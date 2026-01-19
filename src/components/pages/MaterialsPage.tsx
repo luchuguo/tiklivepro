@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import { Plus, Trash2, Loader, Save, X, Video, Star, Shield, MapPin } from "lucide-react";
@@ -84,11 +84,17 @@ export function MaterialsPage() {
           .from("influencers")
           .select("*")
           .eq("user_id", user.id)
-          .single();
+          .maybeSingle(); // 使用 maybeSingle 而不是 single，避免 406 错误
 
         if (fetchError) {
           console.error("获取用户资料失败:", fetchError);
           setError("获取资料失败，请重试");
+          return;
+        }
+        
+        if (!influencer) {
+          console.log("用户资料不存在，可能是新用户");
+          setError("用户资料不存在");
           return;
         }
 

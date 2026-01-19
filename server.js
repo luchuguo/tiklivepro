@@ -10,8 +10,31 @@ dotenv.config();
 const app = express();
 const PORT = 3001;
 
-// 中间件
-app.use(cors());
+// 中间件 - 改进 CORS 配置以支持 session 持久化
+app.use(cors({
+  origin: function (origin, callback) {
+    // 允许的源列表
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://localhost:5174',
+      'https://tkbubu.com',
+      'https://www.tkbubu.com'
+    ];
+    
+    // 开发环境允许所有源，生产环境只允许指定源
+    if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // 允许携带 cookies 和认证信息
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Set-Cookie'],
+  maxAge: 86400 // 24小时预检请求缓存
+}));
 app.use(express.json());
 
 // 环境变量检查
