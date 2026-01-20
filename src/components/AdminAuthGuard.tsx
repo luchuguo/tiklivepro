@@ -8,16 +8,21 @@ interface AdminAuthGuardProps {
 }
 
 export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
-  const { user, profile, isAdmin, loading, error } = useAdminAuth()
+  const { user, profile, isAdmin, loading, initialized, error } = useAdminAuth()
 
-  // 加载中
-  if (loading) {
+  // 加载中或未初始化完成 - 等待初始化完成
+  if (loading || !initialized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <Loader className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">验证管理员权限中...</p>
+          <p className="text-gray-600 text-lg">
+            {!initialized ? '正在初始化管理员权限验证...' : '验证管理员权限中...'}
+          </p>
           <p className="text-gray-400 text-sm mt-2">请稍候</p>
+          {!initialized && (
+            <p className="text-gray-400 text-xs mt-1">正在从存储恢复会话状态...</p>
+          )}
         </div>
       </div>
     )

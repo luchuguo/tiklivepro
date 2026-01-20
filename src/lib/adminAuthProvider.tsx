@@ -2,8 +2,9 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import { UserProfile } from './supabase'
-import { setSessionCookie, getSessionCookie, clearSessionCookie } from './cookieStorage'
+import { setSessionCookie, getSessionCookie, clearSessionCookie, setAdminPermissionCookie, getAdminPermissionCookie, clearAdminPermissionCookie } from './cookieStorage'
 import { superAdminStorage, SuperAdminData } from './superAdminStorage'
+import { restorePersistedState, savePersistedState, clearPersistedState, PersistedStateOptions } from './persistedState'
 
 interface AdminAuthState {
   user: User | null
@@ -11,6 +12,7 @@ interface AdminAuthState {
   profile: UserProfile | null
   isAdmin: boolean
   loading: boolean
+  initialized: boolean // 新增：标记初始化是否完成
   error: string | null
 }
 
@@ -18,6 +20,7 @@ interface AdminAuthContextType extends AdminAuthState {
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
   signOut: () => Promise<void>
   refreshSession: () => Promise<void>
+  initialized: boolean // 导出初始化状态
 }
 
 const AdminAuthContext = createContext<AdminAuthContextType | null>(null)
@@ -25,6 +28,20 @@ const AdminAuthContext = createContext<AdminAuthContextType | null>(null)
 const SESSION_STORAGE_KEY = 'admin-auth-session'
 const PROFILE_STORAGE_KEY = 'admin-auth-profile'
 const LAST_VALIDATED_KEY = 'admin-last-validated'
+const PERSISTED_STATE_KEY = 'admin-auth-persisted-state' // 统一持久化键名
+
+// 持久化配置
+const persistedStateOptions: PersistedStateOptions = {
+  key: PERSISTED_STATE_KEY,
+  storage: 'localStorage',
+  paths: ['user', 'session', 'profile', 'isAdmin'], // 只持久化关键字段
+  beforeRestore: (context) => {
+    console.log('🔄 [PersistedState] 开始恢复管理员状态...', context)
+  },
+  afterRestore: (context) => {
+    console.log('✅ [PersistedState] 状态恢复完成', context)
+  }
+}
 
 export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AdminAuthState>({
@@ -33,6 +50,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     profile: null,
     isAdmin: false,
     loading: true,
+    initialized: false, // 初始化未完成
     error: null
   })
 
@@ -77,17 +95,27 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
               // 更新验证时间
               localStorage.setItem(LAST_VALIDATED_KEY, Date.now().toString())
               
-              setState({
-                user: session.user,
-                session: session,
-                profile: profileData,
-                isAdmin: true, // 明确设置为 true
-                loading: false,
-                error: null
-              })
+            setState({
+              user: session.user,
+              session: session,
+              profile: profileData,
+              isAdmin: true, // 明确设置为 true
+              loading: false,
+              initialized: true, // 标记初始化完成
+              error: null
+            })
 
-              console.log('✅ [AdminAuth] 从缓存恢复 session 成功')
-              return true
+            // 更新 Cookie 权限
+            const expiresAt = session.expires_at || (Math.floor(Date.now() / 1000) + 7 * 24 * 3600)
+            setAdminPermissionCookie({
+              isAdmin: true,
+              userId: session.user.id,
+              userEmail: session.user.email || '',
+              expiresAt: expiresAt
+            })
+
+            console.log('✅ [AdminAuth] 从缓存恢复 session 成功，权限已更新到 Cookie，初始化完成')
+            return true
             } else {
               console.warn('⚠️ [AdminAuth] 缓存的 profile 不是管理员类型或用户ID不匹配，需要重新验证')
               // 继续执行后续的刷新逻辑，不使用缓存
@@ -189,6 +217,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
           profile: profile,
           isAdmin: true,
           loading: false,
+          initialized: true, // 标记初始化完成
           error: null
         })
 
@@ -201,7 +230,16 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
           permissions: []
         })
 
-        console.log('✅ [AdminAuth] Session 恢复成功（已保存到增强存储）')
+        // 更新 Cookie 权限
+        const expiresAt = refreshData.session.expires_at || (Math.floor(Date.now() / 1000) + 7 * 24 * 3600)
+        setAdminPermissionCookie({
+          isAdmin: true,
+          userId: refreshData.session.user.id,
+          userEmail: refreshData.session.user.email || '',
+          expiresAt: expiresAt
+        })
+
+        console.log('✅ [AdminAuth] Session 恢复成功（已保存到增强存储和 Cookie），初始化完成')
         return true
       }
 
@@ -218,7 +256,136 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     isInitialized.current = true
 
     const init = async () => {
-      console.log('🚀 [AdminAuth] 开始初始化（增强版存储恢复）...')
+      console.log('🚀 [AdminAuth] 开始初始化（持久化插件优先恢复）...')
+      
+      // 确保在初始化过程中 loading 保持为 true
+      setState(prev => ({ ...prev, loading: true, initialized: false }))
+      
+      // 优先级0：从持久化插件恢复状态（毫秒级，不阻塞）
+      const persistedState = restorePersistedState<AdminAuthState>(persistedStateOptions)
+      if (persistedState && persistedState.isAdmin && persistedState.user && persistedState.profile) {
+        console.log('⚡ [AdminAuth] 从持久化插件读取到有效状态，快速恢复...')
+        
+        // 验证 Cookie 权限（双重验证）
+        const cookiePermission = getAdminPermissionCookie()
+        if (cookiePermission && 
+            cookiePermission.isAdmin && 
+            cookiePermission.userId === persistedState.user.id) {
+          
+          // 快速恢复状态（毫秒级）
+          setState({
+            ...persistedState,
+            loading: false,
+            initialized: true, // 立即标记为已初始化
+            error: null
+          })
+          
+          console.log('✅ [AdminAuth] 从持久化插件快速恢复成功（毫秒级），后台验证中...')
+          
+          // 后台异步验证 Supabase session（不阻塞 UI）
+          supabase.auth.getSession().then(({ data: { session }, error }) => {
+            if (session && !error && session.user.id === cookiePermission.userId) {
+              // Session 仍然有效，更新状态并保存
+              const updatedState = {
+                user: session.user,
+                session: session,
+                profile: persistedState.profile,
+                isAdmin: true,
+                loading: false,
+                initialized: true,
+                error: null
+              }
+              setState(updatedState)
+              // 保存到持久化存储
+              savePersistedState(updatedState, persistedStateOptions)
+              console.log('✅ [AdminAuth] 后台验证完成，Session 有效，状态已保存')
+            } else {
+              console.warn('⚠️ [AdminAuth] 后台验证：Session 已失效，尝试刷新...')
+              restoreSession().catch(err => {
+                console.error('❌ [AdminAuth] 后台恢复 session 失败:', err)
+              })
+            }
+          }).catch(err => {
+            console.error('❌ [AdminAuth] 后台验证 session 失败:', err)
+          })
+          
+          return // 快速返回，不等待异步操作
+        } else {
+          console.warn('⚠️ [AdminAuth] 持久化状态存在但 Cookie 权限不匹配，清除持久化状态')
+          clearPersistedState(persistedStateOptions)
+        }
+      }
+      
+      // 优先级0.5：从 Cookie 同步读取权限（备用方案，毫秒级，不阻塞）
+      const cookiePermission = getAdminPermissionCookie()
+      if (cookiePermission && cookiePermission.isAdmin) {
+        console.log('⚡ [AdminAuth] 从 Cookie 读取到有效权限，快速恢复状态...')
+        
+        // 同步读取 localStorage 中的 session 和 profile
+        const storedSession = localStorage.getItem(SESSION_STORAGE_KEY)
+        const storedProfile = localStorage.getItem(PROFILE_STORAGE_KEY)
+        
+        if (storedSession && storedProfile) {
+          try {
+            const sessionData = JSON.parse(storedSession)
+            const profile = JSON.parse(storedProfile)
+            
+            // 验证 userId 匹配
+            if (profile.user_id === cookiePermission.userId && 
+                profile.user_type === 'admin' &&
+                sessionData.user?.id === cookiePermission.userId) {
+              
+              // 快速恢复状态（毫秒级）
+              const restoredState = {
+                user: sessionData.user,
+                session: sessionData,
+                profile: profile,
+                isAdmin: true,
+                loading: false,
+                initialized: true, // 立即标记为已初始化
+                error: null
+              }
+              
+              setState(restoredState)
+              
+              // 保存到持久化插件
+              savePersistedState(restoredState, persistedStateOptions)
+              
+              console.log('✅ [AdminAuth] 从 Cookie 快速恢复成功（毫秒级），已保存到持久化插件，后台验证中...')
+              
+              // 后台异步验证 Supabase session（不阻塞 UI）
+              supabase.auth.getSession().then(({ data: { session }, error }) => {
+                if (session && !error && session.user.id === cookiePermission.userId) {
+                  // Session 仍然有效，更新状态
+                  const updatedState = {
+                    user: session.user,
+                    session: session,
+                    profile: profile,
+                    isAdmin: true,
+                    loading: false,
+                    initialized: true,
+                    error: null
+                  }
+                  setState(updatedState)
+                  savePersistedState(updatedState, persistedStateOptions)
+                  console.log('✅ [AdminAuth] 后台验证完成，Session 有效')
+                } else {
+                  console.warn('⚠️ [AdminAuth] 后台验证：Session 已失效，尝试刷新...')
+                  restoreSession().catch(err => {
+                    console.error('❌ [AdminAuth] 后台恢复 session 失败:', err)
+                  })
+                }
+              }).catch(err => {
+                console.error('❌ [AdminAuth] 后台验证 session 失败:', err)
+              })
+              
+              return // 快速返回，不等待异步操作
+            }
+          } catch (error) {
+            console.warn('⚠️ [AdminAuth] Cookie 权限有效但 localStorage 数据无效:', error)
+          }
+        }
+      }
       
       // 优先级1：尝试从增强存储管理器恢复
       try {
@@ -237,14 +404,20 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
             if (profile && profile.user_type === 'admin' && profile.user_id === cachedData.userId) {
               console.log('✅ [AdminAuth] 从增强存储快速恢复成功')
               
-              setState({
+              const restoredState = {
                 user: session.user,
                 session: session,
                 profile: profile,
                 isAdmin: true,
                 loading: false,
+                initialized: true, // 标记初始化完成
                 error: null
-              })
+              }
+              
+              setState(restoredState)
+              
+              // 保存到持久化插件
+              savePersistedState(restoredState, persistedStateOptions)
               
               // 更新存储时间戳
               superAdminStorage.saveSuperAdminData({
@@ -255,6 +428,16 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
                 permissions: []
               })
               
+              // 更新 Cookie 权限（如果还没有）
+              const expiresAt = session.expires_at || (Math.floor(Date.now() / 1000) + 7 * 24 * 3600)
+              setAdminPermissionCookie({
+                isAdmin: true,
+                userId: session.user.id,
+                userEmail: session.user.email || '',
+                expiresAt: expiresAt
+              })
+              
+              console.log('✅ [AdminAuth] 初始化完成，状态已恢复并保存到持久化插件，权限已更新到 Cookie')
               return
             }
           } else {
@@ -306,14 +489,20 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
             user_email: session.user.email || ''
           })
 
-          setState({
+          const restoredState = {
             user: session.user,
             session: session,
             profile: profile,
             isAdmin: true,
             loading: false,
+            initialized: true, // 标记初始化完成
             error: null
-          })
+          }
+          
+          setState(restoredState)
+          
+          // 保存到持久化插件（一劳永逸）
+          savePersistedState(restoredState, persistedStateOptions)
           
           // 保存到增强存储管理器
           superAdminStorage.saveSuperAdminData({
@@ -324,7 +513,16 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
             permissions: []
           })
           
-          console.log('✅ [AdminAuth] 从缓存恢复成功（已保存到增强存储）')
+          // 更新 Cookie 权限
+          const expiresAt = session.expires_at || (Math.floor(Date.now() / 1000) + 7 * 24 * 3600)
+          setAdminPermissionCookie({
+            isAdmin: true,
+            userId: session.user.id,
+            userEmail: session.user.email || '',
+            expiresAt: expiresAt
+          })
+          
+          console.log('✅ [AdminAuth] 从缓存恢复成功（已保存到持久化插件、增强存储和 Cookie），初始化完成')
           return
         }
         
@@ -348,7 +546,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
 
           if (profileError || !profileData || profileData.user_type !== 'admin') {
             console.error('❌ [AdminAuth] 用户不是管理员或获取资料失败:', profileError)
-            setState(prev => ({ ...prev, loading: false }))
+            setState(prev => ({ ...prev, loading: false, initialized: true }))
             return
           }
           
@@ -380,23 +578,40 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
                 user_email: session.user.email || ''
               })
 
-              setState({
+              const timeoutRestoredState = {
                 user: session.user,
                 session: session,
                 profile: profile,
                 isAdmin: true,
                 loading: false,
+                initialized: true, // 标记初始化完成
                 error: null
+              }
+              
+              setState(timeoutRestoredState)
+              
+              // 保存到持久化插件
+              savePersistedState(timeoutRestoredState, persistedStateOptions)
+              
+              // 更新 Cookie 权限
+              const expiresAt = session.expires_at || (Math.floor(Date.now() / 1000) + 7 * 24 * 3600)
+              setAdminPermissionCookie({
+                isAdmin: true,
+                userId: session.user.id,
+                userEmail: session.user.email || '',
+                expiresAt: expiresAt
               })
+              
+              console.log('✅ [AdminAuth] 使用缓存恢复成功（查询超时），已保存到持久化插件，权限已更新到 Cookie，初始化完成')
               return
             } else {
               console.error('❌ [AdminAuth] 缓存的 profile 无效')
-              setState(prev => ({ ...prev, loading: false }))
+              setState(prev => ({ ...prev, loading: false, initialized: true }))
               return
             }
           } else {
             console.error('❌ [AdminAuth] 获取 profile 失败:', error)
-            setState(prev => ({ ...prev, loading: false }))
+            setState(prev => ({ ...prev, loading: false, initialized: true }))
             return
           }
         }
@@ -425,14 +640,20 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
             user_email: session.user.email || ''
           })
 
-          setState({
+          const dbRestoredState = {
             user: session.user,
             session: session,
             profile: profile,
             isAdmin: true,
             loading: false,
+            initialized: true, // 标记初始化完成
             error: null
-          })
+          }
+          
+          setState(dbRestoredState)
+          
+          // 保存到持久化插件（一劳永逸）
+          savePersistedState(dbRestoredState, persistedStateOptions)
           
           // 保存到增强存储管理器
           superAdminStorage.saveSuperAdminData({
@@ -443,15 +664,29 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
             permissions: []
           })
           
+          // 更新 Cookie 权限
+          const expiresAt = session.expires_at || (Math.floor(Date.now() / 1000) + 7 * 24 * 3600)
+          setAdminPermissionCookie({
+            isAdmin: true,
+            userId: session.user.id,
+            userEmail: session.user.email || '',
+            expiresAt: expiresAt
+          })
+          
+          console.log('✅ [AdminAuth] 从数据库获取 profile 成功，已保存到持久化插件，权限已更新到 Cookie，初始化完成')
           return
         }
       }
 
       // 如果 Supabase 没有 session，尝试从 localStorage 恢复
+      console.log('🔄 [AdminAuth] Supabase 没有 session，尝试从 localStorage 恢复...')
       const restored = await restoreSession()
       if (!restored) {
         console.log('⚠️ [AdminAuth] 无法恢复 session，用户需要重新登录')
-        setState(prev => ({ ...prev, loading: false }))
+        setState(prev => ({ ...prev, loading: false, initialized: true, error: null }))
+      } else {
+        console.log('✅ [AdminAuth] 从 localStorage 恢复成功，初始化完成')
+        // restoreSession 内部已经设置了 initialized: true
       }
     }
 
@@ -625,6 +860,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
             profile: profile,
             isAdmin: true,
             loading: false,
+            initialized: true,
             error: null
           })
           
@@ -636,16 +872,30 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
             token: session.access_token,
             permissions: []
           })
+          
+          // 更新 Cookie 权限
+          const expiresAt = session.expires_at || (Math.floor(Date.now() / 1000) + 7 * 24 * 3600)
+          setAdminPermissionCookie({
+            isAdmin: true,
+            userId: session.user.id,
+            userEmail: session.user.email || '',
+            expiresAt: expiresAt
+          })
         } else {
-          setState(prev => ({
-            ...prev,
-            user: null,
-            session: null,
-            profile: null,
-            isAdmin: false,
-            loading: false,
-            error: '用户不是管理员'
-          }))
+        const errorState = {
+          user: null,
+          session: null,
+          profile: null,
+          isAdmin: false,
+          loading: false,
+          initialized: true,
+          error: '用户不是管理员'
+        }
+        
+        setState(errorState)
+        
+        // 清除持久化状态（非管理员）
+        clearPersistedState(persistedStateOptions)
         }
       } else if (event === 'SIGNED_OUT') {
         localStorage.removeItem(SESSION_STORAGE_KEY)
@@ -654,18 +904,25 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         
         // 清除 cookie
         clearSessionCookie()
+        clearAdminPermissionCookie()
         
         // 清除增强存储管理器
         superAdminStorage.clearAll()
 
-        setState({
+        const signedOutState = {
           user: null,
           session: null,
           profile: null,
           isAdmin: false,
           loading: false,
+          initialized: true,
           error: null
-        })
+        }
+        
+        setState(signedOutState)
+        
+        // 清除持久化状态
+        clearPersistedState(persistedStateOptions)
       }
     })
 
@@ -685,12 +942,12 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (error) {
-        setState(prev => ({ ...prev, loading: false, error: error.message }))
+        setState(prev => ({ ...prev, loading: false, initialized: true, error: error.message }))
         return { success: false, error: error.message }
       }
 
       if (!data.session) {
-        setState(prev => ({ ...prev, loading: false, error: '登录失败：未获取到 session' }))
+        setState(prev => ({ ...prev, loading: false, initialized: true, error: '登录失败：未获取到 session' }))
         return { success: false, error: '登录失败：未获取到 session' }
       }
 
@@ -739,7 +996,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
             .single()
 
           if (createError || !newProfile) {
-            setState(prev => ({ ...prev, loading: false, error: '创建管理员资料失败' }))
+            setState(prev => ({ ...prev, loading: false, initialized: true, error: '创建管理员资料失败' }))
             await supabase.auth.signOut()
             return { success: false, error: '创建管理员资料失败' }
           }
@@ -772,6 +1029,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
             profile: newProfile,
             isAdmin: true,
             loading: false,
+            initialized: true, // 标记初始化完成
             error: null
           })
 
@@ -784,10 +1042,20 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
             permissions: []
           })
 
+          // 将权限信息存入 Cookie（带过期时间）
+          const expiresAt = data.session.expires_at || (Math.floor(Date.now() / 1000) + 7 * 24 * 3600) // 默认7天
+          setAdminPermissionCookie({
+            isAdmin: true,
+            userId: data.session.user.id,
+            userEmail: data.session.user.email || '',
+            expiresAt: expiresAt
+          })
+
+          console.log('✅ [AdminAuth] 创建管理员资料成功，权限已存入 Cookie，初始化完成')
           return { success: true }
         }
 
-        setState(prev => ({ ...prev, loading: false, error: '用户不是管理员' }))
+        setState(prev => ({ ...prev, loading: false, initialized: true, error: '用户不是管理员' }))
         await supabase.auth.signOut()
         return { success: false, error: '用户不是管理员' }
       }
@@ -814,14 +1082,20 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         user_email: data.session.user.email || ''
       })
 
-      setState({
+      const newState = {
         user: data.session.user,
         session: data.session,
         profile: profile,
         isAdmin: true,
         loading: false,
+        initialized: true, // 标记初始化完成
         error: null
-      })
+      }
+      
+      setState(newState)
+
+      // 保存到持久化插件（一劳永逸）
+      savePersistedState(newState, persistedStateOptions)
 
       // 保存到增强存储管理器（多层次存储）
       superAdminStorage.saveSuperAdminData({
@@ -832,10 +1106,20 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         permissions: []
       })
 
+      // 将权限信息存入 Cookie（带过期时间）
+      const expiresAt = data.session.expires_at || (Math.floor(Date.now() / 1000) + 7 * 24 * 3600) // 默认7天
+      setAdminPermissionCookie({
+        isAdmin: true,
+        userId: data.session.user.id,
+        userEmail: data.session.user.email || '',
+        expiresAt: expiresAt
+      })
+
+      console.log('✅ [AdminAuth] 登录成功，状态已设置并保存到持久化插件，权限已存入 Cookie，初始化完成')
       return { success: true }
     } catch (error: any) {
       console.error('❌ [AdminAuth] 登录失败:', error)
-      setState(prev => ({ ...prev, loading: false, error: error.message || '登录失败' }))
+      setState(prev => ({ ...prev, loading: false, initialized: true, error: error.message || '登录失败' }))
       return { success: false, error: error.message || '登录失败' }
     }
   }, [])
@@ -854,14 +1138,23 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
       // 清除增强存储管理器
       superAdminStorage.clearAll()
 
-      setState({
+      // 清除管理员权限 Cookie
+      clearAdminPermissionCookie()
+
+      const logoutState = {
         user: null,
         session: null,
         profile: null,
         isAdmin: false,
         loading: false,
+        initialized: true, // 登出后也标记为已初始化
         error: null
-      })
+      }
+      
+      setState(logoutState)
+      
+      // 清除持久化状态
+      clearPersistedState(persistedStateOptions)
     } catch (error: any) {
       console.error('❌ [AdminAuth] 登出失败:', error)
     }
@@ -878,7 +1171,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const restored = await restoreSession()
       if (!restored) {
-        setState(prev => ({ ...prev, loading: false, error: 'Session 已过期，请重新登录' }))
+        setState(prev => ({ ...prev, loading: false, initialized: true, error: 'Session 已过期，请重新登录' }))
       }
     } finally {
       isRefreshing.current = false
@@ -900,8 +1193,12 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state.profile, state.user, computedIsAdmin, state.isAdmin])
   
+  // 确保在初始化完成前，loading 保持为 true
+  const effectiveLoading = !state.initialized || state.loading
+  
   const value: AdminAuthContextType = {
     ...state,
+    loading: effectiveLoading, // 如果未初始化，强制 loading 为 true
     isAdmin: computedIsAdmin, // 使用计算值，确保始终正确
     signIn,
     signOut,

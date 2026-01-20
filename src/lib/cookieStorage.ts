@@ -145,3 +145,82 @@ export function clearSessionCookie() {
   deleteCookie('admin_session_info')
   console.log('✅ [Cookie] Session cookie 已清除')
 }
+
+// 管理员权限 Cookie 键名
+const ADMIN_PERMISSION_COOKIE = 'admin_permission'
+
+// 设置管理员权限到 Cookie（带过期时间）
+export function setAdminPermissionCookie(permissionData: {
+  isAdmin: boolean
+  userId: string
+  userEmail: string
+  expiresAt: number // Unix 时间戳（秒）
+}) {
+  try {
+    const permissionInfo = {
+      isAdmin: permissionData.isAdmin,
+      userId: permissionData.userId,
+      userEmail: permissionData.userEmail,
+      expiresAt: permissionData.expiresAt,
+      timestamp: Math.floor(Date.now() / 1000) // 存储时间戳
+    }
+
+    // 计算过期时间（秒）- 从 expiresAt 计算，或默认7天
+    const now = Math.floor(Date.now() / 1000)
+    const expiresIn = permissionData.expiresAt > now 
+      ? permissionData.expiresAt - now 
+      : 7 * 24 * 3600 // 默认7天
+
+    setCookie(ADMIN_PERMISSION_COOKIE, JSON.stringify(permissionInfo), {
+      expires: expiresIn,
+      path: '/',
+      secure: window.location.protocol === 'https:',
+      sameSite: 'Lax'
+    })
+
+    console.log('✅ [Cookie] 管理员权限已存储到 cookie，过期时间:', new Date(permissionData.expiresAt * 1000).toLocaleString())
+  } catch (error: any) {
+    console.error('❌ [Cookie] 存储管理员权限到 cookie 失败:', error)
+  }
+}
+
+// 从 Cookie 获取管理员权限（同步操作，毫秒级）
+export function getAdminPermissionCookie(): {
+  isAdmin: boolean
+  userId: string
+  userEmail: string
+  expiresAt: number
+  timestamp: number
+} | null {
+  try {
+    const cookieValue = getCookie(ADMIN_PERMISSION_COOKIE)
+    if (!cookieValue) return null
+
+    const permissionInfo = JSON.parse(cookieValue)
+    
+    // 检查是否过期
+    const now = Math.floor(Date.now() / 1000)
+    if (permissionInfo.expiresAt && permissionInfo.expiresAt < now) {
+      deleteCookie(ADMIN_PERMISSION_COOKIE)
+      console.log('⚠️ [Cookie] 管理员权限 cookie 已过期')
+      return null
+    }
+
+    // 验证必要字段
+    if (!permissionInfo.isAdmin || !permissionInfo.userId) {
+      deleteCookie(ADMIN_PERMISSION_COOKIE)
+      return null
+    }
+
+    return permissionInfo
+  } catch (error: any) {
+    console.error('❌ [Cookie] 从 cookie 读取管理员权限失败:', error)
+    return null
+  }
+}
+
+// 清除管理员权限 Cookie
+export function clearAdminPermissionCookie() {
+  deleteCookie(ADMIN_PERMISSION_COOKIE)
+  console.log('✅ [Cookie] 管理员权限 cookie 已清除')
+}
