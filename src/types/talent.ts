@@ -204,7 +204,7 @@ export const talentTypeConfig: TalentTypeConfig = {
       },
       {
         key: 'portfolio',
-        label: 'Portfolio Showcase',
+        label: 'Contact Information',
         type: 'text',
         placeholder: 'Telegram / WhatsApp (at least fill in one)'
       },
