@@ -156,48 +156,66 @@ export const talentTypeConfig: TalentTypeConfig = {
     ]
   },
   'account-manager': {
-    label: 'Account Manager',
+    label: 'UGC On-Camera Creator',
     description: 'Manage brand pages and grow engagement',
     icon: 'fas fa-chart-line',
     questions: [
       {
         key: 'experience',
-        label: 'Operation Experience',
+        label: 'Can you appear on camera?',
         type: 'select',
-        options: experienceOptions
+        options: [
+          { value: 'yes-talking', label: 'Yes – Talking Head / Lifestyle' }
+        ]
       },
       {
         key: 'categories',
-        label: 'Expertise Categories',
+        label: 'Content Category',
         type: 'checkbox',
-        options: liveCategories
+        options: [
+          { value: 'beauty', label: 'Beauty & Skincare' },
+          { value: 'fashion', label: 'Fashion & Apparel' },
+          { value: 'fitness', label: 'Fitness / Health' },
+          { value: 'food', label: 'Food & Beverage' },
+          { value: 'tech', label: 'Tech / Gadgets' },
+          { value: 'home', label: 'Home / Pet / Kids' }
+        ]
       },
       {
         key: 'skills',
-        label: 'Professional Skills',
+        label: 'On-camera language',
         type: 'checkbox',
-        options: operationSkills
+        options: [
+          { value: 'english', label: 'English' },
+          { value: 'chinese', label: 'Chinese' },
+          { value: 'bilingual', label: 'Bilingual' }
+        ]
       },
       {
         key: 'cases',
-        label: 'Success Cases',
-        type: 'text',
-        placeholder: 'e.g., Helped client account gain 1M followers, monthly sales increased by 200%'
+        label: 'Price per video (USD)',
+        type: 'select',
+        options: [
+          { value: 'under-50', label: '<$50' },
+          { value: '50-100', label: '$50–100' },
+          { value: '100-200', label: '$100–200' },
+          { value: '200-plus', label: '$200+' }
+        ]
       },
       {
         key: 'portfolio',
         label: 'Portfolio Showcase',
         type: 'text',
-        placeholder: 'Please provide 2-3 representative account work links'
+        placeholder: 'Telegram / WhatsApp (at least fill in one)'
       },
       {
         key: 'portfolioFiles',
-        label: 'Related Case Studies',
+        label: 'Introduction Video (Optional)',
         type: 'file',
         accept: 'image/*,video/*',
         maxSize: 50,
         maxFiles: 3,
-        description: 'Please upload account management related images or videos (max 3 files, each file no more than 50MB)'
+        description: 'Please briefly introduce yourself and confirm you can appear on camera'
       }
     ]
   },

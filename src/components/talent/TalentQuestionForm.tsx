@@ -53,10 +53,15 @@ export function TalentQuestionForm({ talentType, formData, onChange }: TalentQue
     });
   }, [formData, onChange]);
 
+  // Special handling for account-manager to show "UGC Related Questions"
+  const title = talentType === 'account-manager' 
+    ? 'UGC Related Questions' 
+    : `${config.label} Related Questions`
+
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold text-gray-900 mb-6">
-        {config.label} Related Questions
+        {title}
       </h2>
       
       {config.questions.map((question) => (
