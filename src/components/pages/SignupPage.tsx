@@ -307,7 +307,6 @@ export function SignupPage() {
             break
           case 'account-manager':
             detailData.operation_categories = data.categories || []
-            detailData.operation_skills = data.skills || []
             detailData.success_cases = data.cases || ''
             break
           case 'video-editor':

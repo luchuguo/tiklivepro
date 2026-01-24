@@ -173,16 +173,6 @@ export const talentTypeConfig: TalentTypeConfig = {
         ]
       },
       {
-        key: 'skills',
-        label: 'On-camera language',
-        type: 'checkbox',
-        options: [
-          { value: 'english', label: 'English' },
-          { value: 'chinese', label: 'Chinese' },
-          { value: 'bilingual', label: 'Bilingual' }
-        ]
-      },
-      {
         key: 'portfolioFiles',
         label: 'Introduction Video (Optional)',
         type: 'file',
