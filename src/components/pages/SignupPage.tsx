@@ -85,14 +85,21 @@ export function SignupPage() {
         const data = await res.json()
         console.log('Email API response:', data)
         
+        // Check for success indicators (including Chinese messages)
         const isSuccess = data.code === 0 || data.success === true || data.status === 'success' || 
-                         (data.message && data.message.includes('success'))
+                         (data.message && (
+                           data.message.includes('success') || 
+                           data.message.includes('成功') || 
+                           data.message.includes('请求成功')
+                         ))
         
         if (isSuccess) {
-          setEmailSuccess('验证码已发送')
+          // Always show English message, ignore API's Chinese message
+          setEmailSuccess('Verification code sent successfully')
           setEmailError('')
         } else {
-          setEmailError(data.message || '发送失败')
+          // For errors, show English message instead of API's Chinese message
+          setEmailError('Failed to send verification code')
           setEmailSuccess('')
         }
       } catch (fetchError: any) {
@@ -103,7 +110,7 @@ export function SignupPage() {
         if (isDevelopment) {
           console.log('Development environment: Email sending failed, displaying verification code (for testing only)')
           console.log('Verification code:', code)
-          setEmailSuccess(`由于邮件服务问题，验证码已生成（仅用于测试）: ${code}`)
+          setEmailSuccess(`Email service issue, verification code generated (for testing only): ${code}`)
           setEmailError('')
         } else {
           throw fetchError

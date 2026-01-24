@@ -35,7 +35,7 @@ export function ContactPage() {
     {
       icon: Mail,
       title: 'Email',
-      content: '1098623525@qq.com',
+      content: 'contact@tkbubu.com',
       description: 'Reply within 24 hours on business days',
       color: 'from-green-500 to-blue-600'
     },
@@ -60,25 +60,25 @@ export function ContactPage() {
       icon: Users,
       title: 'Influencer Services',
       description: 'Influencer registration, certification, task application related questions',
-      email: '1098623525@qq.com'
+      email: 'contact@tkbubu.com'
     },
     {
       icon: Building2,
       title: 'Enterprise Services',
       description: 'Enterprise cooperation, task publishing, business negotiations',
-      email: '1098623525@qq.com'
+      email: 'contact@tkbubu.com'
     },
     {
       icon: Headphones,
       title: 'Technical Support',
       description: 'Platform usage, technical issues, feature suggestions',
-      email: '1098623525@qq.com'
+      email: 'contact@tkbubu.com'
     },
     {
       icon: MessageCircle,
       title: 'Media Cooperation',
       description: 'Media interviews, brand cooperation, PR affairs',
-      email: '1098623525@qq.com'
+      email: 'contact@tkbubu.com'
     }
   ]
 
