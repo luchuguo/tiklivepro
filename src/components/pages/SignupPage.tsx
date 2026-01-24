@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef } from 'react'
+import React, { useState, useRef } from 'react'
 import { Mail, Lock, User, Building2, Eye, EyeOff, Loader, Send, MessageSquare, XCircle, CheckCircle, ArrowLeft, Globe } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useNavigate, Link } from 'react-router-dom'
@@ -18,6 +18,7 @@ export function SignupPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [country, setCountry] = useState('')
+  const [contactInformation, setContactInformation] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
   // Email verification related states
@@ -100,8 +101,8 @@ export function SignupPage() {
         
         const isDevelopment = import.meta.env.DEV
         if (isDevelopment) {
-          console.log('开发环境：由于邮件发送失败，显示验证码（仅用于测试）')
-          console.log('验证码:', code)
+          console.log('Development environment: Email sending failed, displaying verification code (for testing only)')
+          console.log('Verification code:', code)
           setEmailSuccess(`由于邮件服务问题，验证码已生成（仅用于测试）: ${code}`)
           setEmailError('')
         } else {
@@ -373,20 +374,28 @@ export function SignupPage() {
         } else if (data?.user) {
           console.log('Registration successful')
 
-          // If influencer user, create talent profile and save country
+          // If influencer user, create talent profile and save country/contact information
           if (userType === 'influencer') {
             try {
-              // Save country to influencers table if provided
+              // Save country and contact information to influencers table if provided
+              const updateData: any = {}
               if (country) {
-                const { error: countryError } = await supabase
+                updateData.country = country
+              }
+              if (contactInformation) {
+                updateData.contact_information = contactInformation
+              }
+              
+              if (Object.keys(updateData).length > 0) {
+                const { error: updateError } = await supabase
                   .from('influencers')
-                  .update({ country })
+                  .update(updateData)
                   .eq('user_id', data.user.id)
                 
-                if (countryError) {
-                  console.error('Saving country failed:', countryError)
+                if (updateError) {
+                  console.error('Saving country/contact information failed:', updateError)
                 } else {
-                  console.log('Country saved successfully:', country)
+                  console.log('Country/contact information saved successfully:', updateData)
                 }
               }
               
@@ -394,6 +403,24 @@ export function SignupPage() {
             } catch (profileError) {
               console.error('Creating talent profile failed:', profileError)
               // Continue registration process even if profile creation fails
+            }
+          } else if (userType === 'company') {
+            // Save contact information to companies table if provided
+            if (contactInformation) {
+              try {
+                const { error: contactError } = await supabase
+                  .from('companies')
+                  .update({ contact_information: contactInformation })
+                  .eq('user_id', data.user.id)
+                
+                if (contactError) {
+                  console.error('Saving contact information failed:', contactError)
+                } else {
+                  console.log('Contact information saved successfully:', contactInformation)
+                }
+              } catch (error) {
+                console.error('Saving contact information failed:', error)
+              }
             }
           }
 
@@ -439,8 +466,8 @@ export function SignupPage() {
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <div className="flex items-center space-x-3">
+        <div className="p-6 border-b border-gray-100">
+          <div className="flex items-center space-x-3 mb-3">
             <Link
               to="/"
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -448,6 +475,11 @@ export function SignupPage() {
               <ArrowLeft className="w-5 h-5 text-gray-600" />
             </Link>
             <h1 className="text-2xl font-bold text-gray-900">User Registration</h1>
+          </div>
+          <div className="ml-12">
+            <p className="text-sm text-gray-600">
+              <span className="font-medium">Tip:</span> Completing your profile helps brands contact you faster. Profiles with more information get more visibility.
+            </p>
           </div>
         </div>
 
@@ -496,7 +528,7 @@ export function SignupPage() {
               </div>
             </div>
 
-            {/* Country field for influencers - placed before talent type selection */}
+            {/* Country field - placed before talent type selection */}
             {userType === 'influencer' && (
               <div className="w-full">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -521,6 +553,21 @@ export function SignupPage() {
                 </div>
               </div>
             )}
+
+            {/* Contact Information field - public field for all user types */}
+            <div className="w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Contact Information
+              </label>
+              <input
+                type="text"
+                value={contactInformation}
+                onChange={(e) => setContactInformation(e.target.value)}
+                placeholder="Telegram / WhatsApp (at least fill in one)"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                disabled={loading}
+              />
+            </div>
 
             {/* Talent type selection and questions */}
             {userType === 'influencer' && (

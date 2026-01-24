@@ -59,7 +59,6 @@ export const liveCategories = [
   { value: 'beauty', label: 'Beauty & Skincare' },
   { value: 'fashion', label: 'Fashion & Apparel' },
   { value: 'food', label: 'Food & Beverage' },
-  { value: 'maternal', label: 'Maternal & Baby' },
   { value: 'digital', label: 'Digital & Tech' },
   { value: 'pet', label: 'Pet Supplies' },
   { value: 'household', label: 'Home & Household' }
@@ -67,10 +66,8 @@ export const liveCategories = [
 
 // Host style options
 export const hostStyles = [
-  { value: 'drama', label: 'Drama & Storytelling' },
   { value: 'vlog', label: 'Lifestyle Vlog' },
   { value: 'entertainment', label: 'Comedy & Entertainment' },
-  { value: 'knowledge', label: 'Knowledge & Education' },
   { value: 'professional', label: 'Professional Explanation' },
   { value: 'emotional', label: 'Emotional Connection' }
 ];
@@ -99,6 +96,13 @@ export const editingSoftware = [
   { value: 'vegas', label: 'Vegas Pro' }
 ];
 
+// Editing type options
+export const editingTypeOptions = [
+  { value: 'short-form-tiktok', label: 'Short-form TikTok videos' },
+  { value: 'tiktok-livestream', label: 'TikTok livestream clips' },
+  { value: 'tiktok-ugc', label: 'TikTok UGC editing' }
+];
+
 // Editing style options
 export const editingStyles = [
   { value: 'vlog', label: 'Vlog Editing' },
@@ -118,7 +122,12 @@ export const talentTypeConfig: TalentTypeConfig = {
         key: 'experience',
         label: 'Live Streaming Experience',
         type: 'select',
-        options: experienceOptions
+        options: [
+          { value: 'no-experience', label: 'No experience yet' },
+          { value: 'some-experience', label: 'Some experience' },
+          { value: 'regular-host', label: 'Regular livestream host' },
+          { value: 'professional-host', label: 'Professional host' }
+        ]
       },
       {
         key: 'categories',
@@ -131,33 +140,12 @@ export const talentTypeConfig: TalentTypeConfig = {
         label: 'Host Style',
         type: 'checkbox',
         options: hostStyles
-      },
-      {
-        key: 'achievement',
-        label: 'Best Achievement',
-        type: 'text',
-        placeholder: 'e.g., Peak viewers 5000 / Single session sales $20,000'
-      },
-      {
-        key: 'portfolio',
-        label: 'Portfolio Showcase',
-        type: 'text',
-        placeholder: 'Please provide 2-3 representative live streaming video links'
-      },
-      {
-        key: 'portfolioFiles',
-        label: 'Related Case Studies',
-        type: 'file',
-        accept: 'image/*,video/*',
-        maxSize: 50,
-        maxFiles: 3,
-        description: 'Please upload live streaming sales related images or videos (max 3 files, each file no more than 50MB)'
       }
     ]
   },
   'account-manager': {
     label: 'UGC On-Camera Creator',
-    description: 'Manage brand pages and grow engagement',
+    description: 'Create authentic on-camera UGC videos for brands',
     icon: 'fas fa-chart-line',
     questions: [
       {
@@ -165,7 +153,10 @@ export const talentTypeConfig: TalentTypeConfig = {
         label: 'Can you appear on camera?',
         type: 'select',
         options: [
-          { value: 'yes-talking', label: 'Yes – Talking Head / Lifestyle' }
+          { value: 'talking-head', label: 'Talking Head (direct-to-camera)' },
+          { value: 'lifestyle', label: 'Lifestyle / Daily scenes' },
+          { value: 'both', label: 'Both' },
+          { value: 'voice-over', label: 'Voice-over only (no on-camera)' }
         ]
       },
       {
@@ -192,23 +183,6 @@ export const talentTypeConfig: TalentTypeConfig = {
         ]
       },
       {
-        key: 'cases',
-        label: 'Price per video (USD)',
-        type: 'select',
-        options: [
-          { value: 'under-50', label: '<$50' },
-          { value: '50-100', label: '$50–100' },
-          { value: '100-200', label: '$100–200' },
-          { value: '200-plus', label: '$200+' }
-        ]
-      },
-      {
-        key: 'portfolio',
-        label: 'Contact Information',
-        type: 'text',
-        placeholder: 'Telegram / WhatsApp (at least fill in one)'
-      },
-      {
         key: 'portfolioFiles',
         label: 'Introduction Video (Optional)',
         type: 'file',
@@ -232,30 +206,9 @@ export const talentTypeConfig: TalentTypeConfig = {
       },
       {
         key: 'software',
-        label: 'Proficient Software',
+        label: 'Editing Type',
         type: 'checkbox',
-        options: editingSoftware
-      },
-      {
-        key: 'styles',
-        label: 'Expertise Styles',
-        type: 'checkbox',
-        options: editingStyles
-      },
-      {
-        key: 'portfolio',
-        label: 'Portfolio Showcase',
-        type: 'text',
-        placeholder: 'Please provide 2-3 representative work links'
-      },
-      {
-        key: 'portfolioFiles',
-        label: 'Related Case Studies',
-        type: 'file',
-        accept: 'image/*,video/*',
-        maxSize: 50,
-        maxFiles: 3,
-        description: 'Please upload video editing works (max 3 files, each file no more than 50MB)'
+        options: editingTypeOptions
       }
     ]
   }
