@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { 
   Users, 
   Star, 
@@ -442,6 +443,15 @@ export function InfluencersPage() {
                     : 'No influencers in this category, please select another category'
                 }
               </p>
+              {influencers.length === 0 && (
+                <p className="text-gray-600 max-w-xl mx-auto mb-4 text-sm">
+                  Exclusive Access: Full creator profiles, including verified metrics and collaboration rates, are reserved for registered merchants only.{' '}
+                  <Link to="/signup" className="text-pink-600 hover:text-pink-700 font-semibold underline">
+                    Sign Up as a Merchant
+                  </Link>{' '}
+                  to browse our talent pool.
+                </p>
+              )}
               <button
                 onClick={fetchInfluencers}
                 className="bg-pink-500 text-white px-6 py-3 rounded-lg hover:bg-pink-600 transition-colors flex items-center space-x-2 mx-auto"
