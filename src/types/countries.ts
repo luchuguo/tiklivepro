@@ -15,8 +15,6 @@ export const countries: Country[] = [
   { code: 'VN', name: '越南', nameEn: 'Vietnam' },
   { code: 'PH', name: '菲律宾', nameEn: 'Philippines' },
   { code: 'ID', name: '印度尼西亚', nameEn: 'Indonesia' },
-  { code: 'HK', name: '香港', nameEn: 'Hong Kong' },
-  { code: 'TW', name: '台湾', nameEn: 'Taiwan (China)' },
   { code: 'CA', name: '加拿大', nameEn: 'Canada' },
   { code: 'GB', name: '英国', nameEn: 'United Kingdom' },
   { code: 'AU', name: '澳大利亚', nameEn: 'Australia' },

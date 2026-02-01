@@ -260,15 +260,18 @@ export function SignupPage() {
         setError('Please select at least one talent type')
         return false
       }
-      // Validate required fields for each selected type
+      // Only validate fields that are displayed and required on the page
       for (const type of selectedTalentTypes) {
         const data = talentDataMap[type]
-        if (!data?.experience) {
-          setError(`Please select experience for ${talentTypeConfig[type].label}`)
+        const config = talentTypeConfig[type]
+        if (config.questions.some(q => q.key === 'experience') && !data?.experience) {
+          setError(`Please select experience for ${config.label}`)
           return false
         }
-        if (!data?.portfolioFiles?.length) {
-          setError(`Please upload portfolio for ${talentTypeConfig[type].label}`)
+        // Only require portfolio if this type has a required file question (not optional)
+        const fileQuestion = config.questions.find(q => q.type === 'file')
+        if (fileQuestion && !fileQuestion.label.toLowerCase().includes('optional') && !data?.portfolioFiles?.length) {
+          setError(`Please upload portfolio for ${config.label}`)
           return false
         }
       }
