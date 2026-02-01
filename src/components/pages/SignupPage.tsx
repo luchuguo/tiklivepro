@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react'
-import { Mail, Lock, User, Building2, Eye, EyeOff, Loader, Send, MessageSquare, XCircle, CheckCircle, ArrowLeft, Globe } from 'lucide-react'
+import { Mail, Lock, User, Building2, Eye, EyeOff, Loader, Send, MessageSquare, XCircle, CheckCircle, ArrowLeft, Globe, Camera } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
@@ -21,6 +21,10 @@ export function SignupPage() {
   const [contactInformation, setContactInformation] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
+  // Avatar (public field for all user types)
+  const [avatarUrl, setAvatarUrl] = useState('')
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+
   // Email verification related states
   const [emailCodeSent, setEmailCodeSent] = useState('')
   const [emailInputCode, setEmailInputCode] = useState('')
@@ -38,8 +42,50 @@ export function SignupPage() {
   const EMAIL_API_KEY = import.meta.env.VITE_AOKSEND_API_KEY as string
   const EMAIL_TEMPLATE_ID = 'E_125139060306'
 
+  // PICUI image upload API (configure VITE_PICUI_API_KEY in .env.local)
+  const PICUI_API_KEY = import.meta.env.VITE_PICUI_API_KEY as string
+
   const { signUpWithDetails } = useAuth()
   const navigate = useNavigate()
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!PICUI_API_KEY) {
+      setError('Image upload is not configured. Please set VITE_PICUI_API_KEY in .env.local')
+      return
+    }
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file (e.g. JPG, PNG)')
+      return
+    }
+    setUploadingAvatar(true)
+    setError('')
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('permission', '1')
+      const res = await fetch('https://picui.cn/api/v1/upload', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${PICUI_API_KEY}`,
+          Accept: 'application/json'
+        },
+        body: formData
+      })
+      const result = await res.json()
+      if (result.status && result.data?.links?.url) {
+        setAvatarUrl(result.data.links.url)
+      } else {
+        setError(result.message || 'Avatar upload failed')
+      }
+    } catch (err: any) {
+      setError(err.message || 'Upload error')
+    } finally {
+      setUploadingAvatar(false)
+      e.target.value = ''
+    }
+  }
 
   // Send email verification code function
   const sendEmailCode = async () => {
@@ -380,18 +426,14 @@ export function SignupPage() {
         } else if (data?.user) {
           console.log('Registration successful')
 
-          // If influencer user, create talent profile and save country/contact information
+          // If influencer user, create talent profile and save country/contact/avatar
           if (userType === 'influencer') {
             try {
-              // Save country and contact information to influencers table if provided
               const updateData: any = {}
-              if (country) {
-                updateData.country = country
-              }
-              if (contactInformation) {
-                updateData.contact_information = contactInformation
-              }
-              
+              if (country) updateData.country = country
+              if (contactInformation) updateData.contact_information = contactInformation
+              if (avatarUrl) updateData.avatar_url = avatarUrl
+
               if (Object.keys(updateData).length > 0) {
                 const { error: updateError } = await supabase
                   .from('influencers')
@@ -411,21 +453,18 @@ export function SignupPage() {
               // Continue registration process even if profile creation fails
             }
           } else if (userType === 'company') {
-            // Save contact information to companies table if provided
-            if (contactInformation) {
+            const companyUpdate: any = {}
+            if (contactInformation) companyUpdate.contact_information = contactInformation
+            if (avatarUrl) companyUpdate.logo_url = avatarUrl
+            if (Object.keys(companyUpdate).length > 0) {
               try {
                 const { error: contactError } = await supabase
                   .from('companies')
-                  .update({ contact_information: contactInformation })
+                  .update(companyUpdate)
                   .eq('user_id', data.user.id)
-                
-                if (contactError) {
-                  console.error('Saving contact information failed:', contactError)
-                } else {
-                  console.log('Contact information saved successfully:', contactInformation)
-                }
+                if (contactError) console.error('Saving company info failed:', contactError)
               } catch (error) {
-                console.error('Saving contact information failed:', error)
+                console.error('Saving company info failed:', error)
               }
             }
           }
@@ -469,7 +508,18 @@ export function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 flex items-center justify-center p-4 relative">
+      {/* Overlay when avatar is uploading - blocks all interaction */}
+      {uploadingAvatar && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 pointer-events-auto">
+          <div className="bg-white rounded-xl shadow-xl px-8 py-6 flex flex-col items-center gap-3">
+            <Loader className="w-10 h-10 text-pink-500 animate-spin" />
+            <p className="text-gray-800 font-medium">Image uploading...</p>
+            <p className="text-sm text-gray-500">Please wait, do not perform other operations.</p>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl">
         {/* Header */}
         <div className="p-6 border-b border-gray-100">
@@ -559,6 +609,40 @@ export function SignupPage() {
                 </div>
               </div>
             )}
+
+            {/* Avatar upload - public field for all user types, above Contact Information */}
+            <div className="w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Avatar
+              </label>
+              <p className="text-xs text-gray-500 mb-2">
+                Video Creator avatar can be a real person photo or work cover. UGC On-Camera Creator and Live Host avatar must be a real person photo.
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="relative w-20 h-20 rounded-full border-2 border-gray-200 overflow-hidden bg-gray-50 flex-shrink-0">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <Camera className="w-8 h-8" />
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <label className="inline-flex items-center px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 cursor-pointer text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                    <Camera className="w-4 h-4 mr-2" />
+                    {avatarUrl ? 'Change Photo' : 'Upload Photo'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleAvatarChange}
+                      disabled={uploadingAvatar || loading}
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
 
             {/* Contact Information field - public field for all user types */}
             <div className="w-full">

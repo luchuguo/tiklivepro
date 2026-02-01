@@ -177,7 +177,10 @@ const SMS_API_URL = 'https://api.smsbao.com/sms'
 确保在 `.env.local` 文件中配置：
 ```
 VITE_AOKSEND_API_KEY=your_api_key_here
+VITE_PICUI_API_KEY=your_picui_api_key_here
 ```
+- `VITE_AOKSEND_API_KEY`: 邮件验证码发送
+- `VITE_PICUI_API_KEY`: 注册页头像图片上传（Picui 图床 API）
 
 ## 用户体验流程
 
