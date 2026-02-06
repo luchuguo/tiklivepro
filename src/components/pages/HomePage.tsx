@@ -98,14 +98,14 @@ export function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="text-center lg:text-left">
               <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                One-Stop
+                TKBUBU – 
                 <span className="bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
                   TikTok
                 </span>
-                Live Commerce Platform
+                {' '}Live Commerce Platform
               </h1>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                Empowering brands to expand globally with ease
+                Connecting brands, creators, and livestream agencies worldwide.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link 
