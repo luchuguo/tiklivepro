@@ -28,7 +28,7 @@ export function ContactPage() {
     {
       icon: Phone,
       title: 'Customer Hotline',
-      content: 'Tel (USA): +1-610-8577777   |   Tel (China): +86-25-84799999',
+      content: 'Tel (USA): +1-610-8577777',
       description: '7×24 hours professional service',
       color: 'from-blue-500 to-purple-600'
     },
@@ -42,7 +42,7 @@ export function ContactPage() {
     {
       icon: MapPin,
       title: 'Company Address',
-      content: 'Jiangsu, China',
+      content: 'USA · Los Angeles, CA',
       description: 'Welcome to schedule on-site visits',
       color: 'from-pink-500 to-red-600'
     },

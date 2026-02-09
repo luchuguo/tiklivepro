@@ -382,6 +382,45 @@ export function SignupPage() {
     }
   }
 
+  // Save all registration data into talent_details table
+  const saveTalentDetails = async (userId: string, emailValue: string, userTypeValue: 'influencer' | 'company') => {
+    try {
+      const record: any = {
+        user_id: userId,
+        user_type: userTypeValue,
+        email: emailValue,
+        contact_information: contactInformation || null,
+        avatar_url: avatarUrl || null
+      }
+
+      if (userTypeValue === 'influencer') {
+        record.country = country || null
+        record.talent_types = selectedTalentTypes
+
+        // 清洗表单数据：去掉无法直接序列化到 JSON 的 File 对象，只保存字段值
+        const sanitizedTalentData: any = {}
+        selectedTalentTypes.forEach((type) => {
+          const raw = talentDataMap[type] || {}
+          const { portfolioFiles, ...rest } = raw
+          sanitizedTalentData[type] = rest
+        })
+        record.talent_data = sanitizedTalentData
+      }
+
+      const { error: detailsError } = await supabase
+        .from('talent_details')
+        .upsert(record, { onConflict: 'user_id' })
+
+      if (detailsError) {
+        console.error('Saving talent_details failed:', detailsError)
+      } else {
+        console.log('talent_details saved successfully:', record)
+      }
+    } catch (e) {
+      console.error('Saving talent_details exception:', e)
+    }
+  }
+
   // Submit registration
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -451,6 +490,8 @@ export function SignupPage() {
               }
               
               await createTalentProfile(data.user.id)
+              // 保存注册页面所有达人相关信息到 talent_details
+              await saveTalentDetails(data.user.id, email, userType)
             } catch (profileError) {
               console.error('Creating talent profile failed:', profileError)
               // Continue registration process even if profile creation fails
@@ -470,6 +511,9 @@ export function SignupPage() {
                 console.error('Saving company info failed:', error)
               }
             }
+
+            // 企业用户也写入基础注册信息到 talent_details（无 talent_types / talent_data）
+            await saveTalentDetails(data.user.id, email, userType)
           }
 
           // Clear cache and show prompt after successful registration

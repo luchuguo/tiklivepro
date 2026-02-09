@@ -48,7 +48,7 @@ export function Footer({ onPageChange }: FooterProps) {
               </div>
               <div className="flex items-center space-x-2 text-gray-300">
                 <Phone className="w-4 h-4" />
-                <span className="text-sm">Tel (USA): +1-610-8577777   |   Tel (China): +86-25-84799999</span>
+                <span className="text-sm">Tel (USA): +1-610-8577777</span>
               </div>
             </div>
           </div>
@@ -88,7 +88,7 @@ export function Footer({ onPageChange }: FooterProps) {
               <span>© 2025 Tkbubu. All rights reserved.</span>
               <div className="flex items-center space-x-1">
                 <MapPin className="w-4 h-4" />
-                <span>USA · Los Angeles, CA   |   China · Jiangsu</span>
+                <span>USA · Los Angeles, CA</span>
               </div>
             </div>
             <div className="flex items-center space-x-1 text-gray-400 text-sm mt-4 md:mt-0">

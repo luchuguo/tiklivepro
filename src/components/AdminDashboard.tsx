@@ -538,11 +538,27 @@ export function AdminDashboard() {
       }
     }
 
-    // 查看用户详情
+    // 查看用户详情（关联 talent_details 表：注册页填写的全部信息）
+    // 使用 RPC 拉取 talent_details，服务端校验管理员身份，避免 RLS 导致查不到
     const viewUser = async (u: any) => {
       try {
-        // 直接使用已经获取的profileData
-        setSelectedProfile({ basic: u, detail: u.profileData })
+        let talentDetailsRecord: any = null
+
+        const { data, error } = await supabase.rpc('get_talent_details_for_admin', {
+          target_user_id: u.user_id
+        })
+
+        if (error) {
+          console.error('加载 talent_details 失败:', error)
+        } else if (Array.isArray(data) && data.length > 0) {
+          talentDetailsRecord = data[0]
+        }
+
+        setSelectedProfile({
+          basic: u,
+          detail: u.profileData,
+          talentDetailsRecord
+        })
       } catch (err) {
         console.error('加载用户详情失败', err)
         alert('加载详情失败')
@@ -911,8 +927,22 @@ export function AdminDashboard() {
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h4 className="font-semibold text-gray-900 mb-3">基本信息</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div><span className="font-medium text-gray-700">邮箱：</span>{selectedProfile.basic.email}</div>
-                    <div><span className="font-medium text-gray-700">手机号码：</span>{selectedProfile.basic.phone || '未设置'}</div>
+                    <div>
+                      <span className="font-medium text-gray-700">邮箱：</span>
+                      {/* 当存在 talent_details 记录时，优先展示该表中的注册邮箱，确保与注册表数据一致 */}
+                      {selectedProfile.talentDetailsRecord?.email || selectedProfile.basic.email}
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">联系方式：</span>
+                      {/* talent_details.contact_information 可能存储手机号或其他联系方式，优先显示 */}
+                      {selectedProfile.talentDetailsRecord?.contact_information || selectedProfile.basic.phone || '未设置'}
+                    </div>
+                    {selectedProfile.talentDetailsRecord?.country && (
+                      <div>
+                        <span className="font-medium text-gray-700">国家/地区：</span>
+                        {selectedProfile.talentDetailsRecord.country}
+                      </div>
+                    )}
                     <div><span className="font-medium text-gray-700">用户类型：</span>
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         selectedProfile.basic.user_type === 'influencer' 
@@ -939,133 +969,112 @@ export function AdminDashboard() {
                   </div>
                 </div>
 
-                {/* 详细信息 */}
-                {selectedProfile.detail && (
+                {/* 详细信息：达人为 talent_details 表，企业为 companies 表；达人始终显示本区块（无数据时显示暂无） */}
+                {(selectedProfile.basic.user_type === 'influencer' || selectedProfile.detail) && (
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
                     <h4 className="font-semibold text-gray-900 mb-3">
-                      {selectedProfile.basic.user_type === 'influencer' ? '达人详细信息' : '企业详细信息'}
+                      {selectedProfile.basic.user_type === 'influencer' ? '达人详细信息（talent_details）' : '企业详细信息'}
                     </h4>
                     {selectedProfile.basic.user_type === 'influencer' ? (
-                      <div className="space-y-6">
-                        {/* 头像和基本信息 */}
+                      /* 达人：全部来自 talent_details 表，有则展示，无则提示 */
+                      selectedProfile.talentDetailsRecord ? (
+                      <div className="space-y-6 text-sm text-gray-700">
                         <div className="flex items-center space-x-4">
-                          <img 
-                            src={selectedProfile.detail.avatar_url || 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150'} 
-                            alt="头像" 
-                            className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement
-                              target.src = 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150'
-                            }}
-                          />
+                          {selectedProfile.talentDetailsRecord.avatar_url ? (
+                            <img
+                              src={selectedProfile.talentDetailsRecord.avatar_url}
+                              alt="注册头像"
+                              className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                            />
+                          ) : (
+                            <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xl font-bold">
+                              {(selectedProfile.talentDetailsRecord.email || 'U').charAt(0).toUpperCase()}
+                            </div>
+                          )}
                           <div className="flex-1">
-                            <h5 className="text-xl font-semibold text-gray-900">{selectedProfile.detail.nickname || '未设置昵称'}</h5>
-                            <p className="text-gray-600">{selectedProfile.detail.real_name || '未设置真实姓名'}</p>
-                            <div className="flex items-center space-x-4 mt-2">
-                              <span className={`px-2 py-1 rounded-full text-xs ${
-                                selectedProfile.detail.is_verified ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                              }`}>
-                                {selectedProfile.detail.is_verified ? '已认证' : '未认证'}
-                              </span>
-                              <span className={`px-2 py-1 rounded-full text-xs ${
-                                selectedProfile.detail.is_approved ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'
-                              }`}>
-                                {selectedProfile.detail.is_approved ? '已审核' : '待审核'}
-                              </span>
-                              <span className={`px-2 py-1 rounded-full text-xs ${
-                                selectedProfile.detail.status === 'active' ? 'bg-green-100 text-green-700' : 
-                                selectedProfile.detail.status === 'inactive' ? 'bg-gray-100 text-gray-700' : 'bg-red-100 text-red-700'
-                              }`}>
-                                {selectedProfile.detail.status === 'active' ? '活跃' : 
-                                 selectedProfile.detail.status === 'inactive' ? '非活跃' : '已暂停'}
-                              </span>
-                            </div>
+                            <h5 className="text-xl font-semibold text-gray-900">{selectedProfile.talentDetailsRecord.email}</h5>
+                            {selectedProfile.talentDetailsRecord.country && <p className="text-gray-600">{selectedProfile.talentDetailsRecord.country}</p>}
+                            {selectedProfile.talentDetailsRecord.contact_information && <p className="text-gray-600">{selectedProfile.talentDetailsRecord.contact_information}</p>}
                           </div>
                         </div>
-
-                        {/* 统计信息 */}
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <h6 className="font-medium text-gray-900 mb-3">统计信息</h6>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="text-center">
-                              <div className="text-2xl font-bold text-pink-600">{selectedProfile.detail.followers_count?.toLocaleString() || '0'}</div>
-                              <div className="text-sm text-gray-600">粉丝数</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="text-2xl font-bold text-blue-600">{selectedProfile.detail.rating?.toFixed(1) || '0.0'}</div>
-                              <div className="text-sm text-gray-600">评分</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="text-2xl font-bold text-green-600">{selectedProfile.detail.total_reviews || '0'}</div>
-                              <div className="text-sm text-gray-600">评价数</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="text-2xl font-bold text-purple-600">{selectedProfile.detail.total_live_count || '0'}</div>
-                              <div className="text-sm text-gray-600">直播场次</div>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* 基本信息 */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div><span className="font-medium text-gray-700">TikTok账号：</span>{selectedProfile.detail.tiktok_account || '未设置'}</div>
-                          <div><span className="font-medium text-gray-700">位置：</span>{selectedProfile.detail.location || '未设置'}</div>
-                          <div><span className="font-medium text-gray-700">时薪：</span>{selectedProfile.detail.hourly_rate ? `$${selectedProfile.detail.hourly_rate}/小时` : '未设置'}</div>
-                          <div><span className="font-medium text-gray-700">经验年限：</span>{selectedProfile.detail.experience_years ? `${selectedProfile.detail.experience_years}年` : '未设置'}</div>
-                          <div><span className="font-medium text-gray-700">平均观看：</span>{selectedProfile.detail.avg_views?.toLocaleString() || '0'}</div>
-                          <div><span className="font-medium text-gray-700">创建时间：</span>{selectedProfile.detail.created_at ? new Date(selectedProfile.detail.created_at).toLocaleString() : '未知'}</div>
+                          <div><span className="font-medium text-gray-700">注册邮箱：</span>{selectedProfile.talentDetailsRecord.email}</div>
+                          {selectedProfile.talentDetailsRecord.country && <div><span className="font-medium text-gray-700">国家/地区：</span>{selectedProfile.talentDetailsRecord.country}</div>}
+                          {selectedProfile.talentDetailsRecord.contact_information && <div><span className="font-medium text-gray-700">联系方式：</span>{selectedProfile.talentDetailsRecord.contact_information}</div>}
+                          <div><span className="font-medium text-gray-700">记录时间：</span>{selectedProfile.talentDetailsRecord.created_at ? new Date(selectedProfile.talentDetailsRecord.created_at).toLocaleString() : '—'}</div>
                         </div>
-                        
-                        {/* 简介 */}
-                        {selectedProfile.detail.bio && (
+                        {selectedProfile.talentDetailsRecord.talent_types && selectedProfile.talentDetailsRecord.talent_types.length > 0 && (
                           <div>
-                            <span className="font-medium text-gray-700">个人简介：</span>
-                            <p className="mt-1 text-gray-600 bg-gray-50 p-3 rounded-lg">{selectedProfile.detail.bio}</p>
+                            <span className="font-medium text-gray-700">才能类型：</span>
+                            <div className="mt-1 flex flex-wrap gap-2">
+                              {selectedProfile.talentDetailsRecord.talent_types.map((t: string, i: number) => (
+                                <span key={i} className="px-2 py-1 bg-pink-100 text-pink-700 rounded-full text-xs">
+                                  {t === 'live-host' ? 'Livestream Host' : t === 'account-manager' ? 'UGC On-Camera Creator' : t === 'video-editor' ? 'Video Creator' : t}
+                                </span>
+                              ))}
+                            </div>
                           </div>
                         )}
-                        
-                        {/* 分类和标签 */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {selectedProfile.detail.categories && selectedProfile.detail.categories.length > 0 && (
-                            <div>
-                              <span className="font-medium text-gray-700">分类：</span>
-                              <div className="mt-1 flex flex-wrap gap-2">
-                                {selectedProfile.detail.categories.map((cat: string, index: number) => (
-                                  <span key={index} className="px-2 py-1 bg-pink-100 text-pink-700 rounded-full text-xs">
-                                    {cat}
-                                  </span>
-                                ))}
+                        {selectedProfile.talentDetailsRecord.talent_data && typeof selectedProfile.talentDetailsRecord.talent_data === 'object' && Object.keys(selectedProfile.talentDetailsRecord.talent_data).length > 0 && (
+                          <div className="space-y-3 mt-3">
+                            <h6 className="font-medium text-gray-900">各类型表单数据</h6>
+                            {Object.entries(selectedProfile.talentDetailsRecord.talent_data).map(([typeKey, formData]: [string, any]) => (
+                              <div key={typeKey} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                                <div className="font-semibold text-gray-900 mb-2">
+                                  {typeKey === 'live-host' ? 'Livestream Host' : typeKey === 'account-manager' ? 'UGC On-Camera Creator' : typeKey === 'video-editor' ? 'Video Creator' : typeKey}
+                                </div>
+                                {formData.experience && <p><span className="font-medium text-gray-700">经验：</span>{formData.experience}</p>}
+                                {formData.categories && Array.isArray(formData.categories) && formData.categories.length > 0 && (
+                                  <p className="mt-1"><span className="font-medium text-gray-700">品类：</span>{formData.categories.join('，')}</p>
+                                )}
+                                {formData.styles && Array.isArray(formData.styles) && formData.styles.length > 0 && (
+                                  <p className="mt-1"><span className="font-medium text-gray-700">风格：</span>{formData.styles.join('，')}</p>
+                                )}
+                                {formData.achievement && <p className="mt-1"><span className="font-medium text-gray-700">成就：</span>{formData.achievement}</p>}
+                                {formData.operation_categories && Array.isArray(formData.operation_categories) && formData.operation_categories.length > 0 && (
+                                  <p className="mt-1"><span className="font-medium text-gray-700">运营品类：</span>{formData.operation_categories.join('，')}</p>
+                                )}
+                                {formData.success_cases && <p className="mt-1"><span className="font-medium text-gray-700">成功案例：</span>{formData.success_cases}</p>}
+                                {formData.software && Array.isArray(formData.software) && formData.software.length > 0 && (
+                                  <p className="mt-1"><span className="font-medium text-gray-700">剪辑类型：</span>{formData.software.join('，')}</p>
+                                )}
+                                {formData.portfolio && <p className="mt-1 break-all"><span className="font-medium text-gray-700">作品链接：</span>{formData.portfolio}</p>}
                               </div>
-                            </div>
-                          )}
-                          
-                          {selectedProfile.detail.tags && selectedProfile.detail.tags.length > 0 && (
-                            <div>
-                              <span className="font-medium text-gray-700">标签：</span>
-                              <div className="mt-1 flex flex-wrap gap-2">
-                                {selectedProfile.detail.tags.map((tag: string, index: number) => (
-                                  <span key={index} className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
-                                    {tag}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
+                      ) : (
+                      <div className="text-gray-500 py-4 rounded-lg bg-gray-50 border border-gray-200 p-4">
+                        <p className="font-medium text-gray-700">暂无 talent_details 记录</p>
+                        <p className="text-sm mt-1">该用户在 talent_details 表中尚无注册填写信息（可能为旧数据或未完成注册流程）。</p>
+                      </div>
+                      )
                     ) : (
                       <div className="space-y-6">
-                        {/* Logo和基本信息 */}
+                        {/* Logo和基本信息（只展示企业真实上传的 Logo，不再使用示例图片） */}
                         <div className="flex items-center space-x-4">
-                          <img 
-                            src={selectedProfile.detail.logo_url || 'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=150'} 
-                            alt="公司Logo" 
-                            className="w-20 h-20 rounded-lg object-cover border-2 border-gray-200"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement
-                              target.src = 'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=150'
-                            }}
-                          />
+                          {selectedProfile.detail.logo_url ? (
+                            <img 
+                              src={selectedProfile.detail.logo_url} 
+                              alt="公司Logo" 
+                              className="w-20 h-20 rounded-lg object-cover border-2 border-gray-200"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement
+                                // 如果 Logo 加载失败，隐藏图片，避免显示错误信息
+                                target.style.display = 'none'
+                              }}
+                            />
+                          ) : (
+                            <div className="w-20 h-20 rounded-lg bg-gray-200 flex items-center justify-center text-gray-600 text-xl font-bold">
+                              {(selectedProfile.detail.company_name 
+                                || selectedProfile.basic.email 
+                                || 'C')
+                                .charAt(0)
+                                .toUpperCase()}
+                            </div>
+                          )}
                           <div className="flex-1">
                             <h5 className="text-xl font-semibold text-gray-900">{selectedProfile.detail.company_name || '未设置公司名称'}</h5>
                             <p className="text-gray-600">{selectedProfile.detail.contact_person || '未设置联系人'}</p>
@@ -1107,6 +1116,74 @@ export function AdminDashboard() {
                         )}
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* 注册填写信息：talent_details 表（仅企业用户显示，达人已在「达人详细信息」中展示） */}
+                {selectedProfile.talentDetailsRecord && selectedProfile.basic.user_type === 'company' && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-900 mb-3">注册填写信息（talent_details）</h4>
+                    <div className="space-y-3 text-sm text-gray-700">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {selectedProfile.talentDetailsRecord.email && (
+                          <div><span className="font-medium text-gray-700">注册邮箱：</span>{selectedProfile.talentDetailsRecord.email}</div>
+                        )}
+                        {selectedProfile.talentDetailsRecord.country && (
+                          <div><span className="font-medium text-gray-700">国家：</span>{selectedProfile.talentDetailsRecord.country}</div>
+                        )}
+                        {selectedProfile.talentDetailsRecord.contact_information && (
+                          <div><span className="font-medium text-gray-700">联系方式：</span>{selectedProfile.talentDetailsRecord.contact_information}</div>
+                        )}
+                        {selectedProfile.talentDetailsRecord.avatar_url && (
+                          <div className="md:col-span-2 flex items-center gap-2">
+                            <span className="font-medium text-gray-700">注册头像：</span>
+                            <img src={selectedProfile.talentDetailsRecord.avatar_url} alt="注册头像" className="w-12 h-12 rounded-full object-cover border border-gray-200" />
+                          </div>
+                        )}
+                      </div>
+                      {selectedProfile.talentDetailsRecord.talent_types && selectedProfile.talentDetailsRecord.talent_types.length > 0 && (
+                        <div>
+                          <span className="font-medium text-gray-700">才能类型：</span>
+                          <div className="mt-1 flex flex-wrap gap-2">
+                            {selectedProfile.talentDetailsRecord.talent_types.map((t: string, i: number) => (
+                              <span key={i} className="px-2 py-1 bg-pink-100 text-pink-700 rounded-full text-xs">
+                                {t === 'live-host' ? 'Livestream Host' : t === 'account-manager' ? 'UGC On-Camera Creator' : t === 'video-editor' ? 'Video Creator' : t}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {selectedProfile.talentDetailsRecord.talent_data && typeof selectedProfile.talentDetailsRecord.talent_data === 'object' && Object.keys(selectedProfile.talentDetailsRecord.talent_data).length > 0 && (
+                        <div className="space-y-3 mt-3">
+                          {Object.entries(selectedProfile.talentDetailsRecord.talent_data).map(([typeKey, formData]: [string, any]) => (
+                            <div key={typeKey} className="border border-gray-200 rounded-lg p-3 bg-white">
+                              <div className="font-semibold text-gray-900 mb-2">
+                                {typeKey === 'live-host' ? 'Livestream Host' : typeKey === 'account-manager' ? 'UGC On-Camera Creator' : typeKey === 'video-editor' ? 'Video Creator' : typeKey}
+                              </div>
+                              {formData.experience && <p><span className="font-medium text-gray-700">经验：</span>{formData.experience}</p>}
+                              {formData.categories && Array.isArray(formData.categories) && formData.categories.length > 0 && (
+                                <p className="mt-1"><span className="font-medium text-gray-700">品类：</span>{formData.categories.join('，')}</p>
+                              )}
+                              {formData.styles && Array.isArray(formData.styles) && formData.styles.length > 0 && (
+                                <p className="mt-1"><span className="font-medium text-gray-700">风格：</span>{formData.styles.join('，')}</p>
+                              )}
+                              {formData.achievement && <p className="mt-1"><span className="font-medium text-gray-700">成就：</span>{formData.achievement}</p>}
+                              {formData.operation_categories && Array.isArray(formData.operation_categories) && formData.operation_categories.length > 0 && (
+                                <p className="mt-1"><span className="font-medium text-gray-700">运营品类：</span>{formData.operation_categories.join('，')}</p>
+                              )}
+                              {formData.success_cases && <p className="mt-1"><span className="font-medium text-gray-700">成功案例：</span>{formData.success_cases}</p>}
+                              {formData.software && Array.isArray(formData.software) && formData.software.length > 0 && (
+                                <p className="mt-1"><span className="font-medium text-gray-700">剪辑类型：</span>{formData.software.join('，')}</p>
+                              )}
+                              {formData.portfolio && <p className="mt-1 break-all"><span className="font-medium text-gray-700">作品链接：</span>{formData.portfolio}</p>}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <div className="text-xs text-gray-500 mt-2">
+                        记录时间：{selectedProfile.talentDetailsRecord.created_at ? new Date(selectedProfile.talentDetailsRecord.created_at).toLocaleString() : '—'}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
