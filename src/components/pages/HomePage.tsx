@@ -82,7 +82,7 @@ export function HomePage() {
   return (
     <div className="min-h-screen bg-white">
       <Helmet>
-        <title>Tkbubu | TikTok代播平台 · TikTok Livestream Agency</title>
+        <title>Tkbubu | TikTok Livestream Agency</title>
         <meta name="keywords" content="TikTok代播、TikTok直播代播,TikTok代运营、TikTok视频剪辑、TikTok海外推广,TikTok代播平台、TikTok直播代运营公司、TikTok代播机构推荐" />
         <meta name="description" content="Tkbubu 是一个专业的 TikTok代播平台，提供TikTok直播代播、账号运营、视频剪辑服务，帮助商家拓展海外市场。" />
       </Helmet>
