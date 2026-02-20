@@ -102,10 +102,10 @@ export function HomePage() {
                 <span className="bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
                   TikTok
                 </span>
-                {' '}Live Commerce Platform
+                {' '}Live Selling Marketplace
               </h1>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                Connecting brands, creators, and livestream agencies worldwide.
+                Connect TikTok sellers with livestream hosts, UGC creators, and video editors worldwide
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link 
