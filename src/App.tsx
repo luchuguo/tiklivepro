@@ -36,7 +36,6 @@ import { SmsVerificationTest } from "./components/pages/SmsVerificationTest";
 import { RouteTestPage } from "./components/pages/RouteTestPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { EmailVerificationTest } from "./components/pages/EmailVerificationTest";
-import { ImageUploadTest } from "./components/pages/ImageUploadTest";
 import LoginTestPage from "./components/pages/LoginTestPage";
 import { SignupPage } from "./components/pages/SignupPage";
 import { MaterialsPage } from "./components/pages/MaterialsPage";
@@ -489,7 +488,6 @@ function App() {
             <Route path="/route-test/:id" element={<RouteTestPage />} />
             <Route path="/sms-test" element={<SmsVerificationTest />} />
             <Route path="/email-test" element={<EmailVerificationTest />} />
-            <Route path="/image-upload-test" element={<ImageUploadTest />} />
             <Route path="/login-test" element={<LoginTestPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/materials" element={<MaterialsPage />} />
