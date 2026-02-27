@@ -93,6 +93,7 @@ export function SignupPage() {
       setEmailError('Please enter email address')
       return
     }
+    const isDevelopment = import.meta.env.DEV
     // 生成统一的验证码
     const code = Math.floor(100000 + Math.random() * 900000).toString()
     setEmailCodeSent(code)
@@ -144,15 +145,23 @@ export function SignupPage() {
           setEmailSuccess('Verification code sent successfully')
           setEmailError('')
         } else {
-          // For errors, show English message instead of API's Chinese message
-          setEmailError('Failed to send verification code')
-          setEmailSuccess('')
+          console.warn('Email API returned error response:', data)
+          
+          if (isDevelopment) {
+            // In development, treat API error as non-blocking and show the code for testing
+            console.log('Development environment: Email API error, displaying verification code (for testing only)')
+            console.log('Verification code:', code)
+            setEmailSuccess(`Email service issue, verification code generated (for testing only): ${code}`)
+            setEmailError('')
+          } else {
+            // For production errors, show generic English message instead of API's Chinese message
+            setEmailError('Failed to send verification code')
+            setEmailSuccess('')
+          }
         }
       } catch (fetchError: any) {
         // 如果邮件发送失败（如SSL证书错误），在开发环境中显示验证码
         console.warn('Email sending failed:', fetchError)
-        
-        const isDevelopment = import.meta.env.DEV
         if (isDevelopment) {
           console.log('Development environment: Email sending failed, displaying verification code (for testing only)')
           console.log('Verification code:', code)
