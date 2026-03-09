@@ -39,7 +39,7 @@ export function Footer({ onPageChange }: FooterProps) {
               </span>
             </div>
             <p className="text-gray-300 mb-6 max-w-md">
-            A professional TikTok partner platform that connects brands with vetted creators and provides efficient live-selling solutions.
+              Tkbubu is a platform that connects brands with verified TikTok creators for live selling, product promotion, and content marketing.
             </p>
             <div className="flex space-x-4">
               <div className="flex items-center space-x-2 text-gray-300">
