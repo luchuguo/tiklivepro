@@ -46,7 +46,6 @@ const translationMap: Record<string, string> = {
   
   // Common descriptions
   '专业美妆达人': 'Professional Beauty Influencer',
-  '直播带货': 'Live Commerce',
   '展示产品效果': 'Showcase Product Effects',
 }
 
