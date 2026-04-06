@@ -186,7 +186,7 @@
     }
   ],
   "functions": {
-    "api/**/*.js": {
+    "api/[...slug].js": {
       "maxDuration": 30
     }
   }
