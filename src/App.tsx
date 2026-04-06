@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Routes, Route, useNavigate, useLocation, useParams, Link } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation, useParams, Link, Navigate } from "react-router-dom";
 import { Video, Users, Building2, TrendingUp, Star, Play, ArrowRight, Menu, X, User, LogOut, Calendar, Settings, Shield, UserCheck, Cog, Briefcase } from "lucide-react";
 import { AuthModal } from "./components/AuthModal";
 import { AdminDashboard } from "./components/AdminDashboard";
@@ -31,7 +31,8 @@ import { CompanyDetailPage } from "./components/pages/CompanyDetailPage";
 import { InfluencerDetailPage } from "./components/pages/InfluencerDetailPage";
 import { TaskDetailPage } from "./components/pages/TaskDetailPage";
 import { VideoPlayerPage } from "./components/pages/VideoPlayerPage";
-import { VideosPage } from "./components/pages/VideosPage";
+import { CertifiedCreatorPage } from "./components/pages/CertifiedCreatorPage";
+import { CertifiedCreatorDetailPage } from "./components/pages/CertifiedCreatorDetailPage";
 import { SmsVerificationTest } from "./components/pages/SmsVerificationTest";
 import { RouteTestPage } from "./components/pages/RouteTestPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -184,10 +185,10 @@ function App() {
                 Task Center
               </button>
               <button 
-                onClick={() => handlePageChange("videos")}
-                className={`text-gray-700 hover:text-pink-600 transition-colors ${location.pathname === "/videos" ? "text-pink-600 font-medium" : ""}`}
+                onClick={() => handlePageChange("certified-creator")}
+                className={`text-gray-700 hover:text-pink-600 transition-colors ${location.pathname === "/certified-creator" ? "text-pink-600 font-medium" : ""}`}
               >
-                Video Showcase
+                Certified Creator
               </button>
             </div>
 
@@ -346,10 +347,10 @@ function App() {
                   Task Center
                 </button>
                 <button 
-                  onClick={() => handlePageChange("videos")}
-                  className={`block w-full text-left py-2 px-4 rounded-lg transition-colors ${location.pathname === "/videos" ? "bg-pink-50 text-pink-600" : "text-gray-700 hover:bg-gray-50"}`}
+                  onClick={() => handlePageChange("certified-creator")}
+                  className={`block w-full text-left py-2 px-4 rounded-lg transition-colors ${location.pathname === "/certified-creator" ? "bg-pink-50 text-pink-600" : "text-gray-700 hover:bg-gray-50"}`}
                 >
-                  Video Showcase
+                  Certified Creator
                 </button>
                 
                 {/* 用户菜单 */}
@@ -483,7 +484,9 @@ function App() {
             <Route path="/influencer/:id" element={<InfluencerDetailWrapper />} />
             <Route path="/task/:id" element={<TaskDetailWrapper />} />
             <Route path="/video/:videoId" element={<VideoPlayerPage />} />
-            <Route path="/videos" element={<VideosPage />} />
+            <Route path="/certified-creator/:id" element={<CertifiedCreatorDetailPage />} />
+            <Route path="/certified-creator" element={<CertifiedCreatorPage />} />
+            <Route path="/videos" element={<Navigate to="/certified-creator" replace />} />
             <Route path="/route-test/:id" element={<RouteTestPage />} />
             <Route path="/sms-test" element={<SmsVerificationTest />} />
             <Route path="/login-test" element={<LoginTestPage />} />

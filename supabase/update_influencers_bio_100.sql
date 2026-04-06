@@ -1,0 +1,125 @@
+-- =============================================================================
+-- 按 id 排序的前 100 条 influencers 重写 bio（原创英文简介，多垂类）
+-- 在 Supabase SQL Editor 中执行；不足 100 人则只更新现有人数
+-- =============================================================================
+
+WITH bios AS (
+  SELECT ord AS rn, trim(txt) AS bio_text
+  FROM unnest(
+    ARRAY[
+      $$I help desk workers reset posture and breathe better in ten minutes a day—tiny movement breaks that actually stick without a gym membership.$$::text,
+      $$Former college athlete sharing strength basics for beginners: form first, jokes second, and playlists that make leg day feel shorter.$$::text,
+      $$Plant-forward home cook on a budget—I film one-pan dinners and lunchbox ideas your kids might actually eat.$$::text,
+      $$Travel nurse documenting real shifts, night routines, and how to pack light when your life fits in two suitcases.$$::text,
+      $$Secondhand stylist here: I restyle thrift finds, tailor hacks, and capsule wardrobes that cost less than one fast-fashion haul.$$::text,
+      $$Music teacher turned creator—short ear-training drills, lyric breakdowns, and practice tricks for adult beginners.$$::text,
+      $$Dog dad with two rescues: training wins, embarrassing fails, and gear reviews from someone who stepped in poop on camera.$$::text,
+      $$I demo no-code automations for tiny businesses—less copy-paste, more coffee breaks.$$::text,
+      $$Marathoner who bonked so you do not have to: pacing math, fueling, and the emotional spiral of mile twenty.$$::text,
+      $$Ceramist sharing glaze experiments and kiln mishaps—pretty pots and honest smoke alarms.$$::text,
+      $$I teach breathwork for people who roll their eyes at breathwork—science-light, judgment-free, five-minute resets.$$::text,
+      $$Corporate escapee building a calm brand on evenings and weekends—templates, pricing talks, and the guilt of logging off.$$::text,
+      $$Homeschool parent filming micro-lessons: reading games, kitchen math, and how we survive rainy Tuesdays.$$::text,
+      $$Wheelchair user in tech advocating for accessible UX with humor and receipts.$$::text,
+      $$I roast bad slides and celebrate good ones—presentation design for people who fear Clip Art.$$::text,
+      $$Ultra-runner-slash-comedian: aid-station snacks rated, chafe prevention, and why we pay to suffer.$$::text,
+      $$Bilingual storytime reader mixing picture books, silly voices, and tiny Spanish phrases for toddlers.$$::text,
+      $$Indoor plant therapist—okay, not licensed—just someone who killed fifty plants so you might kill fewer.$$::text,
+      $$I stream cozy puzzle games and spreadsheets about nothing—inventory for calm brains.$$::text,
+      $$Elder-care social worker sharing scripts for awkward family conversations and self-care that fits in a hallway.$$::text,
+      $$Seattle barista breaking down espresso myths, milk science, and why your home latte still tastes weird.$$::text,
+      $$Former debate kid turned civic-skills coach: respectful arguments, local voting how-tos, and not losing friends.$$::text,
+      $$Adaptive yoga guide for joint-friendly flows—chairs, walls, and honesty about wobbly balance.$$::text,
+      $$I build miniature sets for stop-motion dioramas; tweezers, foam board, and dramatic lighting on a desk.$$::text,
+      $$Productivity skeptic documenting slow workflows that reduce burnout—fewer hacks, more boundaries.$$::text,
+      $$Hiker with a fear of heights who still goes—trail snacks, safety babble, and summit selfies where knees vibrate.$$::text,
+      $$Chem PhD student making five-minute explainers: why soap works, sunscreen drama, and kitchen reactions.$$::text,
+      $$Freelance editor teaching clarity for emails and resumes—cut the fluff, keep the personality.$$::text,
+      $$Sauna-and-cold-plunge curious person testing what hype is worth—shivering for science and serotonin.$$::text,
+      $$Vintage synth nerd: patch notes, cheap pedals, and neighbors who politely hate me.$$::text,
+      $$I photograph neon cities at blue hour—settings walks, composition nits, and carrying a tripod in the rain.$$::text,
+      $$NICU parent alum supporting families with checklists, feelings, and hospital coffee reviews.$$::text,
+      $$Sourdough chronicler—starter drama, scoring wins, and the bread that could doorstop.$$::text,
+      $$Skateboard coach for adults who are scared but stubborn—pads, pushes, and parking-lot victories.$$::text,
+
+      $$Language-learner documenting 30-minute study sprints, app burnout, and accent humility.$$::text,
+      $$I teach renters how to patch walls, hang shelves, and not lose deposits—landlord-friendly upgrades.$$::text,
+      $$Neurodivergent organizer: visual timers, body doubling, and files that do not shame you.$$::text,
+      $$Aquarium nerd talking nitrogen cycles like soap opera—fish drama optional.$$::text,
+      $$Camp counselor energy in a thirty-something body—games, risk management, and s mores math.$$::text,
+      $$I write comedic songs about invoices, chores, and group chats—keyboard, wrong notes, right feelings.$$::text,
+      $$Backcountry ski newbie journal: layers, fear management, and why edge control is a personality trait.$$::text,
+      $$Vegan marathon baker—yes, we can, and yes, flax eggs exist.$$::text,
+      $$I host live Q and A for first-time renters signing leases—red flags in plain English.$$::text,
+      $$Former librarian recommending unruly books, quiet corners, and overdue forgiveness.$$::text,
+      $$Mobility coach for gamers and coders—wrists, hips, and the glare of monitors at midnight.$$::text,
+      $$Sustainable fashion tinker: dye fixes, visible mending, and wearing things until they owe you rent.$$::text,
+      $$I teach kids coding with cardboard controllers and silly bugs—confidence before complexity.$$::text,
+      $$Parent of twins surviving on lists, podcasts, and coffee science.$$::text,
+      $$Karaoke enthusiast ranking microphones and courage levels by song choice.$$::text,
+      $$Wildlife rehab volunteer—what to do when you find a baby anything, and when to call pros.$$::text,
+      $$I explain EV basics without mansplaining—charging etiquette, range math, and winter reality.$$::text,
+      $$Ballet crossover strength—small muscles, big opinions, and turnout truths.$$::text,
+      $$Houseplant swap organizer documenting trades, pests, and plant custody disputes.$$::text,
+      $$Filmmaker shooting vertical documentaries about local makers—sound matters even on phones.$$::text,
+      $$I teach people to negotiate freelance rates with scripts calmer than their nervous systems.$$::text,
+      $$Rock climber discussing skin care for calluses and fear on high walls.$$::text,
+      $$Poetry aloud weekly—memorization tricks, breath pauses, and loving weird line breaks.$$::text,
+      $$Backup singer turned vocal coach for shower belters who want control without strain.$$::text,
+      $$I audit scammy wellness claims with receipts and nicer jokes than the products deserve.$$::text,
+      $$Cottage baker shipping tips without shipping—packing foam, humidity, and frosting that survives heat.$$::text,
+      $$Trail runner documenting bugs, sunsets, and why downhill is philosophy.$$::text,
+      $$Board-game rules lawyer reforming—short teach videos, house rules ethics, and fewer flipped tables.$$::text,
+      $$I help teens study for tests without all-nighters—spaced repetition, snacks, and honest phone boundaries.$$::text,
+      $$Fermentation hobbyist—kimchi confidence, salt ratios, and forgiving bubbles.$$::text,
+      $$Drone pilot capturing construction progress ethically—permits, privacy, and smooth gimbals.$$::text,
+      $$Mindful parenting mistakes in HD—I apologize, repair, and laugh at spilled milk cinematically.$$::text,
+      $$I translate museum labels into friend-talk and point out the best benches.$$::text,
+      $$Swim instructor for adults scared of water—goggles, breath, and celebrating float.$$::text,
+      $$Coffee-and-code mornings: refactors, flaky tests, and the blameless retrospective.$$::text,
+      $$Vintage camera repair vibes—light seals, shutter sounds, and film choices that flatter skin.$$::text,
+      $$Nutrition student comparing protein myths to cafeteria trays—evidence, memes, and fiber.$$::text,
+      $$I choreograph flash mobs for charities—permits, rehearsals, and joy logistics.$$::text,
+      $$Storm chaser safety nerd—radar basics, exit plans, and respecting locals.$$::text,
+      $$Speech therapist sharing toddler sound games parents can do in traffic.$$::text,
+      $$I design bold nails for short budgets—press-on tricks, cuticle care, and dopamine colors.$$::text,
+      $$Urban forager with lawyer-approved disclaimers—identification, ethics, and recipes.$$::text,
+      $$Pilates instructor for people who thought Pilates was nap time—core wakes up.$$::text,
+      $$I help couples plan tiny weddings with big feelings—timelines, vendors, and peace.$$::text,
+      $$Indie author documenting drafting sprints, rejection letters, and joy edits.$$::text,
+      $$Roller derby referee explaining penalties without yelling—okay, minimal yelling.$$::text,
+      $$Soldering beginner teaching LED kits with smoke stories and triumph.$$::text,
+      $$I coach founders to pitch in plain English—slides, nerves, and the pause before price.$$::text,
+      $$Wildflower gardener counting pollinators like sports scores.$$::text,
+      $$Triathlon swim leg specialist—open-water panic plans and sighting that works.$$::text,
+      $$Voice-over artist with a closet studio: pop filters, mouth clicks, and client notes decoded.$$::text,
+      $$I meal-prep for neuro spicy brains—same food Mondays, novelty Fridays.$$::text,
+      $$Birding by ear in cities—traffic hum versus chickadee, patience wins.$$::text,
+      $$Sign-language enthusiast bridging ASL basics for hospitality workers.$$::text,
+      $$Macrame revivalist—knot therapy, plant hangers, and wrist stretches.$$::text,
+      $$I teach gratitude journaling without toxic positivity—honest lines, soft goals.$$::text,
+      $$eBike commuter comparing safety gear like a nerd who survived rain.$$::text,
+      $$Figure skater off-ice conditioning tips—ankles, artistry, ice dreams.$$::text,
+      $$I host swap-meets for kids clothes—we measure, trade, and reduce landfill guilt.$$::text,
+      $$Hardware hacker building silly robots that wave back.$$::text,
+      $$Doula-in-training sharing birth bag lists, partner scripts, and rest.$$::text,
+      $$Jazz pianist teaching voicings for singers who fear theory.$$::text,
+      $$I review ergonomic chairs like they are sports cars—lumbar, arms, drama.$$::text,
+      $$Scuba beginner vlogger—equalization drama, buoyancy humor, reef respect.$$::text,
+      $$Kindergarten assistant with circle-time songs that also work on adults.$$::text,
+      $$I test budget lighting for creators—softbox science and shadow moods.$$::text
+    ]::text[]
+  ) WITH ORDINALITY AS u(txt, ord)
+),
+numbered AS (
+  SELECT id, row_number() OVER (ORDER BY id) AS rn
+  FROM influencers
+)
+UPDATE influencers i
+SET
+  bio = bios.bio_text,
+  updated_at = now()
+FROM numbered n
+JOIN bios ON bios.rn = n.rn
+WHERE i.id = n.id
+  AND bios.rn <= 100;

@@ -33,6 +33,7 @@ import { useAuthContext } from '../hooks/useAuth'
 import { useAdminAuth } from '../lib/adminAuthProvider'
 import { CategoriesTab } from './CategoriesTab'
 import { VideoManagement } from './admin/VideoManagement'
+import { CertifiedCreatorManagement } from './admin/CertifiedCreatorManagement'
 import { PermissionDebugPanel } from './PermissionDebugPanel'
 import { ErrorBoundary } from './ErrorBoundary'
 import { SessionDiagnostics } from './SessionDiagnostics'
@@ -1453,6 +1454,7 @@ export function AdminDashboard() {
     { id: 'categories', name: '分类管理', icon: Tag, component: CategoriesTab },
     { id: 'tasks', name: '任务管理', icon: Calendar, component: TasksTab },
     { id: 'videos', name: '视频管理', icon: Play, component: VideoManagement },
+    { id: 'certified-creators', name: '认证达人', icon: UserCheck, component: CertifiedCreatorManagement },
     // 数据分析模块已隐藏
     // { id: 'analytics', name: '数据分析', icon: TrendingUp, component: AnalyticsTab },
     // 系统设置模块已隐藏
